@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Background grid -->
+  <rect width="400" height="300" fill="#e8e8e8"/>
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#d4d4d4" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="url(#grid)"/>
+
+  <!-- Coil body (vertical fins) -->
+  <rect x="140" y="60" width="120" height="180" rx="4" fill="none" stroke="#3a3f50" stroke-width="2"/>
+  <line x1="155" y1="60" x2="155" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="170" y1="60" x2="170" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="185" y1="60" x2="185" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="200" y1="60" x2="200" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="215" y1="60" x2="215" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="230" y1="60" x2="230" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="245" y1="60" x2="245" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+
+  <!-- Inlet pipe (left) -->
+  <line x1="60" y1="110" x2="140" y2="110" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="130" x2="140" y2="130" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="110" x2="60" y2="130" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Outlet pipe (right) -->
+  <line x1="260" y1="180" x2="340" y2="180" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="260" y1="200" x2="340" y2="200" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="340" y1="180" x2="340" y2="200" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Pump symbol (circle with triangle) on inlet -->
+  <circle cx="80" cy="120" r="15" fill="none" stroke="#3a3f50" stroke-width="2"/>
+  <polygon points="72,112 92,120 72,128" fill="none" stroke="#3a3f50" stroke-width="2"/>
+
+  <!-- Flow arrows -->
+  <polygon points="115,115 105,110 105,120" fill="#3a3f50"/>
+  <polygon points="315,185 325,190 315,195" fill="#3a3f50"/>
+</svg>

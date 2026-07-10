@@ -1,0 +1,72 @@
+/*
+ * Design-Tokens — Güntner CI gemäß CLAUDE.md §"Visual Identity"
+ *
+ * Drei Perspektiven (Technischer Weg / Anwendersicht / Standort) bekommen je
+ * eine Akzentfarbe. Der aktive Wert wird per [data-perspective="..."] auf der
+ * Wurzel gesetzt (siehe layouts/default.vue), sodass eine globale CSS-Transition
+ * den Mode-Wechsel app-weit animiert.
+ */
+
+:root {
+  /* Brand */
+  --c-primary: #003865;            /* Güntner Navy */
+  --c-process: #0078BE;            /* Process Blue */
+  --c-site:    #5B8C5A;            /* Site Green */
+
+  /* Aktive Akzentfarbe — wird je Perspektive überschrieben */
+  --c-accent: var(--c-process);
+
+  /* Neutrals */
+  --c-bg:            #ffffff;
+  --c-surface:       #ffffff;
+  --c-surface-muted: #F5F4F0;      /* warm grey */
+  --c-text:          #1A1F2A;
+  --c-text-muted:    #5B6470;
+  --c-border:        #E2E5EA;
+  --c-error:         #B33A3A;
+  --c-warning:       #C57B00;
+  --c-success:       #2E7D4F;
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  /* Sonstiges */
+  --radius: 6px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+
+  /* Typografie — DM Sans / DM Mono laut CLAUDE.md.
+     Stack auf System-Fonts, bis WebFonts eingebunden sind. */
+  --font-ui:   'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* App-weite Transition für Perspective-Wechsel */
+  --transition-accent: color 240ms ease, border-color 240ms ease, background-color 240ms ease;
+}
+
+[data-perspective='technical']   { --c-accent: var(--c-primary); }
+[data-perspective='application'] { --c-accent: var(--c-process); }
+[data-perspective='location']    { --c-accent: var(--c-site); }
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-ui);
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--c-text);
+  background: var(--c-bg);
+}
+
+body { transition: var(--transition-accent); }
+
+code, pre, .mono { font-family: var(--font-mono); }

@@ -1,0 +1,7 @@
+Starting the app
+
+npm start
+
+ npm run list-dms         # bunte Tabelle der 148 DMS-Docs mit Klassifikation und ★
+  npm run discover-properties   # 20 Property-Kandidaten (cached)
+  npm run smoke            # 3 Endpoints anpingen

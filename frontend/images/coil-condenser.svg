@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Background grid -->
+  <rect width="400" height="300" fill="#e8e8e8"/>
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#d4d4d4" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="url(#grid)"/>
+
+  <!-- Coil body (vertical fins) -->
+  <rect x="140" y="60" width="120" height="180" rx="4" fill="none" stroke="#3a3f50" stroke-width="2"/>
+  <line x1="155" y1="60" x2="155" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="170" y1="60" x2="170" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="185" y1="60" x2="185" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="200" y1="60" x2="200" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="215" y1="60" x2="215" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="230" y1="60" x2="230" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="245" y1="60" x2="245" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+
+  <!-- Inlet pipe (top right - gas in) -->
+  <line x1="260" y1="90" x2="340" y2="90" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="260" y1="110" x2="340" y2="110" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="340" y1="90" x2="340" y2="110" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Outlet pipe (bottom left - liquid out) -->
+  <line x1="60" y1="200" x2="140" y2="200" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="220" x2="140" y2="220" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="200" x2="60" y2="220" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Fan symbol (right bottom) -->
+  <circle cx="320" cy="180" r="22" fill="none" stroke="#3a3f50" stroke-width="2"/>
+  <path d="M320,158 Q333,180 320,180 Q307,180 320,158Z" fill="#3a3f50" opacity="0.3"/>
+  <path d="M320,202 Q307,180 320,180 Q333,180 320,202Z" fill="#3a3f50" opacity="0.3"/>
+  <path d="M298,180 Q320,167 320,180 Q320,193 298,180Z" fill="#3a3f50" opacity="0.3"/>
+  <path d="M342,180 Q320,193 320,180 Q320,167 342,180Z" fill="#3a3f50" opacity="0.3"/>
+
+  <!-- Flow arrows -->
+  <polygon points="285,95 275,100 285,105" fill="#3a3f50"/>
+  <polygon points="85,205 75,210 85,215" fill="#3a3f50"/>
+</svg>

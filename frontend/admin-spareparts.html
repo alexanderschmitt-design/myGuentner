@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — Spare Part Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin-catalog.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active=""></header>
+
+  <!-- ===== ADMIN LAYOUT ===== -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-title">Administration</div>
+      <a class="admin-nav-item" href="admin.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Feature Flags
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        User Management
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Layout &amp; Theme
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">Catalog</div>
+      <a class="admin-nav-item" href="admin-products.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Product Management
+      </a>
+      <a class="admin-nav-item active" href="admin-spareparts.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Spare Part Management
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">AI &amp; Knowledge</div>
+      <a class="admin-nav-item" href="admin-documents.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        RAG Management
+      </a>
+      <a class="admin-nav-item" href="admin-rag-settings.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        RAG Settings
+      </a>
+      <a class="admin-nav-item" href="admin-rag-test.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2v7.31"/><path d="M14 9.3V2"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 11-4 0"/><line x1="12" y1="14" x2="12.01" y2="14"/></svg>
+        RAG Test
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">System</div>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Activity Log
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        System Info
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <!-- LIST VIEW -->
+      <div id="spare-list-view">
+        <div class="admin-header">
+          <h1>Spare Part Management</h1>
+          <p>Manage spare parts catalog, compatibility, pricing and stock levels.</p>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="catalog-toolbar">
+          <div class="catalog-toolbar-left">
+            <div class="catalog-search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Search spare parts...">
+            </div>
+            <select class="catalog-filter" id="filter-category">
+              <option value="">All Categories</option>
+              <option value="Fan">Fans</option>
+              <option value="Heater">Heaters</option>
+            </select>
+            <select class="catalog-filter" id="filter-itemcode">
+              <option value="">All Product Lines</option>
+            </select>
+            <select class="catalog-filter" id="filter-diameter">
+              <option value="">All Diameters</option>
+            </select>
+            <select class="catalog-filter" id="filter-ec">
+              <option value="">All Technology</option>
+              <option value="Yes">EC Technology</option>
+              <option value="No">AC Technology</option>
+            </select>
+            <select class="catalog-filter" id="filter-airflow">
+              <option value="">All Air Flow</option>
+            </select>
+            <select class="catalog-filter" id="filter-mounting">
+              <option value="">All Mounting</option>
+            </select>
+            <select class="catalog-filter" id="filter-power">
+              <option value="">All Power</option>
+            </select>
+            <button class="catalog-reset-btn" id="btn-reset-filters">&times; Reset filters</button>
+          </div>
+          <div class="catalog-toolbar-right">
+            <button class="btn btn-outline catalog-export-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export
+            </button>
+            <button class="btn btn-primary" id="btn-add-spare">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Add Spare Part
+            </button>
+          </div>
+        </div>
+
+        <!-- Stats Row -->
+        <div class="catalog-stats">
+          <div class="catalog-stat"><span class="catalog-stat-value">0</span><span class="catalog-stat-label">Total Parts</span></div>
+          <div class="catalog-stat"><span class="catalog-stat-value">0</span><span class="catalog-stat-label">Fans</span></div>
+          <div class="catalog-stat"><span class="catalog-stat-value">0</span><span class="catalog-stat-label">Heaters</span></div>
+          <div class="catalog-stat"><span class="catalog-stat-value">0</span><span class="catalog-stat-label">Product Lines</span></div>
+        </div>
+
+        <!-- Table -->
+        <div class="catalog-table-wrap">
+          <table class="catalog-table">
+            <thead>
+              <tr>
+                <th><input type="checkbox" class="catalog-check-all"></th>
+                <th>Part Number</th>
+                <th>Description</th>
+                <th>Category</th>
+                <th>Compatible Products</th>
+                <th>Specs</th>
+                <th>Price (EUR)</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><a href="#" class="catalog-product-link sp-link" data-spare="1">SP-FAN-EC-500</a></td>
+                <td>EC Fan Motor 500mm, 230V/1ph</td>
+                <td><span class="catalog-badge catalog-badge--fan">Fan Motor</span></td>
+                <td>GACC, GACV, ADHN</td>
+                <td>156</td>
+                <td>485.00</td>
+                <td><span class="catalog-status catalog-status--active">In Stock</span></td>
+                <td><button class="catalog-action-btn sp-edit" data-spare="1" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><a href="#" class="catalog-product-link sp-link" data-spare="2">SP-CTRL-GMM-EC</a></td>
+                <td>Güntner Motor Management EC Controller</td>
+                <td><span class="catalog-badge catalog-badge--ctrl">Controller</span></td>
+                <td>All EC series</td>
+                <td>42</td>
+                <td>1,250.00</td>
+                <td><span class="catalog-status catalog-status--active">In Stock</span></td>
+                <td><button class="catalog-action-btn sp-edit" data-spare="2" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><a href="#" class="catalog-product-link sp-link" data-spare="3">SP-HTR-DEF-2000</a></td>
+                <td>Defrost Heater Element 2000W, 230V</td>
+                <td><span class="catalog-badge catalog-badge--htr">Heater</span></td>
+                <td>GACC, GFH</td>
+                <td>8</td>
+                <td>145.00</td>
+                <td><span class="catalog-status catalog-status--low">Low Stock</span></td>
+                <td><button class="catalog-action-btn sp-edit" data-spare="3" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><a href="#" class="catalog-product-link sp-link" data-spare="4">SP-VLV-EXP-R744</a></td>
+                <td>Electronic Expansion Valve CO₂ (R744)</td>
+                <td><span class="catalog-badge catalog-badge--vlv">Valve</span></td>
+                <td>GACC (CO₂ series)</td>
+                <td>0</td>
+                <td>890.00</td>
+                <td><span class="catalog-status catalog-status--out">Out of Stock</span></td>
+                <td><button class="catalog-action-btn sp-edit" data-spare="4" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td>
+              </tr>
+              <tr>
+                <td><input type="checkbox"></td>
+                <td><a href="#" class="catalog-product-link sp-link" data-spare="5">SP-SEAL-TRAY-01</a></td>
+                <td>Drip Tray Gasket Seal, universal fit</td>
+                <td><span class="catalog-badge catalog-badge--seal">Gasket</span></td>
+                <td>All series</td>
+                <td>340</td>
+                <td>12.50</td>
+                <td><span class="catalog-status catalog-status--active">In Stock</span></td>
+                <td><button class="catalog-action-btn sp-edit" data-spare="5" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="catalog-pagination">
+          <span class="catalog-pagination-info">Showing 1–5 of 1,284 parts</span>
+          <div class="catalog-pagination-btns">
+            <button class="catalog-page-btn" disabled>&lsaquo;</button>
+            <button class="catalog-page-btn active">1</button>
+            <button class="catalog-page-btn">2</button>
+            <button class="catalog-page-btn">3</button>
+            <button class="catalog-page-btn">...</button>
+            <button class="catalog-page-btn">257</button>
+            <button class="catalog-page-btn">&rsaquo;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- DETAIL VIEW -->
+      <div id="spare-detail-view" style="display:none;">
+        <div class="catalog-detail-header">
+          <button class="btn btn-outline" id="btn-back-spare-list">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back to list
+          </button>
+          <div class="catalog-detail-actions">
+            <button class="btn btn-outline">Duplicate</button>
+            <button class="btn btn-outline" style="color:#c0392b; border-color:#c0392b;">Delete</button>
+            <button class="btn btn-primary">Save Spare Part</button>
+          </div>
+        </div>
+
+        <div class="catalog-detail-grid">
+
+          <!-- General -->
+          <div class="catalog-detail-card catalog-detail-card--full">
+            <h3 class="catalog-detail-card-title">General Information</h3>
+            <div class="catalog-detail-fields cols-2">
+              <div class="form-group"><label>Part Number</label><input type="text" class="catalog-input" value="SP-FAN-EC-500"></div>
+              <div class="form-group"><label>Description</label><input type="text" class="catalog-input" value="EC Fan Motor 500mm, 230V/1ph"></div>
+              <div class="form-group"><label>Type</label>
+                <select class="catalog-input"><option>Fan Motor</option><option>Fan Blade</option><option>Controller</option><option>Valve</option><option>Heater</option><option>Sensor</option><option>Gasket / Seal</option><option>Filter</option></select>
+              </div>
+              <div class="form-group"><label>Manufacturer</label><input type="text" class="catalog-input" value="Güntner"></div>
+              <div class="form-group" style="grid-column:1/-1;"><label>Notes</label><textarea class="catalog-input" rows="2">Standard EC fan motor for 500mm fan ring. Compatible with GMM controller.</textarea></div>
+            </div>
+          </div>
+
+          <!-- Technical -->
+          <div class="catalog-detail-card">
+            <h3 class="catalog-detail-card-title">Technical Specifications</h3>
+            <div class="catalog-detail-fields">
+              <div class="form-group"><label>Voltage</label><input type="text" class="catalog-input" value="230V / 1ph / 50Hz"></div>
+              <div class="form-group"><label>Power (W)</label><input type="number" class="catalog-input" value="190"></div>
+              <div class="form-group"><label>Current (A)</label><input type="number" class="catalog-input" value="0.85"></div>
+              <div class="form-group"><label>Speed (RPM)</label><input type="number" class="catalog-input" value="1310"></div>
+              <div class="form-group"><label>Weight (kg)</label><input type="number" class="catalog-input" value="4.2"></div>
+              <div class="form-group"><label>IP Class</label><input type="text" class="catalog-input" value="IP54"></div>
+            </div>
+          </div>
+
+          <!-- Compatibility -->
+          <div class="catalog-detail-card">
+            <h3 class="catalog-detail-card-title">Compatibility</h3>
+            <div class="catalog-detail-fields">
+              <div class="form-group"><label>Compatible Series</label><input type="text" class="catalog-input" value="GACC, GACV, ADHN"></div>
+              <div class="form-group"><label>Replaces Part</label><input type="text" class="catalog-input" value="SP-FAN-AC-500 (legacy)"></div>
+              <div class="form-group"><label>Alternate Parts</label><input type="text" class="catalog-input" value="SP-FAN-EC-500-60 (60Hz variant)"></div>
+              <div class="form-group"><label>Required Accessories</label><input type="text" class="catalog-input" value="SP-FAN-RING-500, SP-FAN-GUARD-500"></div>
+            </div>
+          </div>
+
+          <!-- Pricing & Stock -->
+          <div class="catalog-detail-card">
+            <h3 class="catalog-detail-card-title">Pricing & Stock</h3>
+            <div class="catalog-detail-fields">
+              <div class="form-group"><label>List Price (EUR)</label><input type="number" class="catalog-input" value="485.00"></div>
+              <div class="form-group"><label>Stock Quantity</label><input type="number" class="catalog-input" value="156"></div>
+              <div class="form-group"><label>Reorder Level</label><input type="number" class="catalog-input" value="20"></div>
+              <div class="form-group"><label>Lead Time (days)</label><input type="number" class="catalog-input" value="14"></div>
+              <div class="form-group"><label>Warehouse Location</label><input type="text" class="catalog-input" value="WH-DE-01 / Rack B-14"></div>
+              <div class="form-group"><label>Status</label>
+                <select class="catalog-input"><option>In Stock</option><option>Low Stock</option><option>Out of Stock</option><option>Discontinued</option></select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* Spare Part Management — Data-driven list with pagination */
+    (function() {
+      var PAGE_SIZE = 20;
+      var currentPage = 1;
+      var allParts = [];
+      var filtered = [];
+      var listView = document.getElementById('spare-list-view');
+      var detailView = document.getElementById('spare-detail-view');
+      var tbody = document.querySelector('.catalog-table tbody');
+      var searchInput = listView.querySelector('.catalog-search input');
+      var filterCategory = document.getElementById('filter-category');
+      var filterItemcode = document.getElementById('filter-itemcode');
+      var filterDiameter = document.getElementById('filter-diameter');
+      var filterEc = document.getElementById('filter-ec');
+      var filterAirflow = document.getElementById('filter-airflow');
+      var filterMounting = document.getElementById('filter-mounting');
+      var filterPower = document.getElementById('filter-power');
+
+      /* Load database */
+      fetch('database/spareparts.json')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          allParts = data.parts || [];
+          buildFilterOptions();
+          applyFilters();
+        })
+        .catch(function() { console.warn('spareparts.json not found — using static table'); });
+
+      /* Build filter dropdowns from data */
+      function buildFilterOptions() {
+        var sets = { itemcode: {}, diameter: {}, airflow: {}, mounting: {}, power: {} };
+        allParts.forEach(function(p) {
+          if (p['Itemcode']) sets.itemcode[p['Itemcode']] = 1;
+          if (p['Diameter (mm)']) sets.diameter[p['Diameter (mm)']] = 1;
+          if (p['Air Flow Direction']) sets.airflow[p['Air Flow Direction']] = 1;
+          if (p['Mounting Type']) sets.mounting[p['Mounting Type']] = 1;
+          if (p['Power Connection']) sets.power[p['Power Connection']] = 1;
+        });
+        populateSelect(filterItemcode, sets.itemcode);
+        populateSelectNum(filterDiameter, sets.diameter, ' mm');
+        populateSelect(filterAirflow, sets.airflow);
+        populateSelect(filterMounting, sets.mounting);
+        populateSelect(filterPower, sets.power);
+      }
+
+      function populateSelect(sel, obj) {
+        if (!sel) return;
+        Object.keys(obj).sort().forEach(function(k) {
+          var o = document.createElement('option'); o.value = k; o.textContent = k; sel.appendChild(o);
+        });
+      }
+
+      function populateSelectNum(sel, obj, suffix) {
+        if (!sel) return;
+        Object.keys(obj).sort(function(a, b) { return Number(a) - Number(b); }).forEach(function(k) {
+          var o = document.createElement('option'); o.value = k; o.textContent = k + (suffix || ''); sel.appendChild(o);
+        });
+      }
+
+      /* Filtering */
+      function applyFilters() {
+        var q = searchInput ? searchInput.value.toLowerCase() : '';
+        var vCat = filterCategory ? filterCategory.value : '';
+        var vItem = filterItemcode ? filterItemcode.value : '';
+        var vDiam = filterDiameter ? filterDiameter.value : '';
+        var vEc = filterEc ? filterEc.value : '';
+        var vAir = filterAirflow ? filterAirflow.value : '';
+        var vMount = filterMounting ? filterMounting.value : '';
+        var vPow = filterPower ? filterPower.value : '';
+
+        filtered = allParts.filter(function(p) {
+          if (vCat && p.category !== vCat) return false;
+          if (vItem && p['Itemcode'] !== vItem) return false;
+          if (vDiam && String(p['Diameter (mm)']) !== vDiam) return false;
+          if (vEc && p['Ec Technology'] !== vEc) return false;
+          if (vAir && p['Air Flow Direction'] !== vAir) return false;
+          if (vMount && p['Mounting Type'] !== vMount) return false;
+          if (vPow && p['Power Connection'] !== vPow) return false;
+          if (q) {
+            var searchable = ((p['Item No'] || '') + ' ' + (p['Type'] || '') + ' ' + (p['Itemcode'] || '') + ' ' + (p.category || '')).toLowerCase();
+            if (searchable.indexOf(q) === -1) return false;
+          }
+          return true;
+        });
+        currentPage = 1;
+        render();
+      }
+
+      if (searchInput) searchInput.addEventListener('input', function() { applyFilters(); updateResetBtn(); });
+      var allFilters = [filterCategory, filterItemcode, filterDiameter, filterEc, filterAirflow, filterMounting, filterPower];
+      allFilters.forEach(function(sel) { if (sel) sel.addEventListener('change', function() { applyFilters(); updateResetBtn(); }); });
+
+      var resetBtn = document.getElementById('btn-reset-filters');
+      function updateResetBtn() {
+        var hasFilter = allFilters.some(function(s) { return s && s.value; }) || (searchInput && searchInput.value);
+        if (resetBtn) resetBtn.classList.toggle('visible', !!hasFilter);
+      }
+      if (resetBtn) resetBtn.addEventListener('click', function() {
+        allFilters.forEach(function(s) { if (s) s.value = ''; });
+        if (searchInput) searchInput.value = '';
+        applyFilters();
+        updateResetBtn();
+      });
+
+      /* Render */
+      function render() {
+        if (!tbody || allParts.length === 0) return;
+        var totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * PAGE_SIZE;
+        var page = filtered.slice(start, start + PAGE_SIZE);
+
+        /* Stats */
+        var stats = listView.querySelectorAll('.catalog-stat-value');
+        if (stats.length >= 4) {
+          stats[0].textContent = allParts.length.toLocaleString();
+          stats[1].textContent = allParts.filter(function(p) { return p.category === 'Fan'; }).length.toLocaleString();
+          stats[2].textContent = allParts.filter(function(p) { return p.category === 'Heater'; }).length.toLocaleString();
+          stats[3].textContent = new Set(allParts.map(function(p) { return p['Itemcode']; })).size.toLocaleString();
+        }
+
+        /* Table body */
+        tbody.innerHTML = '';
+        page.forEach(function(p) {
+          var tr = document.createElement('tr');
+          var price = p['spare part price 2026 '] || p['spare part price 2026'] || '—';
+          var isHeater = p.category === 'Heater';
+
+          // Type/category badge
+          var badgeCls = isHeater ? 'catalog-badge--htr' : 'catalog-badge--fan';
+          var badgeText = isHeater ? ('Heater · ' + (p['Heating Type'] || '')) : 'Fan · ' + (p['Itemcode'] || '');
+
+          // Compatible products column: heaters list ranges, fans show their itemcode
+          var compatible;
+          if (isHeater) {
+            var ranges = p['Compatible Model Ranges'] || [];
+            compatible = ranges.length <= 3
+              ? ranges.join(', ')
+              : ranges.slice(0, 3).join(', ') + ' +' + (ranges.length - 3);
+          } else {
+            compatible = p['Itemcode'] || '—';
+          }
+
+          // Spec column (used to be diameter for fans; show meaningful value per category)
+          var spec = isHeater
+            ? ((p['Heat Capacity (W)'] || '—') + ' W / ' + (p['Heat Voltage (V)'] || '—') + ' V')
+            : ((p['Diameter (mm)'] || '—') + ' mm · ' + (p['Ec Technology'] === 'Yes' ? 'EC' : 'AC'));
+
+          tr.innerHTML =
+            '<td><input type="checkbox"></td>' +
+            '<td><a href="#" class="catalog-product-link sp-link">' + esc(p['Item No'] || '') + '</a></td>' +
+            '<td>' + esc(p['Type'] || '') + '</td>' +
+            '<td><span class="catalog-badge ' + badgeCls + '">' + esc(badgeText) + '</span></td>' +
+            '<td>' + esc(compatible) + '</td>' +
+            '<td>' + esc(spec) + '</td>' +
+            '<td>' + (typeof price === 'number' ? price.toLocaleString('de-DE', {minimumFractionDigits: 2}) : price) + '</td>' +
+            '<td><span class="catalog-status catalog-status--active">Active</span></td>' +
+            '<td><button class="catalog-action-btn sp-edit" title="Edit"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button></td>';
+
+          tr.querySelector('.sp-link').addEventListener('click', function(e) { e.preventDefault(); openDetail(p); });
+          tr.querySelector('.sp-edit').addEventListener('click', function() { openDetail(p); });
+          tbody.appendChild(tr);
+        });
+
+        renderPagination(totalPages);
+      }
+
+      function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+      /* Pagination */
+      function renderPagination(totalPages) {
+        var wrap = listView.querySelector('.catalog-pagination');
+        if (!wrap) return;
+        var info = wrap.querySelector('.catalog-pagination-info');
+        var btns = wrap.querySelector('.catalog-pagination-btns');
+        var start = (currentPage - 1) * PAGE_SIZE + 1;
+        var end = Math.min(currentPage * PAGE_SIZE, filtered.length);
+        info.textContent = 'Showing ' + start + '–' + end + ' of ' + filtered.length.toLocaleString() + ' parts';
+
+        btns.innerHTML = '';
+        var prev = document.createElement('button');
+        prev.className = 'catalog-page-btn'; prev.innerHTML = '&lsaquo;'; prev.disabled = currentPage <= 1;
+        prev.addEventListener('click', function() { if (currentPage > 1) { currentPage--; render(); } });
+        btns.appendChild(prev);
+
+        var pages = getPageNumbers(currentPage, totalPages);
+        pages.forEach(function(pg) {
+          var btn = document.createElement('button');
+          btn.className = 'catalog-page-btn' + (pg === currentPage ? ' active' : '');
+          if (pg === '...') { btn.textContent = '...'; btn.disabled = true; }
+          else { btn.textContent = pg; btn.addEventListener('click', function() { currentPage = pg; render(); }); }
+          btns.appendChild(btn);
+        });
+
+        var next = document.createElement('button');
+        next.className = 'catalog-page-btn'; next.innerHTML = '&rsaquo;'; next.disabled = currentPage >= totalPages;
+        next.addEventListener('click', function() { if (currentPage < totalPages) { currentPage++; render(); } });
+        btns.appendChild(next);
+      }
+
+      function getPageNumbers(current, total) {
+        if (total <= 7) { var r = []; for (var i = 1; i <= total; i++) r.push(i); return r; }
+        var pages = [1];
+        if (current > 3) pages.push('...');
+        for (var j = Math.max(2, current - 1); j <= Math.min(total - 1, current + 1); j++) pages.push(j);
+        if (current < total - 2) pages.push('...');
+        pages.push(total);
+        return pages;
+      }
+
+      /* Detail view */
+      function openDetail(p) {
+        var map = {
+          'Part Number': p['Item No'], 'Description': p['Type'],
+          'Type': p['Itemcode'], 'Manufacturer': 'Güntner',
+          'Voltage': p['Power Connection'] || '', 'Power (W)': p['Nominal Capacity (kW)'] ? (p['Nominal Capacity (kW)'] * 1000) : '',
+          'Current (A)': p['Nominal Current (A)'] || '', 'Speed (RPM)': p['Min-1'] || '',
+          'Weight (kg)': '', 'IP Class': '',
+          'Compatible Series': p['Itemcode'] || '', 'List Price (EUR)': p['spare part price 2026 '] || p['spare part price 2026'] || '',
+          'Stock Quantity': '', 'Status': 'In Stock'
+        };
+        detailView.querySelectorAll('.form-group').forEach(function(fg) {
+          var label = fg.querySelector('label');
+          var input = fg.querySelector('.catalog-input');
+          if (label && input && map[label.textContent.trim()] !== undefined) {
+            var val = map[label.textContent.trim()];
+            if (input.tagName === 'SELECT') {
+              for (var o = 0; o < input.options.length; o++) {
+                if (input.options[o].textContent === String(val)) { input.selectedIndex = o; break; }
+              }
+            } else { input.value = val != null ? val : ''; }
+          }
+        });
+        listView.style.display = 'none'; detailView.style.display = 'block'; window.scrollTo(0, 0);
+      }
+
+      function showList() { detailView.style.display = 'none'; listView.style.display = 'block'; }
+      var backBtn = document.getElementById('btn-back-spare-list');
+      var addBtn = document.getElementById('btn-add-spare');
+      if (backBtn) backBtn.addEventListener('click', showList);
+      if (addBtn) addBtn.addEventListener('click', function() {
+        detailView.querySelectorAll('.catalog-input').forEach(function(i) { i.value = ''; });
+        listView.style.display = 'none'; detailView.style.display = 'block'; window.scrollTo(0, 0);
+      });
+    })();
+  </script>
+  <script src="main.js"></script>
+  <script src="learn-mode.js"></script>
+  <script src="site-header.js"></script>
+</body>
+</html>

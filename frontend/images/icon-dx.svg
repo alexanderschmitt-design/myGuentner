@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="none">
+  <!-- Outer circle -->
+  <circle cx="25" cy="25" r="23.5" stroke="currentColor" stroke-width="1.2"/>
+
+  <!-- Snowflake: 6 arms from center (22,18) -->
+  <!-- Vertical arm -->
+  <line x1="25" y1="6" x2="25" y2="30" stroke="currentColor" stroke-width="1.1"/>
+  <!-- 60° arms -->
+  <line x1="25" y1="18" x2="14.6" y2="6" stroke="currentColor" stroke-width="1.1"/>
+  <line x1="25" y1="18" x2="35.4" y2="6" stroke="currentColor" stroke-width="1.1"/>
+  <line x1="25" y1="18" x2="14.6" y2="30" stroke="currentColor" stroke-width="1.1"/>
+  <line x1="25" y1="18" x2="35.4" y2="30" stroke="currentColor" stroke-width="1.1"/>
+  <!-- Horizontal arm -->
+  <line x1="13" y1="18" x2="37" y2="18" stroke="currentColor" stroke-width="1.1"/>
+
+  <!-- Branch tips: small diamonds -->
+  <polygon points="25,5 23.5,6.5 25,8 26.5,6.5" fill="currentColor"/>
+  <polygon points="25,29 23.5,30.5 25,32 26.5,30.5" fill="currentColor"/>
+  <polygon points="12,18 13.5,16.5 15,18 13.5,19.5" fill="currentColor"/>
+  <polygon points="35,18 36.5,16.5 38,18 36.5,19.5" fill="currentColor"/>
+  <polygon points="13.6,5 15.1,6.5 13.6,8 12.1,6.5" fill="currentColor"/>
+  <polygon points="36.4,5 37.9,6.5 36.4,8 34.9,6.5" fill="currentColor"/>
+  <polygon points="13.6,29 15.1,30.5 13.6,32 12.1,30.5" fill="currentColor"/>
+  <polygon points="36.4,29 37.9,30.5 36.4,32 34.9,30.5" fill="currentColor"/>
+
+  <!-- Small branches on vertical arm -->
+  <line x1="25" y1="12" x2="21" y2="9" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="25" y1="12" x2="29" y2="9" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="25" y1="24" x2="21" y2="27" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="25" y1="24" x2="29" y2="27" stroke="currentColor" stroke-width="0.8"/>
+
+  <!-- Small branches on horizontal arm -->
+  <line x1="19" y1="18" x2="16" y2="14" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="19" y1="18" x2="16" y2="22" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="31" y1="18" x2="34" y2="14" stroke="currentColor" stroke-width="0.8"/>
+  <line x1="31" y1="18" x2="34" y2="22" stroke="currentColor" stroke-width="0.8"/>
+
+  <!-- DX text -->
+  <text x="25" y="44" text-anchor="middle" fill="currentColor" font-family="Source Sans Pro, Arial, sans-serif" font-size="10" font-weight="700" letter-spacing="2">DX</text>
+</svg>

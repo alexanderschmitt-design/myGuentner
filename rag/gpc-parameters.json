@@ -1,0 +1,3767 @@
+{
+  "source": "UnitInputData_Documentation_2026.1.pdf",
+  "version": "GPC.EU Customer 2026.1-310",
+  "generated": "2026-05-22T05:34:37.691Z",
+  "count": 222,
+  "productCategoryNames": {
+    "0": "DX evaporator (Cold)",
+    "1": "Flooded evaporator (Cold)",
+    "2": "Air cooler / brine (Cold)",
+    "3": "Condenser (Warm)",
+    "4": "Brine cooler / dry cooler (Warm)",
+    "5": "Sub cooler (Warm)",
+    "6": "Oil cooler (Warm)",
+    "7": "Gas cooler (Warm)",
+    "10": "CO2 gas cooler (Warm)"
+  },
+  "parameters": [
+    {
+      "seq": 1,
+      "name": "AdjustableFlapWithDrive",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Indicates whether a louvre, also known as a defrost flap made of galvanized steel and with drive is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the louvre is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the louvre is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 2,
+      "name": "AirBlowOffType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Specifies the air blow direction (only relevant for Downblow Accessory)",
+      "enums": [
+        {
+          "value": "0",
+          "description": "no restrictions"
+        },
+        {
+          "value": "1",
+          "description": "vertically up"
+        },
+        {
+          "value": "2",
+          "description": "horizontally"
+        },
+        {
+          "value": "345",
+          "description": "° down"
+        },
+        {
+          "value": "4",
+          "description": "vertically down"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 3,
+      "name": "AirDuct",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Indicates whether an air duct is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the air duct is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the air duct is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 4,
+      "name": "AirHoseConnection",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Indicates whether a air sock connection without Güntner Streamer is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the air sock connection is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the air sock connection is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 5,
+      "name": "AirHoseConnectionInclStreamer",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Indicates whether a air sock connection with Güntner Streamer is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the air sock connection is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the air sock connection is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 6,
+      "name": "AirHumidityInputMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines the input mode for the air humidity.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "MODE_AUTO Relative humidity will be calculated automatically"
+        },
+        {
+          "value": "1",
+          "description": "MODE_REL_HUMIDITY AirRelHumidity must be set"
+        },
+        {
+          "value": "2",
+          "description": "MODE_WET_BULB_TEMP AirWetBulbTemp must be set"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 7,
+      "name": "AirPressure",
+      "unit": "mbar",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the air pressure at the inlet.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 8,
+      "name": "AirPressureInputMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines the input mode for the air pressure. Accordingly, either the AirPressure or Altitude input parameter is relevant/used.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "to define the air pressure itself"
+        },
+        {
+          "value": "1",
+          "description": "to define the geodetic height/altitude = height above sea level"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 9,
+      "name": "AirRelHumidity",
+      "unit": "Percent",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the relative air humidity at the inlet.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 10,
+      "name": "AirTemperature",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the air temperature. Which air temperature (inlet, room as average between inlet/outlet, room as LMTD) is defined, depends on the AirTemperatureMode.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 11,
+      "name": "AirTemperatureMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines the input mode for the air temperature.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "to define the air inlet temperature."
+        },
+        {
+          "value": "1",
+          "description": "to define the room temperature of the air as mean value between inlet and outlet"
+        },
+        {
+          "value": "2",
+          "description": "to define the room temperature of the air as LMTD, with room temperature (LMTD) = t_0 + LMTD (was only temporarily allowed for"
+        },
+        {
+          "value": "P",
+          "description": "roductCategory 1 for Guntner America and until April 2010) [???]"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 12,
+      "name": "AirVelocityClass",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Defines the air velocity class (only relevant if UnitSelectionMode = 0 (unit search mode) and ProductCategory = 0,1,2 (evaporator or aircooler (brine)).",
+      "enums": [
+        {
+          "value": "0",
+          "description": "no restrictions (mapped to AIR_VELOCITY_CLASS_ALL)"
+        },
+        {
+          "value": "1",
+          "description": "standard air velocity"
+        },
+        {
+          "value": "2",
+          "description": "high air velocity (only suitable for low temperatures)"
+        },
+        {
+          "value": "3",
+          "description": "low air velocity (e.g. used for processing rooms)"
+        }
+      ],
+      "productCategories": [
+        0,
+        1,
+        2
+      ]
+    },
+    {
+      "seq": 13,
+      "name": "AirWetBulbTemp",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the wet bulb temperature = lowest temperature that can be achieved by evaporation",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 14,
+      "name": "Altitude",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the height above sea level = geodetic height/altitude.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 15,
+      "name": "AxitopFans",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a diffuser for the fans, also known as a Axitop, is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the diffuser is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the diffuser is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 16,
+      "name": "Ball_Valve_Half_For_Ventilation",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Indicates whether a ball valve 1/2” for ventilation/drain is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the ball valve is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the ball valve is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 17,
+      "name": "BaseUnitFunction",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Startpage",
+      "description": "Defines the needed product category",
+      "enums": [
+        {
+          "value": "0",
+          "description": "DX evaporator (Cold Indoor)"
+        },
+        {
+          "value": "1",
+          "description": "Flooded evaporator (Cold Indoor)"
+        },
+        {
+          "value": "10",
+          "description": "DX evaporator heat collector (Heat Collectors, Outdoor)"
+        },
+        {
+          "value": "2",
+          "description": "Flooded evaporator (Cold Indoor)"
+        },
+        {
+          "value": "3",
+          "description": "Condenser (Warm Outdoor)"
+        },
+        {
+          "value": "4",
+          "description": "Brine cooler (Warm Outdoor)"
+        },
+        {
+          "value": "5",
+          "description": "Sub cooler (Warm Outdoor)"
+        },
+        {
+          "value": "6",
+          "description": "Oil cooler (Warm Outdoor)"
+        },
+        {
+          "value": "7",
+          "description": "Gas cooler (Warm Outdoor)"
+        },
+        {
+          "value": "8",
+          "description": "One phase air cooler heat collector (Heat Collectors, Outdoor)"
+        },
+        {
+          "value": "9",
+          "description": "Flooded evaporator heat collector (Heat Collectors, Outdoor)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 18,
+      "name": "BaseUnitID",
+      "unit": null,
+      "datatype": "Int64",
+      "group": "Recalculation",
+      "description": "Defines the BaseUnitID, which is needed only for the recalculation of KDB units (UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the output of a given selection.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 19,
+      "name": "BrineDefrostConcentration",
+      "unit": "VolPercent",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "Defines the concentration of the warm brine defrost fluid.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 20,
+      "name": "BrineDefrostFluid",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the fluid used for the warm brine defrost accessory. Relevant only, if accessory “warm brine defrost” is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 21,
+      "name": "BrineDefrostPressuredrop",
+      "unit": "bar",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "Defines the pressure drop of the warm brine defrost fluid. Relevant only, if accessory “warm brine defrost” is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 22,
+      "name": "CanvasSleeves",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether canvas sleeves are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the canvas sleeves are not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the canvas sleeves are definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 23,
+      "name": "CapacitySensibleHeatOnly",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Additional flag for the thermal capacity, whether it defines only the sensible heat. Used only for America. Sensible heat refers to the thermal energy that is added to or removed from a system without a phase transition taking place. It is the heat that directly influences the temperature of a substance without changing its physical state. The formula \"\"Sensible heat = total power - heat of condensation\"\" shows how to calculate sensible heat by subtracting the total power of a system from the heat of condensation.",
+      "enums": [
+        {
+          "value": "FALSE",
+          "description": "ThermalCapacity defines the completely needed thermal capacity."
+        },
+        {
+          "value": "TRUE",
+          "description": "ThermalCapacity defines the sensible heat only."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 24,
+      "name": "CasingAndDoubleTray",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a casing and a double tray made of stainless steel are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that they are not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that they are definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 25,
+      "name": "CasingAndFullCoverageDoubleTraySS",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a casing and a full coverage double tray made of stainless steel are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that they are not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that they are definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 26,
+      "name": "CasingAndHygienicDoubleTraySS",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a casing and a hygienic double tray made of stainless steel are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that they are not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that they are definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 27,
+      "name": "CasingAndSimplyTray",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a casing and a simple tray made of stainless steel are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that they are not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that they are definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 28,
+      "name": "ClimaCoilOption",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines whether a climatization coil is selected, which is needed only for the recalculation of TDB units (UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the output of a given selection.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 29,
+      "name": "ClimatizationCoil",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a climatization coil is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 30,
+      "name": "Coil_Defender",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a Coil Defender is required as an accessory, which means that the heat exchanger incl. connection system is fully powder-coated to extend the service life of the product thanks to optimum corrosion protection.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 31,
+      "name": "CoilDefrostType",
+      "unit": null,
+      "datatype": "Int64",
+      "group": "Unknown",
+      "description": "Defines which specific type of coil defrost is selected, which is needed only for the recalculation of TDB units (UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the output of a given selection.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 32,
+      "name": "ConceptName",
+      "unit": null,
+      "datatype": "String",
+      "group": "Recalculation",
+      "description": "Defines the ConceptName of the unit, which is needed for the recalculation of KDB units (UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the output of a given selection.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 33,
+      "name": "CondensatePump",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a condensate pump is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 34,
+      "name": "ConnectionAndBowCovering",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a connection and bow covering is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 35,
+      "name": "ConnectionRoof",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a header cover, also known as a connection roof, is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 36,
+      "name": "ConnectionSystem",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Unknown",
+      "description": "Indicates whether a thread or flange connection is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 37,
+      "name": "ConnectionType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines which type of thread or flange connection is required as an accessory, if it is required via ConnectionSystem = true.",
+      "enums": [
+        {
+          "value": "3",
+          "description": "Lapped flanges"
+        },
+        {
+          "value": "4",
+          "description": "Welding neck flanges"
+        },
+        {
+          "value": "5",
+          "description": "Thread connection"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 38,
+      "name": "ContainerTransportRail",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether guide rails for container transport are required as an accessory",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 39,
+      "name": "ControllerAllocation",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "If a switch cabinet or terminal box is selected, this defines the allocation of the controller to the unit:",
+      "enums": [
+        {
+          "value": "1",
+          "description": "Allocation is set automatically"
+        },
+        {
+          "value": "3",
+          "description": "One controller per unit"
+        },
+        {
+          "value": "4",
+          "description": "One controller per fluid circuit"
+        },
+        {
+          "value": "5",
+          "description": "No controller selected"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 40,
+      "name": "ControllerByPassObligatory",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Specifies if a bypass is required for the controller.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Bypass is not needed"
+        },
+        {
+          "value": "1",
+          "description": "Bypass is needed"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 41,
+      "name": "ControllerInterface",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the required interface for the controller",
+      "enums": [
+        {
+          "value": "1",
+          "description": "Undefined"
+        },
+        {
+          "value": "2",
+          "description": "No Interface needed"
+        },
+        {
+          "value": "3",
+          "description": "Modbus RTU"
+        },
+        {
+          "value": "4",
+          "description": "Profibus DP"
+        },
+        {
+          "value": "5",
+          "description": "Profinet"
+        },
+        {
+          "value": "6",
+          "description": "Bacnet IP"
+        },
+        {
+          "value": "7",
+          "description": "Bacnet MS/TP"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 42,
+      "name": "ControllerType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the needed controller type",
+      "enums": [
+        {
+          "value": "10",
+          "description": "GMM EC with remote display (only for EC fans)"
+        },
+        {
+          "value": "2",
+          "description": "Controller type is selected automatically"
+        },
+        {
+          "value": "3",
+          "description": "Only continuous controllers (EC, sinus or phase cut controllers)"
+        },
+        {
+          "value": "4",
+          "description": "Phase cut (only for AC fans)"
+        },
+        {
+          "value": "6",
+          "description": "Step controller (only for AC fans)"
+        },
+        {
+          "value": "7",
+          "description": "GMM EC (only for EC fans)"
+        },
+        {
+          "value": "8",
+          "description": "GMM Sincon lite (only for AC fans)"
+        },
+        {
+          "value": "9",
+          "description": "GMM phase cut lite (only for AC fans)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 43,
+      "name": "CoreTubeMaterial",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the needed core tube material (without inner structure type). Only relevant if UnitSelectionMode = 0 (unit search mode).",
+      "enums": [
+        {
+          "value": "0",
+          "description": "no restriction"
+        },
+        {
+          "value": "C",
+          "description": "Copper"
+        },
+        {
+          "value": "F",
+          "description": "Hot dip galvanized steel"
+        },
+        {
+          "value": "V",
+          "description": "Stainless steel type A (normal quality)"
+        },
+        {
+          "value": "W",
+          "description": "Stainless steel type B (higher quality)"
+        },
+        {
+          "value": "Z",
+          "description": "Galvanized steel"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 44,
+      "name": "CorrosionProtectionClass",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the needed corrosion protection class",
+      "enums": [
+        {
+          "value": "0",
+          "description": "no special corrosion protection class needed"
+        },
+        {
+          "value": "335",
+          "description": "corrosion protection class 4 needed"
+        },
+        {
+          "value": "336",
+          "description": "corrosion protection class 5 needed"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 45,
+      "name": "CountryID_HydroPad",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Hydro",
+      "description": "Defines for which country, specified via an ID, the option hydroBLU, known also as HydroPad or evaporative cooling pad, (or the option hydroSPRAY???) the thermodynamics should be calculated, if it is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 46,
+      "name": "DefaultIndoorVarnishing",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether for a unit, which as standard is not varnished, the option “varnishing with the standard indoor color” [e.g. Europe: 9003] is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 47,
+      "name": "DefaultOutdoorVarnishing",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether for a unit, which as standard is not varnished, the option “varnishing with the standard outdoor color” is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 48,
+      "name": "DefrostFlap",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a defrost flap with heated frame is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 49,
+      "name": "Defrosting",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the needed standard defrosting.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "No defrosting needed"
+        },
+        {
+          "value": "258",
+          "description": "Electric defrost kit to be installed by customer"
+        },
+        {
+          "value": "263",
+          "description": "Electric defrost mounted and wired at factory (meta option, no details for coil or tray)."
+        },
+        {
+          "value": "264",
+          "description": "Hot gas defrost (meta option, no details for coil or tray)."
+        },
+        {
+          "value": "265",
+          "description": "Warm brine defrost (meta option, no details for coil or tray)."
+        },
+        {
+          "value": "339",
+          "description": "Electric defrost efficiency-optimized (meta option, no details for coil or tray)."
+        },
+        {
+          "value": "80",
+          "description": "Air Defrost"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 50,
+      "name": "DefrostingHotGasFeed",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines explicitely the position of the feed of the hot gas defrost in coil. Currently this is only used, if a user defined defrosting is selected, and there a hot gas defrosting in coil or hot gas defrosting without connection is selected, and it’s a unit for the Eurasian market.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Feed at the top"
+        },
+        {
+          "value": "1",
+          "description": "Feed at the bottom"
+        },
+        {
+          "value": "2",
+          "description": "Feed at the center"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 51,
+      "name": "DefrostingUserDefined",
+      "unit": null,
+      "datatype": "List`1",
+      "group": "Unknown",
+      "description": "Defines the needed user defined defrosting. Empty list: no user defined defrosting. Otherwise: List of defrosting options, selected via their IDs.",
+      "enums": [
+        {
+          "value": "11",
+          "description": "Electric defrost coil (standard)"
+        },
+        {
+          "value": "12",
+          "description": "Electric defrost tray (standard)"
+        },
+        {
+          "value": "13",
+          "description": "Hot gas defrost coil (standard)"
+        },
+        {
+          "value": "14",
+          "description": "Hot gas defrost tray (standard)"
+        },
+        {
+          "value": "23",
+          "description": "Electric defrost in coil and tray (combined)."
+        },
+        {
+          "value": "261",
+          "description": "Warm brine defrost coil"
+        },
+        {
+          "value": "262",
+          "description": "Warm brine defrost tray"
+        },
+        {
+          "value": "264",
+          "description": "Hot gas defrost (meta option, no details for coil or tray)."
+        },
+        {
+          "value": "312",
+          "description": "El. defrost coil light for t0>=-10°C"
+        },
+        {
+          "value": "338",
+          "description": "Electric defrost in coil and tray efficiency-optimized (combined)."
+        },
+        {
+          "value": "340",
+          "description": "Electric defrost kit to be installed by customer efficiency-optimized"
+        },
+        {
+          "value": "73",
+          "description": "Electric defrost coil heavy for t0<-40°C"
+        },
+        {
+          "value": "74",
+          "description": "Electric defrost tray heavy for t0<-40°C"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 52,
+      "name": "DeliveryTimeFilter",
+      "unit": "WorkDays",
+      "datatype": "Int32",
+      "group": "Limitations",
+      "description": "Defines the delivery time filter type",
+      "enums": [
+        {
+          "value": "-1",
+          "description": "Only available units"
+        },
+        {
+          "value": "-2",
+          "description": "Only units that are in stock"
+        },
+        {
+          "value": "0",
+          "description": "No filter defined"
+        },
+        {
+          "value": "1",
+          "description": "Unit shippd within 1 business day"
+        },
+        {
+          "value": "2",
+          "description": "Unit shippd within 2 business days"
+        },
+        {
+          "value": "3",
+          "description": "Unit shippd within 3 business days"
+        },
+        {
+          "value": "4",
+          "description": "Unit shippd within 4 business days"
+        },
+        {
+          "value": "5",
+          "description": "Unit shippd within 5 business days"
+        },
+        {
+          "value": "6",
+          "description": "Unit shippd within 6 business days"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 53,
+      "name": "DoubleFanPlates",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines whether a set of double fan plates is required as an accessory:",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 54,
+      "name": "DoubleTrayInsulated",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines whether an insulated double tray is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that it is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that it is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 55,
+      "name": "ECFanOption",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Specifies whether the unit must have fans with EC motor technology.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "EC technology is not required."
+        },
+        {
+          "value": "1",
+          "description": "EC technology is required."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 56,
+      "name": "ECJunctionBoxWithMainSwitch",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "If there is the controls accessory \"EC junction box\" selected (when SwitchCabinetType=8) then this value specifies whether the junction box must have a main switch.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Main switch is not required"
+        },
+        {
+          "value": "1",
+          "description": "Main switch is required"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 57,
+      "name": "EfficiencyClass",
+      "unit": null,
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "Specifies the at least required efficiency class of the found units.",
+      "enums": [
+        {
+          "value": "No filter defined",
+          "description": "{ get; set; } All efficiency classes allowed"
+        },
+        {
+          "value": "A",
+          "description": "Only units with efficiency class A or better should be found"
+        },
+        {
+          "value": "A+",
+          "description": "Only units with efficiency class A+ or better should be found"
+        },
+        {
+          "value": "A++",
+          "description": "Only units with efficiency class A++ or better should be found"
+        },
+        {
+          "value": "B",
+          "description": "Only units with efficiency class B or better should be found"
+        },
+        {
+          "value": "C",
+          "description": "Only units with efficiency class C or better should be found"
+        },
+        {
+          "value": "D",
+          "description": "Only units with efficiency class D or better should be found"
+        },
+        {
+          "value": "E",
+          "description": "Only units with efficiency class E or better should be found"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 58,
+      "name": "EmptyCasing",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Specifies whether an the accessory empty casing is required",
+      "enums": [
+        {
+          "value": "0",
+          "description": "an empty casing is not required"
+        },
+        {
+          "value": "1",
+          "description": "an empty casing is required"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 59,
+      "name": "EmptyCasingBottomSheet",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Unknown",
+      "description": "If an empty casing is selected this value defines whether a bottom sheet must be included",
+      "enums": [
+        {
+          "value": "0",
+          "description": "A bottom sheet is not required"
+        },
+        {
+          "value": "1",
+          "description": "A bottom sheet is required"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 60,
+      "name": "EmptyCasingHeight",
+      "unit": "mm",
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "If an empty casing is selected this value defines the required height of the empty casing in mm",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 61,
+      "name": "EmptyCasingIsolation",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Unknown",
+      "description": "If an empty casing is selected this value defines whether an isolation must be included",
+      "enums": [
+        {
+          "value": "0",
+          "description": "An isolation is not required"
+        },
+        {
+          "value": "1",
+          "description": "An isolation is required"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 62,
+      "name": "EmptyCasingLength",
+      "unit": "mm",
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "If an empty casing is selected this value defines the required length of the empty casing in mm",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 63,
+      "name": "EnableForMounting",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "If there is any switch cabinet or terminal box selected, then this value specifies whether it must be mountable.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "AirHeater: The switch cabinet or terminal box does not have to be mountable. AirCooler: 0-10V signal not required."
+        },
+        {
+          "value": "1",
+          "description": "AirHeater: The switch cabinet or terminal box must be mountable. AirCooler: 0-10V signal required (only EC!)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 64,
+      "name": "Epoxy_Fins",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether epoxy fins are required.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 65,
+      "name": "ErP_Compliant",
+      "unit": "mm",
+      "datatype": "Boolean",
+      "group": "Unknown",
+      "description": "Filter to show only units that apply to EU’s Energy-Related Products Directive (ErP Directive 2009/125/EC).",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 66,
+      "name": "ESPMax",
+      "unit": "Pa",
+      "datatype": "Double",
+      "group": "Options",
+      "description": "Upper limit for external static pressure. (Used in GPC.AM.)",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 67,
+      "name": "ESPMin",
+      "unit": "Pa",
+      "datatype": "Double",
+      "group": "Options",
+      "description": "Lower limit for external static pressure. (Used in GPC.AM.)",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 68,
+      "name": "EspMinMaxDescription",
+      "unit": null,
+      "datatype": "String",
+      "group": "Options",
+      "description": "String that can describe the lower and upper limit for external static pressure. (Used in GPC.AM.)",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 69,
+      "name": "ExhaustDuct",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether an exhaust duct is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 70,
+      "name": "ExtendedLegs",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the length of (extended) legs.",
+      "enums": [
+        {
+          "value": "213",
+          "description": "Set of extended legs 1100 mm"
+        },
+        {
+          "value": "214",
+          "description": "Set of extended legs 1200 mm"
+        },
+        {
+          "value": "6",
+          "description": "Set of extended legs 600 mm"
+        },
+        {
+          "value": "7",
+          "description": "Set of extended legs 800 mm"
+        },
+        {
+          "value": "8",
+          "description": "Set of extended legs 1000 mm"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 71,
+      "name": "ExternalPressing",
+      "unit": "Pa",
+      "datatype": "Double",
+      "group": "Options",
+      "description": "External static pressing (ESP) for standard fans (only for KDB units).",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 72,
+      "name": "FanFuseSpec",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the fan protection.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Consider all types"
+        },
+        {
+          "value": "2",
+          "description": "Best price"
+        },
+        {
+          "value": "3",
+          "description": "High fail safe"
+        },
+        {
+          "value": "4",
+          "description": "Fans individually fused"
+        },
+        {
+          "value": "5",
+          "description": "Up to two fans per fuse"
+        },
+        {
+          "value": "6",
+          "description": "Up to four fans per fuse"
+        },
+        {
+          "value": "7",
+          "description": "Up to three fans per fuse"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 73,
+      "name": "FanRingHeater",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether fan ring heaters are required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 74,
+      "name": "FinConinID",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Specifies the internal FinConinID.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 75,
+      "name": "FinPitch0Max",
+      "unit": "mm",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "Max. fin pitch",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 76,
+      "name": "FinPitch0Min",
+      "unit": "mm",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "Min. fin pitch",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 77,
+      "name": "FinPitchVariableOnly",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Specifies whether there should only units with variable (staged) fin pitch (different fin pitch values within one unit)",
+      "enums": [
+        {
+          "value": "0",
+          "description": "No restriction for the fin pitch"
+        },
+        {
+          "value": "1",
+          "description": "Only units with variable fin pitch should be found"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 78,
+      "name": "FinSpacingInputMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the mode how the fin spacing filter is specified in the input data",
+      "enums": [
+        {
+          "value": "0",
+          "description": ""
+        },
+        {
+          "value": "M",
+          "description": "inimum and maximum fin spacing is given (FinPitch0Min and FinPitch0Max must contain the minimum and maximum fin spacing values in mm)"
+        },
+        {
+          "value": "1",
+          "description": ""
+        },
+        {
+          "value": "M",
+          "description": "inimum and maximum number of fins per inc is given (FinPitch0Min and FinPitch0Max must contain the minimum and maximum number of fins per inch)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 79,
+      "name": "FluidID",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines the ID number of the fluid, that is used in the heat exchanger's main or first circuit.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 80,
+      "name": "FluidID_2",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines the ID number of the fluid, that is used in the heat exchanger's second circuit when multiple circuits option is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 81,
+      "name": "FluidInputMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines the input modes for the fluid that says, which input values for the fluid must be set. This value is needed when ProductCategory is 3, 5 or 6 (air cooler for coolant, fluid cooler, sub cooler). For ProductCategory 6 (sub cooler), only FluidInputMode 0 is allowed.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "FluidTempInlet and FluidTempOutlet must be set"
+        },
+        {
+          "value": "1",
+          "description": "FluidTempInlet and FluidVolumeFlow must be set"
+        },
+        {
+          "value": "2",
+          "description": "FluidTempOutlet and FluidVolumeFlow must be set"
+        },
+        {
+          "value": "3",
+          "description": "FluidTempInlet and FluidPressureDropMax must be set"
+        },
+        {
+          "value": "4",
+          "description": "FluidTempOutlet and FluidPressureDropMax must be set"
+        },
+        {
+          "value": "5",
+          "description": "FluidTempInlet and FluidMassFlow must be set"
+        },
+        {
+          "value": "6",
+          "description": "FluidTempOutlet and FluidMassFlow must be set"
+        }
+      ],
+      "productCategories": [
+        3,
+        5,
+        6
+      ]
+    },
+    {
+      "seq": 82,
+      "name": "FluidMassFlow",
+      "unit": "kg_per_h",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the mass flow of the fluid. This value is needed, when FluidInputMode is 5 (FluidTempInlet and FluidMassFlow) or 6 (FluidTempOutlet and FluidVolumeFlow)",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 83,
+      "name": "FluidPressure",
+      "unit": "mbar",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the pressure of the fluid. This value is needed for ProductCategory 0 (DX evaporator) or 10 (gas cooler).",
+      "enums": [],
+      "productCategories": [
+        0
+      ]
+    },
+    {
+      "seq": 84,
+      "name": "FluidPressureDropMax",
+      "unit": "K_TD",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines the maximum allowed pressure drop of the fluid inside the heat exchanger. This value is considered for ProductCategory 3, 5 or 6 (air cooler for coolant, fluid cooler, sub cooler). For other product categories a valid value will be set internally. For other product categories a valid value will be set internally.",
+      "enums": [],
+      "productCategories": [
+        3,
+        5,
+        6
+      ]
+    },
+    {
+      "seq": 85,
+      "name": "FluidPumpMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Defines, how the fluid is pumped through the flooded evaporator. Depending on the mode, different internal limit values are set, in particular the maximum pressure drop in the fluid. This value is needed for ProductCategory 1 (flooded evaporator).",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Fluid circulation by a pump"
+        },
+        {
+          "value": "1",
+          "description": "Fluid circulation by gravity or natural circulation"
+        }
+      ],
+      "productCategories": [
+        1
+      ]
+    },
+    {
+      "seq": 86,
+      "name": "FluidPumpRate",
+      "unit": null,
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Defines how often a fluid part must pass through the evaporator until it is completely evaporated. This value is needed for ProductCategory 1 (flooded evaporator).",
+      "enums": [],
+      "productCategories": [
+        1
+      ]
+    },
+    {
+      "seq": 87,
+      "name": "FluidSubCooling",
+      "unit": "K_TD",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Subcooling of the fluid after condensation. Specification relative to the condensation temperature at the end of the condensation process. Note: If the fluid has a temperature glide or a pressure loss occurs during condensation, the condensation temperature at the end of the condensation process is lower than FluidTempCond. If ProductCategory = 3 (condenser), a fixed subcooling of 1 K is assumed internally. Rule: The resulting subcooling temperature must not be lower than the evaporation temperature.",
+      "enums": [],
+      "productCategories": [
+        3
+      ]
+    },
+    {
+      "seq": 88,
+      "name": "FluidSuperHeating",
+      "unit": "K_TD",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Superheating of the fluid after evaporation. Specification relative to the evaporation temperature FluidTempEvap.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 89,
+      "name": "FluidTempCond",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Fluid condensation temperature at the inlet or in the middle of the first fluid circuit.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 90,
+      "name": "FluidTempCond_2",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Fluid condensation temperature at the inlet or in the middle of the second fluid circuit.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 91,
+      "name": "FluidTempEvap",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Fluid evaporation temperature at the inlet or in the middle. The dew popublic int must be specified for fluids with temperature glide.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 92,
+      "name": "FluidTempInlet",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Fluid temperature at inlet of the first circuit. If ProductCategory = 2, 4 or 5 (refrigerant air cooler, dry cooler, subcooler) and FluidInputMode = 0 or 1. If ProductCategory = 3 (condenser), the following must apply: Hot gas temperature >= condensing temperature. Specifies the hot gas temperature for condensers. Rule: The following must apply: FluidTempInlet >= -40.0 °C if it is used (FluidInputMode = 0 or 1).",
+      "enums": [],
+      "productCategories": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "seq": 93,
+      "name": "FluidTempInlet_2",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Fluid temperature at inlet of the second circuit. If ProductCategory = 2, 4 or 5 (refrigerant air cooler, dry cooler, subcooler) and FluidInputMode = 0 or 1. If ProductCategory = 3 (condenser), the following must apply: Hot gas temperature >= condensing temperature. Specifies the hot gas temperature for condensers. Rule: The following must apply: FluidTempInlet >= -40.0 °C if it is used (FluidInputMode = 0 or 1).",
+      "enums": [],
+      "productCategories": [
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "seq": 94,
+      "name": "FluidTempOutlet",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Fluid temperature at outlet. Rule for ProductCategory = 3 = refrigerant air cooler: The following must apply: FluidTempOutlet > FluidTempInlet if both are specified (FluidInputMode = 0). Rule for ProductCategory = 5/6 = drycooler/subcooler:The following must apply: FluidTempOutlet < FluidTempInlet,if both are specified (FluidInputMode = 0). Rule: The following must apply: FluidTempOutlet >= -40.0 °C if it is used (FluidInputMode = 0 or 2).",
+      "enums": [],
+      "productCategories": [
+        3,
+        5,
+        6
+      ]
+    },
+    {
+      "seq": 95,
+      "name": "FluidVolConcentration",
+      "unit": "VolPercent",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Concentration of the fluid in volume-%. Only relevant if fluid allows a fluid concentration specification.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 96,
+      "name": "FluidVolumeFlow",
+      "unit": "m3_per_h",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Volume flow of the fluid. Only relevant if FluidInputMode = 1 or 2.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 97,
+      "name": "ForEnergySavingController",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "For energy-saving applications, if a switch cabinet or terminal box is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 98,
+      "name": "ForNoiseUse",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "For noise-sensitive applications, if a switch cabinet or terminal box is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 99,
+      "name": "FrostedCoil",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Flag for frost on the block with 0.01 in as the default value for the frost thickness. Only in GPC.AM!",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 100,
+      "name": "FrostThickness",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "Thickness of the frost layer to be considered in meters. Values greater than 0.0 are only permissible for evaporators and air coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 101,
+      "name": "FullCoverageDoubleTrayInsulated",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a full coverage double tray with insulation is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the full coverage double tray with insulation is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the full coverage double tray with insulation is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 102,
+      "name": "Geo_AirTemp_HydroPad",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "Air temperature from the selected location. Only relevant if HydroPad is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 103,
+      "name": "Geo_Altitude_HydroPad",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "Defines the height above sea level = geodetic height/altitude from the selected location.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 104,
+      "name": "Geo_Length_HydroPad",
+      "unit": "DMS",
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "Longitude coordinates from the selected location.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 105,
+      "name": "Geo_MaxAirTemp_HydroPad",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "Defines the maximum air temperature from the selected location. Only relevant if HydroPad is selected.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 106,
+      "name": "Geo_RelHumidity_HydroPad",
+      "unit": "Percent",
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "Defines the relative air humidity at the inlet from the selected location.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 107,
+      "name": "Geo_Search_HydroPad",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Hydro",
+      "description": "Flag, if nearest location to custom coordinates should be searched.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 108,
+      "name": "Geo_Width_HydroPad",
+      "unit": "DMS",
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "Latitude coordinates from the selected location.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 109,
+      "name": "GuentnerStreamer",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a Streamer (for an increased air throw) is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the streamer is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the streamer is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 110,
+      "name": "HBLKValve",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a HBLK valve is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 111,
+      "name": "HeatingStrapsAtAirOutlet",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether el. heating straps (at air outlet) are required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 112,
+      "name": "HingedFanPlate",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether hinged fan plates are required as an option.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 113,
+      "name": "HotGasInterConnectingTubing",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether hot gas interconnecting tubing is required as an accessory.",
+      "enums": [
+        {
+          "value": "34",
+          "description": "with check value"
+        },
+        {
+          "value": "66",
+          "description": "without check value"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 114,
+      "name": "HydroPad",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Hydro",
+      "description": "Indicates whether hydroBLU is required as an accessory.",
+      "enums": [
+        {
+          "value": "234",
+          "description": "hydroBLU is required as an accessory"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 115,
+      "name": "InletHood",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether an inlet hood is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 116,
+      "name": "InletNippleOuterDiameter",
+      "unit": "mm",
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "Defines the diameter of nipple(s) at the inlet.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 117,
+      "name": "InletPosLeft",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether connections in air flow direction left is required as an option.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 118,
+      "name": "InletPosRight",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether connections in air flow direction right is required as an option.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 119,
+      "name": "InletStateByTempAndPressure",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Only relevant for CX evaporators! Normally, the pressure is calculated via the condensation temperature and subcooling. However, if you are in the supercritical range, this flag must be set! The inlet temperature and pressure must then be specified.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 120,
+      "name": "InputModeCapacity",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Capacity calculation mode",
+      "enums": [
+        {
+          "value": "0",
+          "description": "The capacity is fixed, the area reserve is adapted to the capacity."
+        },
+        {
+          "value": "1",
+          "description": "The specified capacity is a target value, the actual capacity is optimized individually for each device or coil."
+        },
+        {
+          "value": "2",
+          "description": "The capacity is fixed indirectly via the air-side specifications; the area reserve is adapted to the capacity. Only possible for coils."
+        },
+        {
+          "value": "3",
+          "description": "The capacity is fixed, the condensing temperature is adapted to the capacity. Only possible for condenser coils."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 121,
+      "name": "InspectionCover",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether an inspection cover is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 122,
+      "name": "IoTModule",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether an aicore link (IoT-Module) is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 123,
+      "name": "IsAirRelHumidityAuto",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Flag, if the relative air humidity at the inlet should be set automatically. Only available in GPC.AM.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 124,
+      "name": "IsContainerTransport",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Limitations",
+      "description": "Transport from the unit in a container.",
+      "enums": [
+        {
+          "value": "FALSE",
+          "description": "Indicates no transport preference."
+        },
+        {
+          "value": "TRUE",
+          "description": "Indicates that the device is to be transported in a container."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 125,
+      "name": "IsHotGasAuto",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Flag, if hot gas temperature should be set automatically. Only relevant for condensers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 126,
+      "name": "IsMaxFluidPressureDropAuto",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Flag, if max. fluid pressure drop should be set automatically.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 127,
+      "name": "isSubcritic",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Subcritical CO2 gas coolers operate below the critical point of carbon dioxide, where CO2 exists in a two-phase state as both a liquid and a gas. In these systems, CO2 gas is condensed into a liquid state through heat exchange with a cooler medium, such as air or water. This process relies on the properties of CO2 as it undergoes phase change, transitioning from a gas to a liquid.",
+      "enums": [
+        {
+          "value": "FALSE",
+          "description": "Indicates that the unit will not operate in subcritical mode."
+        },
+        {
+          "value": "TRUE",
+          "description": "Indicates that the unit will operate in subcritical mode."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 128,
+      "name": "IsSubcriticMaxFluidPressureDropAuto",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Extras",
+      "description": "The max fluid pressre drop can be defined automatically.",
+      "enums": [
+        {
+          "value": "FALSE",
+          "description": "Indicates that the user must define the threshold."
+        },
+        {
+          "value": "TRUE",
+          "description": "Indicates that Güntner decides for a fitting value."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 129,
+      "name": "isSupercritic",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Thermodynamics",
+      "description": "Supercritical CO2 gas coolers, on the other hand, operate above the critical point of carbon dioxide. In this state, CO2 behaves as a supercritical fluid, exhibiting properties of both a gas and a liquid. These coolers utilize the unique properties of supercritical CO2 to achieve efficient heat transfer, particularly in applications where high pressures and temperatures are involved. The cooling process involves heat exchange to transition the supercritical CO2 fluid into a subcritical state, where it exhibits more conventional refrigeration behavior.",
+      "enums": [
+        {
+          "value": "FALSE",
+          "description": "Indicates that the unit will not operate in supercritical mode."
+        },
+        {
+          "value": "TRUE",
+          "description": "Indicates that the unit will operate in supercritical mode."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 130,
+      "name": "LastChangedKey",
+      "unit": null,
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "This parameter is not relevant for findunits but UI.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 131,
+      "name": "LocationID_HydroPad",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Hydro",
+      "description": "The ID of the place to use for Hydropad calculation",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 132,
+      "name": "LowEvapTempDesign",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a the device must handle low temeratures.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 133,
+      "name": "ManualSpeedController",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a manual speed controller is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 134,
+      "name": "Market",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Startpage",
+      "description": "Selects the market the device will be delivered to",
+      "enums": [
+        {
+          "value": "101",
+          "description": "Europa (EU)"
+        },
+        {
+          "value": "201",
+          "description": "Asia, Pacific and Oceania (APO)"
+        },
+        {
+          "value": "401",
+          "description": "North and Latin America (NLA)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 135,
+      "name": "MaxNumberOfHits",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Maximum number of results.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 136,
+      "name": "MaxOperatingPressure",
+      "unit": "bar",
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates the maximum fluid pressure of the device.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 137,
+      "name": "MaxSoundInputMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Limitations",
+      "description": "Selects the mode the sound is filtered.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 138,
+      "name": "MaxSoundTolerance",
+      "unit": "dBA",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "Specifies how loud a unit may be.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 139,
+      "name": "MiniumRequiredSubcooling",
+      "unit": "K_TD",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "If a subcooler is selected, how big is the temerature difference between the primary and secondard circuit.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 140,
+      "name": "MotorTechnology",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "This parameter defines the fan motor technology, or fan motor type of the unit.",
+      "enums": [
+        {
+          "value": "-1",
+          "description": "All fan motor technologies are considered",
+          "_override": true
+        },
+        {
+          "value": "-2",
+          "description": "The fan motor technology is energy optimized",
+          "_override": true
+        },
+        {
+          "value": "-3",
+          "description": "The fan motor technology is cost optimized",
+          "_override": true
+        },
+        {
+          "value": "1",
+          "description": "The motor technology is AC",
+          "_override": true
+        },
+        {
+          "value": "2",
+          "description": "The motor technology is EC (electronically commutated)",
+          "_override": true
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 141,
+      "name": "MountedAndWired",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Specifies if the fans have to be mounted and wired or delivered seperately.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 142,
+      "name": "MountedLegs",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether legs will be attached to the device so it can stand. If not included, the device has to be mounted.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 143,
+      "name": "MountedLegsGS",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "When MountedLegs are included, these are in galvanized steel and therefore have no corrosion protection.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 144,
+      "name": "MountedLegsSS",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "When MountedLegs are included, these are made of stainless steel and therefore have a corrosion protection.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 145,
+      "name": "MultipleCircuits",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates if the device can have multiple circuits.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 146,
+      "name": "NippleTubeMaterial",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Indicates whether a different material should be used for NippleTube",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 147,
+      "name": "NoInletNipples",
+      "unit": null,
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "Defines the number of nipples at the inlet.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 148,
+      "name": "NoOfCircuitsThermo",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Number of required thermo circuits.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 149,
+      "name": "NoOfDevices",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Limitations",
+      "description": "Number of required units.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 150,
+      "name": "NoOfFans",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Limitations",
+      "description": "Number of required fans.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 151,
+      "name": "NoOfPasses",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Number of required passes.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 152,
+      "name": "NoOutletNipples",
+      "unit": null,
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "Defines the number of nipples at the outlet.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 153,
+      "name": "OnlyStockUnits",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Limitations",
+      "description": "Only products that are ready to ship.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 154,
+      "name": "OutletNippleOuterDiameter",
+      "unit": "mm",
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "Defines the diameter of nipple(s) at the outlet.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 155,
+      "name": "OverpressureFlap",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether an OverpressureFlap is required as accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 156,
+      "name": "PadTypes_HydroPad",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Hydro",
+      "description": "Specifies Pad Type ID.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 157,
+      "name": "PassNumberConstraint",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Extras",
+      "description": "Constraints for the number of passes",
+      "enums": [
+        {
+          "value": "0",
+          "description": "All numbers between nNumberOfPassesMin and nNumberOfPassesMax"
+        },
+        {
+          "value": "1",
+          "description": "Only even number of passes between nNumberOfPassesMin and nNumberOfPassesMax"
+        },
+        {
+          "value": "2",
+          "description": "Discrete values must be given in DiscreteNumberOfPasses"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 158,
+      "name": "PowerSupply",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Options",
+      "description": "Specification of the voltage supply network for which the unit should be suitable.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "no constraint",
+          "_override": true
+        },
+        {
+          "value": "3",
+          "description": "115V 1~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "4",
+          "description": "208-230V 1~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "5",
+          "description": "208-230V 3~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "6",
+          "description": "230V 1~ 50Hz",
+          "_override": true
+        },
+        {
+          "value": "7",
+          "description": "380V 1~ 50Hz",
+          "_override": true
+        },
+        {
+          "value": "8",
+          "description": "380V 3~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "9",
+          "description": "400V 3~ 50Hz",
+          "_override": true
+        },
+        {
+          "value": "10",
+          "description": "400V 3~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "11",
+          "description": "460V 1~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "12",
+          "description": "460V 3~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "13",
+          "description": "575V 3~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "14",
+          "description": "230V 3~ 50Hz",
+          "_override": true
+        },
+        {
+          "value": "15",
+          "description": "230V 3~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "16",
+          "description": "230V 1~ 60Hz",
+          "_override": true
+        },
+        {
+          "value": "18",
+          "description": "110V 1~ 50Hz",
+          "_override": true
+        },
+        {
+          "value": "19",
+          "description": "110V 1~ 60Hz",
+          "_override": true
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 159,
+      "name": "PreSelection",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameter is not relevant for findunits but UI.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 160,
+      "name": "PressureSensor",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a pressure sensor is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 161,
+      "name": "PreviousChangedValue",
+      "unit": null,
+      "datatype": "String",
+      "group": "Unknown",
+      "description": "This parameter is not relevant for findunits but UI.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 162,
+      "name": "ProductCategory",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Startpage",
+      "description": "Defines the product category",
+      "enums": [
+        {
+          "value": "0",
+          "description": "DX evaporator (Cold Indoor)"
+        },
+        {
+          "value": "1",
+          "description": "Flooded evaporator (Cold Indoor)"
+        },
+        {
+          "value": "10",
+          "description": "Gas Cooler"
+        },
+        {
+          "value": "2",
+          "description": "One phase air cooler (Cold Indoor)"
+        },
+        {
+          "value": "3",
+          "description": "Condenser (Warm Outdoor)"
+        },
+        {
+          "value": "4",
+          "description": "Brine cooler (Warm Outdoor)"
+        },
+        {
+          "value": "5",
+          "description": "Sub cooler (Warm Outdoor)"
+        },
+        {
+          "value": "6",
+          "description": "Oil cooler (Warm Outdoor)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 163,
+      "name": "RalNumber",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Definer RAL number for special varnishing.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 164,
+      "name": "ReducedLegs",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether reduced legs are required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 165,
+      "name": "RepairSwitch",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a repair switch is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "No Repair switch"
+        },
+        {
+          "value": "233",
+          "description": "Repair switch selected"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 166,
+      "name": "RepairSwitchPosition",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines position of repair switch.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Mounted close to the fan"
+        },
+        {
+          "value": "2",
+          "description": "Mounted at the front"
+        },
+        {
+          "value": "3",
+          "description": "Standard"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 167,
+      "name": "RepairSwitchType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines type of repair switch.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Two-turn (star/delta switchable) (9-pole)"
+        },
+        {
+          "value": "2",
+          "description": "Single-speed (7-pole)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 168,
+      "name": "RepairSwitchWiring",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines wiring type for repair switch.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Preferably individually wired, i.e. one rep. switch per fan"
+        },
+        {
+          "value": "2",
+          "description": "Single wired, i.e. one rep. switch per fan"
+        },
+        {
+          "value": "3",
+          "description": "Preferably wired in pairs, i.e. two fans are switched with one rep. switch"
+        },
+        {
+          "value": "4",
+          "description": "Wired in pairs, i.e. two fans are switched with one repair switch"
+        },
+        {
+          "value": "5",
+          "description": "Preferably a single repair switch for all fans"
+        },
+        {
+          "value": "6",
+          "description": "A single repair switch for all fans"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 169,
+      "name": "SeparationSheetWithHeater",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a separation sheet with heater is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 170,
+      "name": "Shutup",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a defrost hose is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 171,
+      "name": "SoundAbsorber",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a sound absorber is required as an accessory.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 172,
+      "name": "SoundPressureDistance",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Limitations",
+      "description": "Distance for which the sound pressure level is to be calculated [m]. Only relevant if - ProductCategory = 4 to 6 (condenser, drycooler or subcooler) - For ProductCatetory 1 to 3 (evaporator and refrigerant air cooler), this input parameter is ignored and set internally to 3 m - Distance specification according to enveloping surface method EN 13487, i.e. distance between appliance and the enveloping surface that is placed around the appliance. - Value range: >= 0 m",
+      "enums": [],
+      "productCategories": [
+        4,
+        6
+      ]
+    },
+    {
+      "seq": 173,
+      "name": "SoundPressureMax",
+      "unit": "dBA",
+      "datatype": "Double",
+      "group": "Limitations",
+      "description": "Only relevant if - UnitSelectionMode = 0 ('unit search mode'). - The limit value applies to a distance corresponding to SoundPressureDistance. - The sound pressure level is calculated using the enveloping surface method in accordance with EN 13487. - If the sound pressure level is not to be limited, it is advisable to specify a high value(e.g. 99.0 dB(A)). In the selection program, the specified maximum sound pressure level is eventually increased internally by an additional 4 dB(A) tolerance.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Max. sound power"
+        },
+        {
+          "value": "1",
+          "description": "Max. sound pressure"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 174,
+      "name": "SpecialVarnishing",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether special varnishing is required as an option.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 175,
+      "name": "Subcooler",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a subcooler is required as an option.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 176,
+      "name": "SubcriticAirRelHumidity",
+      "unit": "Percent",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "This parameter defines the subcritical air absolute humidity in %, for CO2 gas coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 177,
+      "name": "SubcriticAirTemperature",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "This parameter defines the subcritical air dry bulb temperature in °C, for CO2 gas coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 178,
+      "name": "SubcriticAirWetBulbTemp",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "This parameter defines the subcritical air wet bulb temperature in °C, for CO2 gas coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 179,
+      "name": "SubcriticFluidPressureDropMax",
+      "unit": "K",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "This parameter defines the maximum allowable subcritical pressure drop in K for CO2 gas coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 180,
+      "name": "SubcriticFluidTempCond",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "This parameter defines the subcritical condensing temperature in °C, for CO2 gas coolers",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 181,
+      "name": "SubcriticFluidTempInlet",
+      "unit": "Degree_C",
+      "datatype": "Double",
+      "group": "Unknown",
+      "description": "This parameter defines the subcritical inlet temperature, aka the hot gas temperature in °C, for CO2 gas coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 182,
+      "name": "SubcriticIsHotGasAuto",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Unknown",
+      "description": "This parameter defines whether the subcritical inlet temperature, aka hot gas temperature should be set automatically or set using the subcriticFluidTempInlet input.",
+      "enums": [
+        {
+          "value": "FALSE",
+          "description": "The subcritical inlet temperature is defined using the subcriticFluidTempInlet input"
+        },
+        {
+          "value": "TRUE",
+          "description": "The subcritical inlet temperature is set automatically"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 183,
+      "name": "SubcriticThermalCapacity",
+      "unit": "W",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "This parameter defines the target subcritical capacity in W for CO2 gas coolers.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 184,
+      "name": "SwitchCabinet",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a switch cabinet is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the switch cabinet is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the switch cabinet is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 185,
+      "name": "SwitchCabinetAllocation",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameter defines the allocation type for the switch cabinet. Either the allocation is automatically set, or it is set to one switch cabinet per unit.",
+      "enums": [
+        {
+          "value": "1",
+          "description": "The allocation is automatic"
+        },
+        {
+          "value": "3",
+          "description": "There is one switch cabinet or terminal box allocated per unit"
+        },
+        {
+          "value": "4",
+          "description": "There is one switch cabinet or terminal box allocated per fluid circuit"
+        },
+        {
+          "value": "5",
+          "description": "There is no switch cabinet or terminal box selected"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 186,
+      "name": "SwitchCabinetMotorTechnology",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameter defines the fan motor technology, or fan motor type, for the switch cabinet.",
+      "enums": [
+        {
+          "value": "-1",
+          "description": "All fan motor technologies are considered"
+        },
+        {
+          "value": "-2",
+          "description": "The fan motor technology is energy optimized"
+        },
+        {
+          "value": "-3",
+          "description": "The fan motor technology is cost optimized"
+        },
+        {
+          "value": "1",
+          "description": "The motor technology is AC"
+        },
+        {
+          "value": "2",
+          "description": "The motor technology is EC (electronically commutated)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 187,
+      "name": "SwitchCabinetType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameter defines the type of the switch cabinet.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Consider all types"
+        },
+        {
+          "value": "10",
+          "description": "Switch cabinet with stand cabinet"
+        },
+        {
+          "value": "11",
+          "description": "Switch cabinet with terminal box"
+        },
+        {
+          "value": "12",
+          "description": "Switch cabinet with 0 to 10V terminal box"
+        },
+        {
+          "value": "13",
+          "description": "Modbus Daisy Chain"
+        },
+        {
+          "value": "2",
+          "description": "Set the switch cabinet automatically"
+        },
+        {
+          "value": "3",
+          "description": "Small switch cabinet"
+        },
+        {
+          "value": "4",
+          "description": "GIS-type switch cabinet"
+        },
+        {
+          "value": "5",
+          "description": "GWS-type switch cabinet"
+        },
+        {
+          "value": "6",
+          "description": "GSS-type switch cabinet"
+        },
+        {
+          "value": "7",
+          "description": "GKS-type switch cabinet"
+        },
+        {
+          "value": "8",
+          "description": "Switch cabinet with EC junction box"
+        },
+        {
+          "value": "9",
+          "description": "Switch cabinet with a panel"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 188,
+      "name": "SwivelingFans",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether a swiveling fans, aka hinged fans, is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the swiveling fans accessory is not necessarily needed."
+        },
+        {
+          "value": "329",
+          "description": "Indicates that the swiveling fan plate accessory is definitely needed."
+        },
+        {
+          "value": "68",
+          "description": "Indicates that the swiveling fans accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 189,
+      "name": "TC_Tolerance_H",
+      "unit": "Percent",
+      "datatype": "Double",
+      "group": "Extras",
+      "description": "This parameters specifies the upper limit for the surface reserve tolerance.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 190,
+      "name": "TC_Tolerance_L",
+      "unit": "Percent",
+      "datatype": "Double",
+      "group": "Extras",
+      "description": "This parameters specifies the lower limit for the surface reserve tolerance.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 191,
+      "name": "TCondInputMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameters defines the convention for defining where the condensing temperature of the input fluid is defined. This is required for refrigerants that have a significant temperature glide.. If the refrigerant considered doesn’t have a glide, then this parameter is not relevant.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "The input condensing temperature is defined at the fluid’s dew point, aka at the condenser’s inlet"
+        },
+        {
+          "value": "1",
+          "description": "The input condensing temperature is defined as a mean, at vapor quality of 0.5s inlet"
+        },
+        {
+          "value": "2",
+          "description": "The input condensing temperature is defined at the fluid’s bubble point, aka at the condenser’s outlet"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 192,
+      "name": "TelescopicLegs",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether telescopic legs, are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the telescopic legs accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the telescopic legs accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 193,
+      "name": "TerminalBoxType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Defines the fan wiring type.",
+      "enums": [
+        {
+          "value": "1",
+          "description": "AUTO"
+        },
+        {
+          "value": "2",
+          "description": "All fans grouped together to form a group."
+        },
+        {
+          "value": "4",
+          "description": "Fans not grouped and individually connected."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 194,
+      "name": "ThermalCapacity",
+      "unit": "W",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "This parameters sets the target thermal capacity, in W, for the main circuit of the heat exchanger.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 195,
+      "name": "ThermalCapacity_2",
+      "unit": "W",
+      "datatype": "Double",
+      "group": "Thermodynamics",
+      "description": "This parameters sets the target thermal capacity, in W, for the secondary circuit of the heat exchanger.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 196,
+      "name": "ThermoContactType",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameter defines the type of the thermo contact cabinet.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Consider all types"
+        },
+        {
+          "value": "2",
+          "description": "Set the thermo contact automatically"
+        },
+        {
+          "value": "3",
+          "description": "Set the thermo contact to manual reset"
+        },
+        {
+          "value": "4",
+          "description": "Set the thermo contact to remote reset"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 197,
+      "name": "ThermosiphonOilCooling",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Thermodynamics",
+      "description": "Only available for NH3 condenser. This checkbox has an effect on the max. pressure drop in coil.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "AUTO max. pressure drop in coil equals 5.0 K."
+        },
+        {
+          "value": "1",
+          "description": "AUTO max. pressure drop in coil equals 0.3 K."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 198,
+      "name": "ThreadConnectionMaterial",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameter defines the material of the connection if a thread connection is selected as a connection type.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Undefined"
+        },
+        {
+          "value": "1",
+          "description": "Set the thread connection material automatically"
+        },
+        {
+          "value": "2",
+          "description": "Consider all materials"
+        },
+        {
+          "value": "3",
+          "description": "Set the thread connection material to steel"
+        },
+        {
+          "value": "4",
+          "description": "Set the thread connection material to red brass"
+        },
+        {
+          "value": "5",
+          "description": "Set the thread connection material to stainless steel 304L"
+        },
+        {
+          "value": "6",
+          "description": "Set the thread connection material to stainless steel 316L"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 199,
+      "name": "Tubing_Of_Integrated_Subcooler_With_Syphon",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether tubing of integrated subcooler with syphon required as an accessory (only if subcooler is already selected as an accessory)",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the tubing of integrated subcooler with syphon accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the tubing of integrated subcooler with syphon accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 200,
+      "name": "UnitFilterList",
+      "unit": null,
+      "datatype": "List`1",
+      "group": "Unknown",
+      "description": "Specifies the filter a list of single units that should be calculated/validated.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 201,
+      "name": "UnitHeightMax",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Limitations",
+      "description": "This parameters sets the maximum height in meters that should be considered for the units returned during a unit search.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 202,
+      "name": "UnitLengthMax",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Limitations",
+      "description": "This parameters sets the maximum length in meters that should be considered for the units returned during a unit search.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "no constraint"
+        },
+        {
+          "value": "68",
+          "description": "high-strength copper (D)"
+        },
+        {
+          "value": "87",
+          "description": "stainl. steel (W)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 203,
+      "name": "UnitModelID_MRNameExternal",
+      "unit": null,
+      "datatype": "String",
+      "group": "Recalculation",
+      "description": "For recalculation (KDB): Model type name external.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 204,
+      "name": "UnitModelID_MRNameInternal",
+      "unit": null,
+      "datatype": "String",
+      "group": "Recalculation",
+      "description": "For recalculation (TDB): Model range name internal.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 205,
+      "name": "UnitModelID_MTNameExternal",
+      "unit": null,
+      "datatype": "String",
+      "group": "Recalculation",
+      "description": "For recalculation (TDB): Model type name external.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 206,
+      "name": "UnitModelID_MTNameInternal",
+      "unit": null,
+      "datatype": "String",
+      "group": "Recalculation",
+      "description": "For recalculation (TDB): Model type name internal.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 207,
+      "name": "Units",
+      "unit": null,
+      "datatype": "List`1",
+      "group": "UnitSelection",
+      "description": "Specification of the model ranges.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 208,
+      "name": "UnitSelectionMode",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "UnitSelection",
+      "description": "Selection mode of the unit calculation.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "unit search"
+        },
+        {
+          "value": "1",
+          "description": "recalculation of a defined individual unit { get; set; } some other parameters are then ignored"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 209,
+      "name": "UnitWidthMax",
+      "unit": "m",
+      "datatype": "Double",
+      "group": "Limitations",
+      "description": "This parameters sets the maximum width in meters that should be considered for the units returned during a unit search.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 210,
+      "name": "UVC_Lamp",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether UVC lamp is required as an accessory,",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the UVC lamp accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the UVC lamp accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 211,
+      "name": "VersionNumber",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Version number of the Guentner API",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 212,
+      "name": "VibrationDampers",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether Vibration dampers are required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the Vibration dampers accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the Vibration dampers accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 213,
+      "name": "WallSuspension",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether Wall suspension is required as an accessory.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the Wall suspension accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the Wall suspension accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 214,
+      "name": "WaterConsumptionCalculation_HydroPad",
+      "unit": null,
+      "datatype": "Boolean",
+      "group": "Hydro",
+      "description": "The parameter defines whether or not a water consumption calculation is required to be perfumed for the unit selected, and output to the data sheet",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the water consumption calculation should not be performed"
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the water consumption calculation should be performed"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 215,
+      "name": "WaterConsumptionCalculation_Mode_HydroPad",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Hydro",
+      "description": "This parameter defines the way the water consumption calculation should be performed for units with the HydroSpray option, if the water calculation is requested.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "The wetting duration is set, and the switch point is then calculated (this is the default setting for the calculation mode)"
+        },
+        {
+          "value": "1",
+          "description": "The switch point is set, and the wetting duration is then calculated"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 216,
+      "name": "WaterConsumptionCalculation_SwitchPoint_HydroPad",
+      "unit": null,
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "If the water calculation mode for a unit with a hydroSpray option is set to calculation of the wetting duration with a set switch point, this parameter sets the wetting duration to be used.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 217,
+      "name": "WaterConsumptionCalculation_WettingDuration_HydroPad",
+      "unit": null,
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "If the water calculation mode for a unit with a hydroSpray option is set to calculation of the switch point with a set wetting duration, this parameter sets the wetting duration to be used.",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 218,
+      "name": "Watering_HydroPad",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Hydro",
+      "description": "For a unit with the hydroBLU option selected, this parameter defines the opretation mode for the watering system:",
+      "enums": [
+        {
+          "value": "0",
+          "description": "The unit is operating in wet mode, with pads installed and water fed to the pads"
+        },
+        {
+          "value": "1",
+          "description": "The unit is operating dry (no water fed for the pads), but with the pads installed on the unit"
+        },
+        {
+          "value": "2",
+          "description": "The unit is operating dry with the pads uninstalled on the unit"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 219,
+      "name": "WateringRate_HydroPad",
+      "unit": null,
+      "datatype": "Double",
+      "group": "Hydro",
+      "description": "This parameter sets the watering rate for the hydroBLU system. The available values are 1.2, 1.6, 2.0 and 2.8 (default of 2.)",
+      "enums": [],
+      "productCategories": null
+    },
+    {
+      "seq": 220,
+      "name": "WeldingNeckFlangeNominalPressure",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "This parameters defines the nominal pressure rating for flanges (lapped flanges or welding neck flanges):",
+      "enums": [
+        {
+          "value": "3",
+          "description": "PN16 B1 (DIN EN 1092-1) (only available for welding neck flanges)"
+        },
+        {
+          "value": "4",
+          "description": "PN40 B1 (DIN EN 1092-1) (only available for welding neck flanges)"
+        },
+        {
+          "value": "5",
+          "description": "PN40 D+C (DIN EN 1092-1) (only available for welding neck flanges)"
+        },
+        {
+          "value": "7",
+          "description": "PN10 (only available for lapped flanges, with brazing neck)"
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 221,
+      "name": "Wiring_To_Junction_Box_At_Side",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether Wiring to the terminal box is required as an accessory only for the old TDB series.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the Wiring to the terminal box accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the Wiring to the terminal box accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    },
+    {
+      "seq": 222,
+      "name": "Wiring_To_Terminal_Box",
+      "unit": null,
+      "datatype": "Int32",
+      "group": "Unknown",
+      "description": "Indicates whether Wiring to the terminal box is required as an accessory for the newer KDB series.",
+      "enums": [
+        {
+          "value": "0",
+          "description": "Indicates that the Wiring to the terminal box accessory is not necessarily needed."
+        },
+        {
+          "value": "1",
+          "description": "Indicates that the Wiring to the terminal box accessory is definitely needed."
+        }
+      ],
+      "productCategories": null
+    }
+  ]
+}

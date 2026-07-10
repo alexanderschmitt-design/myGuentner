@@ -1,0 +1,13 @@
+Please delete these generated SVG files manually:
+- coil-evaporator-dx.svg
+- coil-evaporator-pump.svg
+- coil-air-cooler.svg
+- coil-dry-cooler.svg
+- coil-condenser.svg
+- coil-sub-cooler.svg
+- icon-pump.svg
+- icon-coolant.svg
+- icon-dry.svg
+- icon-condenser.svg
+- icon-sub.svg
+Then delete this file too.

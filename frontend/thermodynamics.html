@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — Thermodynamics</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active="mygpc"></header>
+
+  <!-- ===== STEP WIZARD ===== -->
+  <div class="step-wizard">
+    <div class="container">
+      <div class="step-wizard-inner">
+        <a href="index.html" class="step-item completed">
+          <span class="step-dot"></span>
+          <span class="step-label">Category</span>
+        </a>
+        <div class="step-connector completed"></div>
+        <a href="thermodynamics.html" class="step-item active">
+          <span class="step-dot"></span>
+          <span class="step-label">Thermodynamics</span>
+        </a>
+        <div class="step-connector"></div>
+        <a href="unit-selection.html" class="step-item upcoming">
+          <span class="step-dot"></span>
+          <span class="step-label">Unit Selection</span>
+        </a>
+        <div class="step-connector"></div>
+        <a href="results.html" class="step-item upcoming">
+          <span class="step-dot"></span>
+          <span class="step-label">Results</span>
+        </a>
+        <div class="step-connector"></div>
+        <a href="datasheet.html" class="step-item upcoming">
+          <span class="step-dot"></span>
+          <span class="step-label">Datasheet</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE CONTENT ===== -->
+  <main class="page-content">
+    <div class="container">
+
+      <!-- Top Action Bar -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <a href="index.html" class="btn btn-outline">
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </a>
+          <button class="btn btn-outline btn-reset">Reset</button>
+          <button class="btn btn-outline">Templates</button>
+        </div>
+        <div class="action-bar-center">
+          <div class="rating-bar" title="Impact rating">
+            <span class="rating-value" id="mygpc-rating-value">—</span>
+            <span class="rating-icons" id="mygpc-rating-stars"></span>
+          </div>
+        </div>
+        <div class="action-bar-right">
+          <a href="unit-selection.html" class="btn btn-primary">
+            Next
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Thermodynamics Form -->
+      <form id="thermodynamics-form">
+
+        <!-- View Toggle -->
+        <div class="view-toggle-bar">
+          <div class="view-toggle" id="viewToggle">
+            <button type="button" class="view-toggle-btn" data-view="basic">
+              <svg class="view-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Basic
+            </button>
+            <button type="button" class="view-toggle-btn active" data-view="expert">
+              <svg class="view-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Expert<span class="view-toggle-count">9</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Category-Indicator: zeigt aktive Klasse + Kategorie-Name (gefüllt via JS) -->
+        <div class="category-indicator" id="mygpc-category-indicator" style="font-size:13px;color:var(--mid-grey,#666);margin:8px 0 16px;"></div>
+
+        <!-- ============================================================
+             Thermodynamics Card Grid
+             - Felder mit data-gpc-classes="…" sind nur für die jeweiligen
+               Architektur-Klassen sichtbar (A/B/C/D1/D2/E1/E2/F).
+             - Fields ohne data-gpc-classes = sichtbar für alle.
+             - data-gpc-field bindet den Input an das gleichnamige
+               UnitInputData-Property (siehe rag/gpc-field-mapping.md).
+             ============================================================ -->
+        <div class="thermo-grid">
+
+          <!-- ============================================================
+               CAPACITY CARD (full width, row 1) — non-F variant
+               Für CO2 Gas Cooler (F) wird diese Karte ausgeblendet und
+               stattdessen die zwei Supercritic+Subcritic-Karten gerendert.
+               ============================================================ -->
+          <div class="thermo-card thermo-card--full" data-gpc-not-classes="F">
+            <div class="thermo-card-inner cols-2">
+              <div class="form-group">
+                <label>Calculation mode</label>
+                <div class="select-integrated">
+                  <select data-gpc-field="inputModeCapacity" data-gpc-enum="inputcapacitymodes">
+                    <option value="0">State fixed capacity (adjust surface reserve)</option>
+                    <option value="1">Calculate capacity</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <div class="form-group" id="field-capacity-group">
+                <label>Capacity</label>
+                <div class="input-integrated" id="field-capacity-wrap">
+                  <input type="number" value="10" id="field-capacity"
+                         data-gpc-field="thermalCapacity" data-gpc-convert="W-kW">
+                  <span class="unit-label">kW</span>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>min. surface reserve</label>
+                <div class="input-integrated">
+                  <input type="number" value="-10" id="field-min-reserve"
+                         data-gpc-field="tC_Tolerance_L">
+                  <span class="unit-label">%</span>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <!-- Frost thickness — nur für Cold-Side (Klassen A, B, C) -->
+              <div class="form-group" data-gpc-classes="A,B,C">
+                <label>Frost thickness</label>
+                <div class="input-integrated">
+                  <input type="number" value="0" id="field-frost-thickness"
+                         data-gpc-field="frostThickness">
+                  <span class="unit-label">mm</span>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="field-hint">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  <span>The layer of ice on one side of the fins</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>max. surface reserve</label>
+                <div class="input-integrated">
+                  <input type="number" value="50" id="field-max-reserve"
+                         data-gpc-field="tC_Tolerance_H">
+                  <span class="unit-label">%</span>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               CAPACITY CARD — F (CO2 Gas Cooler) — Top-Row mit shared
+               Calc mode + min/max surface reserve.
+               Capacity-Wert kommt aus den Supercritic/Subcritic-Cards weiter unten.
+               ============================================================ -->
+          <div class="thermo-card thermo-card--full" data-gpc-classes="F">
+            <div class="thermo-card-inner cols-2">
+              <div class="form-group">
+                <label>Calculation mode</label>
+                <div class="select-integrated">
+                  <select data-gpc-field="inputModeCapacity" data-gpc-enum="inputcapacitymodes">
+                    <option value="0">State fixed capacity (adjust surface reserve)</option>
+                    <option value="1">Calculate capacity</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <div></div><!-- spacer -->
+              <div class="form-group">
+                <label>min. surface reserve</label>
+                <div class="input-integrated">
+                  <input type="number" value="-10" data-gpc-field="tC_Tolerance_L">
+                  <span class="unit-label">%</span>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>max. surface reserve</label>
+                <div class="input-integrated">
+                  <input type="number" value="50" data-gpc-field="tC_Tolerance_H">
+                  <span class="unit-label">%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               CO2 SUPERCRITIC CARD — nur F (Gascooler-Mode)
+               ============================================================ -->
+          <div class="thermo-card thermo-card--full" data-gpc-classes="F" data-gpc-section="co2-supercritic">
+            <div class="checkbox-group" style="margin-bottom:12px;">
+              <input type="checkbox" id="co2-supercritic-master" checked
+                     data-gpc-field="isSupercritic" data-gpc-convert="bool-int">
+              <label for="co2-supercritic-master"><strong>Gascooler / supercritic</strong></label>
+            </div>
+            <div class="thermo-card-inner cols-2">
+              <div class="form-group">
+                <label>Capacity</label>
+                <div class="input-integrated">
+                  <input type="number" value="180"
+                         data-gpc-field="thermalCapacity" data-gpc-convert="W-kW">
+                  <span class="unit-label">kW</span>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div class="thermo-card-inner cols-2" style="margin-top:16px;">
+              <div>
+                <h3 class="thermo-card-title">Medium</h3>
+                <div class="form-group">
+                  <label>Medium</label>
+                  <div class="select-integrated">
+                    <select data-gpc-field="fluidID" data-gpc-enum="fluids" disabled>
+                      <option value="41">CO2 (R744)</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Pressure</label>
+                  <div class="input-integrated">
+                    <input type="number" value="92000" data-gpc-field="fluidPressure">
+                    <span class="unit-label">mbar</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Inlet temp.</label>
+                  <div class="input-integrated">
+                    <input type="number" value="120" data-gpc-field="fluidTempInlet">
+                    <span class="unit-label">°C</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Outlet temp.</label>
+                  <div class="input-integrated">
+                    <input type="number" value="36" data-gpc-field="fluidTempCond">
+                    <span class="unit-label">°C</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>max. pressure drop in coil</label>
+                  <div class="input-integrated">
+                    <input type="number" step="0.1" value="2.5"
+                           data-gpc-field="fluidPressureDropMax" data-gpc-convert="mbar-bar">
+                    <span class="unit-label">bar</span>
+                  </div>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="co2-sc-auto-pdrop"
+                         data-gpc-field="isMaxFluidPressureDropAuto" data-gpc-convert="bool-int">
+                  <label for="co2-sc-auto-pdrop">AUTO</label>
+                </div>
+              </div>
+              <div>
+                <h3 class="thermo-card-title">Air</h3>
+                <div class="form-group">
+                  <label>Air temp.</label>
+                  <div class="input-integrated">
+                    <input type="number" value="34" data-gpc-field="airTemperature">
+                    <span class="unit-label">°C</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Rel. humidity</label>
+                  <div class="input-integrated">
+                    <input type="number" value="40" data-gpc-field="airRelHumidity">
+                    <span class="unit-label">%</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Altitude</label>
+                  <div class="input-integrated">
+                    <input type="number" value="0" data-gpc-field="altitude">
+                    <span class="unit-label">m</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               CO2 SUBCRITIC CARD — nur F (Condenser-Mode für CO2)
+               ============================================================ -->
+          <div class="thermo-card thermo-card--full" data-gpc-classes="F" data-gpc-section="co2-subcritic">
+            <div class="checkbox-group" style="margin-bottom:12px;">
+              <input type="checkbox" id="co2-subcritic-master" checked
+                     data-gpc-field="isSubcritic" data-gpc-convert="bool-int">
+              <label for="co2-subcritic-master"><strong>Condenser / subcritic</strong></label>
+            </div>
+            <div class="thermo-card-inner cols-2">
+              <div class="form-group">
+                <label>Capacity</label>
+                <div class="input-integrated">
+                  <input type="number" value="130"
+                         data-gpc-field="subcriticThermalCapacity" data-gpc-convert="W-kW">
+                  <span class="unit-label">kW</span>
+                </div>
+              </div>
+              <div></div>
+            </div>
+            <div class="thermo-card-inner cols-2" style="margin-top:16px;">
+              <div>
+                <h3 class="thermo-card-title">Medium</h3>
+                <div class="form-group">
+                  <label>Hot gas temp.</label>
+                  <div class="input-integrated">
+                    <input type="number" value="58" data-gpc-field="subcriticFluidTempInlet">
+                    <span class="unit-label">°C</span>
+                  </div>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="co2-sub-hotgas-auto" checked
+                         data-gpc-field="subcriticIsHotGasAuto" data-gpc-convert="bool-int">
+                  <label for="co2-sub-hotgas-auto">AUTO</label>
+                </div>
+                <div class="form-group">
+                  <label>Cond. temp.</label>
+                  <div class="input-integrated">
+                    <input type="number" value="15" data-gpc-field="subcriticFluidTempCond">
+                    <span class="unit-label">°C</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>max. pressure drop in coil</label>
+                  <div class="input-integrated">
+                    <input type="number" step="0.1" value="0"
+                           data-gpc-field="subcriticFluidPressureDropMax">
+                    <span class="unit-label">K</span>
+                  </div>
+                </div>
+                <div class="checkbox-group">
+                  <input type="checkbox" id="co2-sub-auto-pdrop" checked
+                         data-gpc-field="isSubcriticMaxFluidPressureDropAuto" data-gpc-convert="bool-int">
+                  <label for="co2-sub-auto-pdrop">AUTO</label>
+                </div>
+              </div>
+              <div>
+                <h3 class="thermo-card-title">Air</h3>
+                <div class="form-group">
+                  <label>Air temp.</label>
+                  <div class="input-integrated">
+                    <input type="number" value="5" data-gpc-field="subcriticAirTemperature">
+                    <span class="unit-label">°C</span>
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Rel. humidity</label>
+                  <div class="input-integrated">
+                    <input type="number" value="40" data-gpc-field="subcriticAirRelHumidity">
+                    <span class="unit-label">%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               MEDIUM CARD — non-F variant (alle anderen Klassen)
+               ============================================================ -->
+          <div class="thermo-card" data-gpc-not-classes="F">
+            <h3 class="thermo-card-title">Medium</h3>
+
+            <!-- Multiple circuits — nur D1 (Condenser) -->
+            <div class="checkbox-group" data-gpc-classes="D1">
+              <input type="checkbox" id="multiple-circuits"
+                     data-gpc-field="noOfCircuitsThermo">
+              <label for="multiple-circuits">Multiple circuits</label>
+            </div>
+
+            <!-- Medium-Select (alle Klassen außer F) -->
+            <div class="form-group">
+              <label>Medium</label>
+              <div class="select-integrated" id="field-medium-wrap">
+                <svg class="impact-icon-inline" width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" fill="#00c897"/><path d="M9 12l2 2 4-4" fill="none" stroke="white" stroke-width="2"/></svg>
+                <select id="field-medium" data-gpc-field="fluidID" data-gpc-enum="fluids">
+                  <option value="2010">CO2 (R744) (GWP 1 | A1)</option>
+                </select>
+                <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+              <div class="field-hint">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                <span>Fluids marked with the Impact&deg; label have a low/no GWP and are PFAS-free.</span>
+              </div>
+            </div>
+
+            <!-- Concentration — nur Coolant-Glykol (C, E1) -->
+            <div class="form-group" data-gpc-classes="C,E1">
+              <label>Concentration</label>
+              <div class="input-integrated">
+                <input type="number" value="34" data-gpc-field="fluidVolConcentration">
+                <span class="unit-label">Vol.%</span>
+              </div>
+            </div>
+
+            <!-- Parameter mode — Coolant + Subcooler (C, D2, E1, E2) -->
+            <div class="form-group" data-gpc-classes="C,D2,E1,E2">
+              <label>Parameter mode</label>
+              <div class="select-integrated">
+                <select data-gpc-field="fluidInputMode" data-gpc-enum="fluidinputmode">
+                  <option value="0">Inlet/Outlet temperature</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- =========================================================
+                 Temperatur-Felder pro Klasse
+                 ========================================================= -->
+
+            <!-- Evaporation temp. — A (DX) + B (Pump) -->
+            <div class="form-group" id="field-evap-group" data-gpc-classes="A,B">
+              <label>Evaporation temp.</label>
+              <div class="input-integrated" id="field-evap-wrap">
+                <input type="number" value="-8" id="field-evap-temp"
+                       data-gpc-field="fluidTempEvap">
+                <span class="unit-label">°C</span>
+                <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+
+            <!-- Dew-Point/Mean Radio — nur A (DX) -->
+            <div class="radio-group expert-field" data-expert="dew-point" data-gpc-classes="A">
+              <div class="radio-option">
+                <input type="radio" name="inlet-mode" id="inlet-dewpoint" value="3" checked
+                       data-gpc-field="fluidInputMode">
+                <label for="inlet-dewpoint">Dew point at inlet (DIN EN328)</label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" name="inlet-mode" id="inlet-mean" value="0"
+                       data-gpc-field="fluidInputMode">
+                <label for="inlet-mean">Mean</label>
+              </div>
+            </div>
+
+            <!-- Superheating — nur A (DX), Expert -->
+            <div class="form-group expert-field" data-expert="superheating" data-gpc-classes="A">
+              <label>Superheating</label>
+              <div class="input-integrated">
+                <input type="number" value="5" id="field-superheating"
+                       data-gpc-field="fluidSuperHeating">
+                <span class="unit-label">K</span>
+              </div>
+            </div>
+
+            <!-- Inlet state by temp.+press. — nur A, Expert -->
+            <div class="checkbox-group expert-field" data-expert="inlet-state" data-gpc-classes="A">
+              <input type="checkbox" id="inlet-state">
+              <label for="inlet-state">Inlet state by temperature and pressure</label>
+            </div>
+
+            <!-- Cond. temp. — A (DX, Expert) + D1 (Condenser default) -->
+            <div class="form-group" data-gpc-classes="A,D1">
+              <label>Cond. temp.</label>
+              <div class="input-integrated">
+                <input type="number" value="5" id="field-cond-temp"
+                       data-gpc-field="fluidTempCond">
+                <span class="unit-label">°C</span>
+              </div>
+            </div>
+
+            <!-- Subcooling — nur A (DX), Expert -->
+            <div class="form-group expert-field" data-expert="subcooling" data-gpc-classes="A">
+              <label>Subcooling</label>
+              <div class="input-integrated">
+                <input type="number" value="1" id="field-subcooling"
+                       data-gpc-field="fluidSubCooling">
+                <span class="unit-label">K</span>
+              </div>
+            </div>
+
+            <!-- Hot gas temp. + AUTO — nur D1 (Condenser) -->
+            <div class="form-group" data-gpc-classes="D1">
+              <label>Hot gas temp.</label>
+              <div class="input-integrated" data-gpc-disable-if="isHotGasAuto:true">
+                <input type="number" value="75" data-gpc-field="fluidTempInlet">
+                <span class="unit-label">°C</span>
+              </div>
+            </div>
+            <div class="checkbox-group" data-gpc-classes="D1">
+              <input type="checkbox" id="hotgas-auto" checked
+                     data-gpc-field="isHotGasAuto" data-gpc-convert="bool-int">
+              <label for="hotgas-auto">AUTO</label>
+            </div>
+
+            <!-- gravity flooded — nur B (Pump) -->
+            <div class="checkbox-group" data-gpc-classes="B">
+              <input type="checkbox" id="gravity-flooded"
+                     data-gpc-field="fluidPumpMode">
+              <label for="gravity-flooded">gravity flooded</label>
+            </div>
+
+            <!-- Feed rate — nur B (Pump) -->
+            <div class="form-group" data-gpc-classes="B">
+              <label>Feed rate</label>
+              <div class="input-integrated">
+                <input type="number" step="0.1" value="3.5" data-gpc-field="fluidPumpRate">
+              </div>
+            </div>
+
+            <!-- Inlet temp. + Outlet temp. — Coolant + Subcooler (C, D2, E1, E2) -->
+            <div class="form-group" data-gpc-classes="C,D2,E1,E2">
+              <label>Inlet temp.</label>
+              <div class="input-integrated">
+                <input type="number" value="-5" data-gpc-field="fluidTempInlet">
+                <span class="unit-label">°C</span>
+              </div>
+            </div>
+            <div class="form-group" data-gpc-classes="C,D2,E1,E2">
+              <label>Outlet temp.</label>
+              <div class="input-integrated">
+                <input type="number" value="0" data-gpc-field="fluidTempCond">
+                <span class="unit-label">°C</span>
+              </div>
+            </div>
+
+            <!-- max. pressure drop in coil — A, B (Cold-Refrigerant) — Unit K -->
+            <div class="form-group expert-field" data-expert="pressure-drop" data-gpc-classes="A,B">
+              <label>max. pressure drop in coil</label>
+              <div class="input-integrated" data-gpc-disable-if="isMaxFluidPressureDropAuto:true">
+                <input type="number" value="5" id="field-pressure-drop"
+                       data-gpc-field="fluidPressureDropMax">
+                <span class="unit-label">K</span>
+              </div>
+            </div>
+
+            <!-- max. pressure drop in coil — Condenser D1 — Unit K -->
+            <div class="form-group" data-gpc-classes="D1">
+              <label>max. pressure drop in coil</label>
+              <div class="input-integrated" data-gpc-disable-if="isMaxFluidPressureDropAuto:true">
+                <input type="number" value="2" data-gpc-field="fluidPressureDropMax">
+                <span class="unit-label">K</span>
+              </div>
+            </div>
+
+            <!-- max. pressure drop in coil — Coolant/Oil/Subcooler (C, D2, E1, E2) — Unit bar -->
+            <div class="form-group" data-gpc-classes="C,D2,E1,E2">
+              <label>max. pressure drop in coil</label>
+              <div class="input-integrated" data-gpc-disable-if="isMaxFluidPressureDropAuto:true">
+                <input type="number" step="0.1" value="1"
+                       data-gpc-field="fluidPressureDropMax" data-gpc-convert="mbar-bar">
+                <span class="unit-label">bar</span>
+              </div>
+            </div>
+
+            <!-- AUTO checkbox für pressure drop — alle non-F -->
+            <div class="checkbox-group">
+              <input type="checkbox" id="auto-medium" checked
+                     data-gpc-field="isMaxFluidPressureDropAuto" data-gpc-convert="bool-int">
+              <label for="auto-medium">AUTO</label>
+            </div>
+
+            <!-- Cross-field validation warning -->
+            <div class="field-warning" id="temp-validation-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              <span>Evaporation temp. (t<sub>0</sub>) must be lower than air inlet temp. (t<sub>L1</sub>). Please check your values.</span>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               AIR CARD — non-F variant
+               ============================================================ -->
+          <div class="thermo-card" data-gpc-not-classes="F">
+            <h3 class="thermo-card-title">Air</h3>
+
+            <!-- Air pressure — Cold-Side Expert + Warm-Side regular -->
+            <div class="form-group expert-field" data-expert="air-pressure" data-gpc-classes="A,B,C">
+              <label>Air pressure</label>
+              <div class="input-integrated">
+                <input type="number" value="1013" id="field-air-pressure"
+                       data-gpc-field="airPressure">
+                <span class="unit-label">mbar</span>
+              </div>
+            </div>
+
+            <!-- Inlet/Air temp — Label variiert per Klasse, gleiches API-Property -->
+            <div class="form-group" data-gpc-classes="A,B,C">
+              <label>Inlet temp.</label>
+              <div class="input-integrated">
+                <input type="number" value="0" id="field-air-temp"
+                       data-gpc-field="airTemperature">
+                <span class="unit-label">°C</span>
+              </div>
+            </div>
+            <div class="form-group" data-gpc-classes="D1,D2,E1,E2">
+              <label>Air temp.</label>
+              <div class="input-integrated">
+                <input type="number" value="32" data-gpc-field="airTemperature">
+                <span class="unit-label">°C</span>
+              </div>
+            </div>
+
+            <!-- Rel. humidity — direkt sichtbar nur Warm-Side -->
+            <div class="form-group" data-gpc-classes="D1,D2,E1,E2">
+              <label>Rel. humidity</label>
+              <div class="input-integrated">
+                <input type="number" value="40" data-gpc-field="airRelHumidity">
+                <span class="unit-label">%</span>
+              </div>
+            </div>
+
+            <!-- Altitude — direkt sichtbar nur Warm-Side -->
+            <div class="form-group" data-gpc-classes="D1,D2,E1,E2">
+              <label>Altitude</label>
+              <div class="input-integrated">
+                <input type="number" value="0" data-gpc-field="altitude">
+                <span class="unit-label">m</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============================================================
+               HUMIDITY CHECKBOX CARD — nur Cold-Side (A, B, C)
+               ============================================================ -->
+          <div class="thermo-card thermo-card--checkbox" data-gpc-classes="A,B,C">
+            <div class="checkbox-group" style="margin-bottom:0;">
+              <input type="checkbox" id="capacity-humidity-factor" checked
+                     data-gpc-field="capacitySensibleHeatOnly" data-gpc-convert="bool-invert">
+              <label for="capacity-humidity-factor">Capacity including humidity factor</label>
+            </div>
+            <p class="thermo-card-desc">Calculates capacity with dry air, and takes into account condensation using the wet coil factor (WCF) according. Q_tot = Q_dry x WCF</p>
+          </div>
+
+        </div>
+
+      </form>
+
+      <hr class="form-divider form-divider-bottom">
+
+      <!-- Bottom Action Bar -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <a href="index.html" class="btn btn-outline">
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </a>
+          <button class="btn btn-outline btn-reset">Reset</button>
+        </div>
+        <div class="action-bar-right action-bar-right-spaced">
+          <button class="btn btn-outline">Templates</button>
+          <a href="unit-selection.html" class="btn btn-primary">
+            Next
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== CHATBOT WIDGET ===== -->
+  <div class="chatbot-dialog">
+    <div class="chatbot-dialog-header">
+      <h4>Güntner Configuration Assistant</h4>
+      <p>I will help you find the right product.</p>
+      <button class="chatbot-expand" aria-label="Expand chat">
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <svg class="icon-shrink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+      <button class="chatbot-close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="chatbot-dialog-body"></div>
+    <div class="chatbot-dialog-footer">
+      <input type="text" class="chatbot-input" placeholder="Type a message…">
+      <button class="chatbot-send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <!-- Docked layout (visible only in docked mode) -->
+    <div class="chatbot-docked-layout">
+      <div class="chatbot-guidance">
+        <h2 class="chatbot-guidance-title">Configuration Assistant</h2>
+        <p class="chatbot-guidance-subtitle">Answer the following steps to find the right Güntner product.</p>
+        <div class="guidance-steps">
+          <div class="guidance-step-card" data-guidance-step="1">
+            <div class="guidance-step-number">Step 1</div>
+            <div class="guidance-step-label">Product category</div>
+            <div class="guidance-step-value" id="gv-category"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="2">
+            <div class="guidance-step-number">Step 2</div>
+            <div class="guidance-step-label">Application</div>
+            <div class="guidance-step-value" id="gv-application"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="3">
+            <div class="guidance-step-number">Step 3</div>
+            <div class="guidance-step-label">Cooling capacity</div>
+            <div class="guidance-step-value" id="gv-capacity"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="4">
+            <div class="guidance-step-number">Step 4</div>
+            <div class="guidance-step-label">Refrigerant</div>
+            <div class="guidance-step-value" id="gv-refrigerant"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="5">
+            <div class="guidance-step-number">Step 5</div>
+            <div class="guidance-step-label">Temperature</div>
+            <div class="guidance-step-value" id="gv-temperature"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="6">
+            <div class="guidance-step-number">Step 6</div>
+            <div class="guidance-step-label">Summary</div>
+            <div class="guidance-step-value" id="gv-summary"></div>
+          </div>
+        </div>
+        <div class="guidance-active-step" id="guidance-active-area"></div>
+      </div>
+      <div class="chatbot-docked-chat">
+        <div class="chatbot-docked-chat-body"></div>
+        <div class="chatbot-docked-chat-footer">
+          <input type="text" class="chatbot-docked-input" placeholder="Type a message…">
+          <button class="chatbot-docked-send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="chatbot-trigger" aria-label="Open chat">
+    <svg class="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+
+  <!-- ===== myGPC Foundation ===== -->
+  <script src="mygpc-state.js"></script>
+  <script src="mygpc-api.js"></script>
+  <script src="mygpc-class-config.js"></script>
+  <script src="mygpc-bind.js"></script>
+  <script src="mygpc-impact.js"></script>
+
+  <script>
+    /* ============================================================
+       Thermodynamics — Basic / Expert View Toggle (Legacy)
+       Bleibt erhalten für die existierende View-Toggle-Logik.
+       Der MyGPC.bind-Layer respektiert localStorage.gpc_thermo_view_v2.
+       ============================================================ */
+    (function() {
+      var form = document.getElementById('thermodynamics-form');
+      var viewToggle = document.getElementById('viewToggle');
+      var expertFields = document.querySelectorAll('.expert-field');
+      var btns = viewToggle.querySelectorAll('.view-toggle-btn');
+      var warning = document.getElementById('temp-validation-warning');
+      var evapInput = document.getElementById('field-evap-temp');
+      var airTempInput = document.getElementById('field-air-temp');
+
+      var currentView = localStorage.getItem('gpc_thermo_view_v2') || 'expert';
+
+      function setView(view) {
+        currentView = view;
+        localStorage.setItem('gpc_thermo_view_v2', view);
+
+        btns.forEach(function(b) {
+          b.classList.toggle('active', b.getAttribute('data-view') === view);
+        });
+
+        if (view === 'basic') form.classList.add('thermo-form-basic');
+        else form.classList.remove('thermo-form-basic');
+
+        expertFields.forEach(function(el) {
+          if (view === 'expert') el.classList.add('visible');
+          else el.classList.remove('visible');
+        });
+
+        /* MyGPC.bind re-evaluiert Visibility, damit data-gpc-expert + .expert-field konsistent sind */
+        if (window.MyGPC && MyGPC.bind && MyGPC.bind.refresh) MyGPC.bind.refresh();
+      }
+
+      btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          setView(btn.getAttribute('data-view'));
+        });
+      });
+
+      setView(currentView);
+
+      function validateTemps() {
+        if (!evapInput || !airTempInput) return;
+        var t0 = parseFloat(evapInput.value);
+        var tL1 = parseFloat(airTempInput.value);
+        if (!isNaN(t0) && !isNaN(tL1) && t0 >= tL1) warning.classList.add('visible');
+        else warning.classList.remove('visible');
+      }
+      if (evapInput) {
+        evapInput.addEventListener('input', validateTemps);
+        evapInput.addEventListener('change', validateTemps);
+      }
+      if (airTempInput) {
+        airTempInput.addEventListener('input', validateTemps);
+        airTempInput.addEventListener('change', validateTemps);
+      }
+      validateTemps();
+
+      /* Admin Feature Flag */
+      var featureEnabled = localStorage.getItem('gpc_feature_basic_expert_view') === '1';
+      if (!featureEnabled) {
+        viewToggle.closest('.view-toggle-bar').style.display = 'none';
+        setView('basic');
+      }
+    })();
+
+    /* ============================================================
+       MyGPC Bind Init — kategorie-aware Feld-Sichtbarkeit + API
+       + Impact-Rating-Bar (oben in der Action-Bar)
+       ============================================================ */
+    (async function () {
+      try {
+        await MyGPC.bind.init({ loadDefaults: true });
+        var s = MyGPC.state.snapshot();
+        var ind = document.getElementById('mygpc-category-indicator');
+        if (ind) {
+          if (s.architectureClass) {
+            ind.textContent = 'Class ' + s.architectureClass + ' · '
+              + (s.productCategoryName || ('cat=' + s.productCategory))
+              + (s.productSection === 2 ? ' (Bare coil)' : '');
+          } else {
+            ind.textContent = 'Keine Kategorie gewählt — bitte zurück zu Step 1.';
+            ind.style.color = '#cc0000';
+          }
+        }
+
+        /* Impact-Rating: zentrale Engine in mygpc-impact.js */
+        if (window.MyGPC && MyGPC.impact && MyGPC.impact.init) {
+          MyGPC.impact.init();
+        }
+      } catch (e) {
+        console.error('[mygpc] init failed:', e);
+      }
+    })();
+  </script>
+
+  <script src="main.js"></script>
+  <script src="learn-mode.js"></script>
+  <script src="site-header.js"></script>
+</body>
+</html>

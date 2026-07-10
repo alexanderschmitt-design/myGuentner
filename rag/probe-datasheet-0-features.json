@@ -1,0 +1,1433 @@
+{
+  "success": true,
+  "message": "",
+  "content": [
+    {
+      "key": "AreKDBUnitsSelected",
+      "itemValue": null,
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "AreKDBUnitsSelected",
+      "info": null,
+      "value": [],
+      "versionnumber": 1
+    },
+    {
+      "key": "Epoxy_Fins",
+      "itemValue": "1",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Epoxy coated fins",
+      "info": "",
+      "value": [
+        {
+          "id": 1,
+          "description": "Epoxy coated fins",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "Coil_Defender",
+      "itemValue": "304",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Coil Defender (HX fully powder-coated incl. connection system)",
+      "info": "",
+      "value": [
+        {
+          "id": 304,
+          "description": "Coil Defender (HX fully powder-coated incl. connection system)",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "Wiring_To_Terminal_Box",
+      "itemValue": "267",
+      "ctrlType": 1,
+      "defaultValue": 1,
+      "available": true,
+      "disabled": false,
+      "description": "Wiring to terminal box",
+      "info": "",
+      "value": [
+        {
+          "id": 267,
+          "description": "Wiring to terminal box",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "RepairSwitch",
+      "itemValue": "233",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Repair switch",
+      "info": "",
+      "value": [
+        {
+          "id": 233,
+          "description": "Repair switch",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "SwitchCabinet",
+      "itemValue": "81",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Terminal box (with options)",
+      "info": "",
+      "value": [
+        {
+          "id": 81,
+          "description": "Terminal box (with options)",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "GuentnerStreamer",
+      "itemValue": "60",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Güntner Streamer (for an increased air throw)",
+      "info": "",
+      "value": [
+        {
+          "id": 60,
+          "description": "Güntner Streamer (for an increased air throw)",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DoubleTrayInsulated",
+      "itemValue": "17",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Double tray with 20 mm insulation",
+      "info": "",
+      "value": [
+        {
+          "id": 17,
+          "description": "Double tray with 20 mm insulation",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "CasingAndSimplyTray",
+      "itemValue": "50",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Casing and simple tray made of stainless steel",
+      "info": "",
+      "value": [
+        {
+          "id": 50,
+          "description": "Casing and simple tray made of stainless steel",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "CasingAndDoubleTray",
+      "itemValue": "51",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Casing and double tray made of stainless steel",
+      "info": "",
+      "value": [
+        {
+          "id": 51,
+          "description": "Casing and double tray made of stainless steel",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "Shutup",
+      "itemValue": "315",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "defrost hose",
+      "info": "",
+      "value": [
+        {
+          "id": 315,
+          "description": "defrost hose",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "SwivelingFans",
+      "itemValue": "330",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Hinged fan units",
+      "info": null,
+      "value": [
+        {
+          "id": 330,
+          "description": "Hinged fan units",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "LowEvapTempDesign",
+      "itemValue": "72",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Design for evaporation temp. t0<-40°C",
+      "info": "",
+      "value": [
+        {
+          "id": 72,
+          "description": "Design for evaporation temp. t0<-40°C",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "AirHoseConnectionInclStreamer",
+      "itemValue": "65",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Air sock connection incl. Güntner Streamer",
+      "info": "",
+      "value": [
+        {
+          "id": 65,
+          "description": "Air sock connection incl. Güntner Streamer",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "AdjustableFlapWithDrive",
+      "itemValue": "328",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Louvre (with drive) made of galvanised steel",
+      "info": "",
+      "value": [
+        {
+          "id": 328,
+          "description": "Louvre (with drive) made of galvanised steel",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "InletPosLeft",
+      "itemValue": "152",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Connections in air flow direction left",
+      "info": "",
+      "value": [
+        {
+          "id": 152,
+          "description": "Connections in air flow direction left",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "InletHood",
+      "itemValue": "231",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Inlet hood",
+      "info": "",
+      "value": [
+        {
+          "id": 231,
+          "description": "Inlet hood",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DeliveryTimeFilter",
+      "itemValue": "DeliveryTimeFilter",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Delivery time:",
+      "info": "Using this filter, the search may take a few minutes.",
+      "value": [
+        {
+          "id": 0,
+          "description": "No restriction",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": -1,
+          "description": "Only available units",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 4,
+          "description": "Max. 4 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 5,
+          "description": "Max. 5 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 6,
+          "description": "Max. 6 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 7,
+          "description": "Max. 7 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 8,
+          "description": "Max. 8 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 9,
+          "description": "Max. 9 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 10,
+          "description": "Max. 10 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 11,
+          "description": "Max. 11 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 12,
+          "description": "Max. 12 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 13,
+          "description": "Max. 13 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 14,
+          "description": "Max. 14 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 15,
+          "description": "Max. 15 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 16,
+          "description": "Max. 16 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 17,
+          "description": "Max. 17 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 18,
+          "description": "Max. 18 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 19,
+          "description": "Max. 19 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 20,
+          "description": "Max. 20 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 21,
+          "description": "Max. 21 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 22,
+          "description": "Max. 22 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 23,
+          "description": "Max. 23 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 24,
+          "description": "Max. 24 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 25,
+          "description": "Max. 25 weeks",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "PowerSupply",
+      "itemValue": "PowerSupply",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Power supply:",
+      "info": null,
+      "value": [
+        {
+          "id": 3001,
+          "description": "All 50Hz",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 3002,
+          "description": "All 60Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 6,
+          "description": "230V 1~ 50Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 16,
+          "description": "230V 1~ 60Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 9,
+          "description": "400V 3~ 50Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 2009,
+          "description": "400V 3~ 50Hz or 230V 1~ 50Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 10,
+          "description": "400V 3~ 60Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 2010,
+          "description": "400V 3~ 60Hz or 230V 1~ 60Hz",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "MotorTechnology",
+      "itemValue": "MotorTechnology",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Motor technology:",
+      "info": null,
+      "value": [
+        {
+          "id": -3,
+          "description": "Cost-optimised",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": -2,
+          "description": "Energy-optimised",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 1,
+          "description": "AC technology",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 2,
+          "description": "EC technology",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "EfficiencyClass",
+      "itemValue": "EfficiencyClass",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Minimum energy efficiency class:",
+      "info": null,
+      "value": [
+        {
+          "id": 0,
+          "description": "No",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 65,
+          "description": "A",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        },
+        {
+          "id": 66,
+          "description": "B",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        },
+        {
+          "id": 67,
+          "description": "C",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 68,
+          "description": "D",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 69,
+          "description": "E",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "CoreTubeMaterial",
+      "itemValue": "CoreTubeMaterial",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Core tube material:",
+      "info": null,
+      "value": [
+        {
+          "id": 0,
+          "description": "All",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 86,
+          "description": "Stainl. Steel ",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 67,
+          "description": "Copper",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "AirVelocityClass",
+      "itemValue": "AirVelocityClass",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Air velocity:",
+      "info": null,
+      "value": [
+        {
+          "id": 10001,
+          "description": "All",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 1,
+          "description": "Standard",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 2,
+          "description": "High",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "AirBlowOffType",
+      "itemValue": "AirBlowOffType",
+      "ctrlType": 0,
+      "defaultValue": 10001,
+      "available": true,
+      "disabled": false,
+      "description": "Air blow direction:",
+      "info": null,
+      "value": [
+        {
+          "id": 10001,
+          "description": "Standard",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 2,
+          "description": "Horizontal",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 3,
+          "description": "45Â° down",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "MaxOperatingPressure",
+      "itemValue": "MaxOperatingPressure",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Max. operating pressure:",
+      "info": null,
+      "value": [
+        {
+          "id": 0,
+          "description": "Standard",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 5400000,
+          "description": "54.0 bar",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 8000000,
+          "description": "80.0 bar",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "HotGasInterConnectingTubing",
+      "itemValue": "HotGasInterConnectingTubing",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "Hot gas interconnecting tubing",
+      "info": null,
+      "value": [
+        {
+          "id": 34,
+          "description": "with check valve",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "RepairSwitchWiring",
+      "itemValue": "RepairSwitchWiring",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": null,
+      "info": null,
+      "value": [
+        {
+          "id": 1,
+          "description": "Preferably one per fan",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 5,
+          "description": "Preferably one per unit",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "RepairSwitchType",
+      "itemValue": "RepairSwitchType",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": null,
+      "info": null,
+      "value": [
+        {
+          "id": 2,
+          "description": "Single-speed",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "RepairSwitchPosition",
+      "itemValue": "RepairSwitchPosition",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": null,
+      "info": null,
+      "value": [
+        {
+          "id": 2,
+          "description": "At side",
+          "group": null,
+          "disabled": false,
+          "selected": true,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "FanRingHeater",
+      "itemValue": "FanRingHeater",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Fan ring heater",
+      "info": null,
+      "value": [
+        {
+          "id": 319,
+          "description": "Standard",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 16,
+          "description": "Heating rod without HeatShield",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 75,
+          "description": "Heating rod without HeatShield for t0<-40 °C",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 313,
+          "description": "Heating pad without HeatShield",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 314,
+          "description": "Heating pad with HeatShield",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "MountedLegs",
+      "itemValue": "MountedLegs",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Legs for floor mounting",
+      "info": null,
+      "value": [
+        {
+          "id": 18,
+          "description": "Galv. Steel",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 151,
+          "description": "stainless steel (V2A)",
+          "group": null,
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "Defrosting",
+      "itemValue": "Defrosting",
+      "ctrlType": 0,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": false,
+      "description": "Defrosting:",
+      "info": null,
+      "value": [
+        {
+          "id": 80,
+          "description": "Air defrost",
+          "group": "Generic",
+          "disabled": false,
+          "selected": true,
+          "hasImpact": true,
+          "versionnumber": 1
+        },
+        {
+          "id": 263,
+          "description": "El. defrost mounted and wired at factory",
+          "group": "Generic",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 258,
+          "description": "Electric defrost kit to be installed by customer",
+          "group": "Generic",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        },
+        {
+          "id": 264,
+          "description": "Hotgas defrost",
+          "group": "Generic",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        },
+        {
+          "id": 265,
+          "description": "Warm brine defrost",
+          "group": "Generic",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        },
+        {
+          "id": 0,
+          "description": "User-defined",
+          "group": "Generic",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "312",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 312,
+          "description": "El. defrost coil light for t0≥-10°C",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "11",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 11,
+          "description": "El. defrost coil standard for t0≥-40°C",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "12",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 12,
+          "description": "El. defrost tray standard for t0≥-40°C",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "73",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 73,
+          "description": "El. defrost coil heavy for t0<-40°C",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "74",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 74,
+          "description": "El. defrost tray heavy for t0<-40°C",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "258",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 258,
+          "description": "Electric defrost kit to be installed by customer",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": false,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "13",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 13,
+          "description": "Hot gas defrost in coil",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "14",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 14,
+          "description": "Hot gas defrost in tray",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "261",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 261,
+          "description": "Warm brine defrost coil",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    },
+    {
+      "key": "DefrostingUserDefined",
+      "itemValue": "262",
+      "ctrlType": 1,
+      "defaultValue": 0,
+      "available": true,
+      "disabled": true,
+      "description": "User-defined",
+      "info": null,
+      "value": [
+        {
+          "id": 262,
+          "description": "Warm brine defrost tray",
+          "group": "User-Defined",
+          "disabled": false,
+          "selected": false,
+          "hasImpact": true,
+          "versionnumber": 1
+        }
+      ],
+      "versionnumber": 1
+    }
+  ]
+}

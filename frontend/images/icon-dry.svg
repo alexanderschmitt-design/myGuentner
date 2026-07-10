@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="none">
+  <circle cx="25" cy="25" r="23.5" stroke="currentColor" stroke-width="1.2"/>
+  <!-- Fan/airflow symbol -->
+  <path d="M25,10 Q31,18 25,18 Q19,18 25,10Z" fill="currentColor" opacity="0.6"/>
+  <path d="M25,26 Q19,18 25,18 Q31,18 25,26Z" fill="currentColor" opacity="0.6"/>
+  <path d="M17,18 Q25,12 25,18 Q25,24 17,18Z" fill="currentColor" opacity="0.6"/>
+  <path d="M33,18 Q25,24 25,18 Q25,12 33,18Z" fill="currentColor" opacity="0.6"/>
+  <circle cx="25" cy="18" r="2" fill="currentColor"/>
+  <text x="25" y="44" text-anchor="middle" fill="currentColor" font-family="Source Sans Pro, Arial, sans-serif" font-size="9" font-weight="700" letter-spacing="1">DRY</text>
+</svg>

@@ -1,0 +1,383 @@
+/* ============================================================
+   ADMIN CATALOG — Product & Spare Part Management
+   ============================================================ */
+
+/* Toolbar */
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 24px;
+}
+
+.catalog-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.catalog-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.catalog-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #fff;
+  border: 1px solid #c5c5c5;
+  border-radius: 4px;
+  padding: 0 14px;
+  height: 38px;
+  min-width: 260px;
+}
+
+.catalog-search svg { flex-shrink: 0; color: #888; }
+
+.catalog-search input {
+  border: none;
+  outline: none;
+  font-family: var(--font, sans-serif);
+  font-size: 14px;
+  color: #3c3c3b;
+  width: 100%;
+  background: transparent;
+}
+
+.catalog-filter {
+  height: 38px;
+  padding: 0 10px;
+  border: 1px solid #c5c5c5;
+  border-radius: 4px;
+  font-family: var(--font, sans-serif);
+  font-size: 12.5px;
+  color: #3c3c3b;
+  background: #fff;
+  cursor: pointer;
+  outline: none;
+  max-width: 180px;
+}
+
+.catalog-filter:focus { border-color: #2666e0; }
+
+/* Active filter indicator */
+.catalog-filter:not([value=""]):valid {
+  border-color: #2666e0;
+}
+
+/* Reset filters button */
+.catalog-reset-btn {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px dashed #c5c5c5;
+  border-radius: 4px;
+  background: none;
+  font-family: var(--font, sans-serif);
+  font-size: 12.5px;
+  color: #888;
+  cursor: pointer;
+  transition: all .15s;
+  display: none;
+  align-items: center;
+  gap: 4px;
+}
+
+.catalog-reset-btn.visible { display: flex; }
+.catalog-reset-btn:hover { border-color: #c0392b; color: #c0392b; }
+
+.catalog-export-btn {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Stats */
+.catalog-stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.catalog-stat {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.catalog-stat-value {
+  font-family: var(--font, sans-serif);
+  font-size: 24px;
+  font-weight: 600;
+  color: #3c3c3b;
+  line-height: 1.2;
+}
+
+.catalog-stat-label {
+  font-family: var(--font, sans-serif);
+  font-size: 12.5px;
+  color: #888;
+  letter-spacing: .3px;
+}
+
+/* Table */
+.catalog-table-wrap {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  overflow-x: auto;
+}
+
+.catalog-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font, sans-serif);
+  font-size: 13.5px;
+}
+
+.catalog-table thead { background: #fafafa; }
+
+.catalog-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-weight: 500;
+  font-size: 12px;
+  color: #636362;
+  letter-spacing: .3px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #ececec;
+  white-space: nowrap;
+}
+
+.catalog-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f5f5f5;
+  color: #3c3c3b;
+  vertical-align: middle;
+}
+
+.catalog-table tbody tr { transition: background .15s; }
+.catalog-table tbody tr:hover { background: rgba(38, 102, 224, .03); }
+
+.catalog-table input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: #2666e0;
+  cursor: pointer;
+}
+
+.catalog-product-link {
+  color: #2666e0;
+  font-weight: 500;
+  text-decoration: none;
+}
+.catalog-product-link:hover { text-decoration: underline; }
+
+.catalog-sku {
+  font-size: 11.5px;
+  color: #888;
+  display: block;
+  margin-top: 2px;
+}
+
+/* Badges */
+.catalog-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: .2px;
+}
+
+.catalog-badge--evap { background: #e8f5e9; color: #2e7d32; }
+.catalog-badge--cool { background: #e3f2fd; color: #1565c0; }
+.catalog-badge--cond { background: #fff3e0; color: #e65100; }
+.catalog-badge--dry  { background: #fce4ec; color: #c62828; }
+.catalog-badge--gas  { background: #f3e5f5; color: #6a1b9a; }
+.catalog-badge--fan  { background: #e3f2fd; color: #1565c0; }
+.catalog-badge--ctrl { background: #ede7f6; color: #4527a0; }
+.catalog-badge--htr  { background: #fff3e0; color: #e65100; }
+.catalog-badge--vlv  { background: #e0f7fa; color: #00695c; }
+.catalog-badge--seal { background: #f5f5f5; color: #616161; }
+
+/* Status */
+.catalog-status {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.catalog-status--active { background: #e8f5e9; color: #2e7d32; }
+.catalog-status--draft  { background: #fff8e1; color: #f57f17; }
+.catalog-status--disc   { background: #fce4ec; color: #c62828; }
+.catalog-status--low    { background: #fff8e1; color: #f57f17; }
+.catalog-status--out    { background: #fce4ec; color: #c62828; }
+
+/* Action button */
+.catalog-action-btn {
+  background: none;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  padding: 6px;
+  cursor: pointer;
+  color: #636362;
+  transition: all .15s;
+  display: flex;
+}
+
+.catalog-action-btn:hover {
+  border-color: #2666e0;
+  color: #2666e0;
+}
+
+/* Pagination */
+.catalog-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+}
+
+.catalog-pagination-info {
+  font-family: var(--font, sans-serif);
+  font-size: 13px;
+  color: #888;
+}
+
+.catalog-pagination-btns {
+  display: flex;
+  gap: 4px;
+}
+
+.catalog-page-btn {
+  min-width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #ececec;
+  background: #fff;
+  border-radius: 4px;
+  font-family: var(--font, sans-serif);
+  font-size: 13px;
+  color: #3c3c3b;
+  cursor: pointer;
+  transition: all .15s;
+}
+
+.catalog-page-btn:hover:not(:disabled) { border-color: #2666e0; color: #2666e0; }
+.catalog-page-btn.active { background: #2666e0; border-color: #2666e0; color: #fff; }
+.catalog-page-btn:disabled { opacity: .4; cursor: default; }
+
+/* ============================================================
+   DETAIL VIEW
+   ============================================================ */
+.catalog-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.catalog-detail-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.catalog-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 19px;
+}
+
+.catalog-detail-card {
+  background: #fff;
+  border: 1px solid #ececec;
+  border-radius: 4px;
+  padding: 24px;
+}
+
+.catalog-detail-card--full { grid-column: 1 / -1; }
+
+.catalog-detail-card-title {
+  font-family: var(--font, sans-serif);
+  font-size: 15px;
+  font-weight: 500;
+  color: #3c3c3b;
+  margin: 0 0 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #ececec;
+}
+
+.catalog-detail-fields {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.catalog-detail-fields.cols-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.catalog-detail-fields .form-group {
+  margin: 0;
+}
+
+.catalog-detail-fields label {
+  display: block;
+  font-family: var(--font, sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: #636362;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+}
+
+.catalog-input {
+  width: 100%;
+  padding: 9px 14px;
+  border: 1px solid #c5c5c5;
+  border-radius: 4px;
+  font-family: var(--font, sans-serif);
+  font-size: 14px;
+  color: #3c3c3b;
+  background: #fff;
+  outline: none;
+  box-sizing: border-box;
+  transition: border-color .15s;
+}
+
+.catalog-input:focus {
+  border-color: #2666e0;
+  box-shadow: 0 0 0 3px rgba(38, 102, 224, .1);
+}
+
+textarea.catalog-input { resize: vertical; min-height: 60px; }
+
+select.catalog-input {
+  cursor: pointer;
+  appearance: auto;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .catalog-detail-grid { grid-template-columns: 1fr; }
+  .catalog-detail-card--full { grid-column: auto; }
+  .catalog-detail-fields.cols-2 { grid-template-columns: 1fr; }
+  .catalog-stats { flex-wrap: wrap; }
+  .catalog-stat { min-width: 120px; }
+}

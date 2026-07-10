@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 50" fill="none">
+  <circle cx="25" cy="25" r="23.5" stroke="currentColor" stroke-width="1.2"/>
+  <!-- Wavy lines (heat release) -->
+  <path d="M16,10 Q19,14 16,18 Q13,22 16,26" fill="none" stroke="currentColor" stroke-width="1.1"/>
+  <path d="M25,10 Q28,14 25,18 Q22,22 25,26" fill="none" stroke="currentColor" stroke-width="1.1"/>
+  <path d="M34,10 Q37,14 34,18 Q31,22 34,26" fill="none" stroke="currentColor" stroke-width="1.1"/>
+  <text x="25" y="44" text-anchor="middle" fill="currentColor" font-family="Source Sans Pro, Arial, sans-serif" font-size="7" font-weight="700" letter-spacing="1">COND</text>
+</svg>

@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — Unit Selection</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active="mygpc"></header>
+
+  <!-- ===== STEP WIZARD ===== -->
+  <div class="step-wizard">
+    <div class="container">
+      <div class="step-wizard-inner">
+        <a href="index.html" class="step-item completed">
+          <span class="step-dot"></span>
+          <span class="step-label">Category</span>
+        </a>
+        <div class="step-connector completed"></div>
+        <a href="thermodynamics.html" class="step-item completed">
+          <span class="step-dot"></span>
+          <span class="step-label">Thermodynamics</span>
+        </a>
+        <div class="step-connector completed"></div>
+        <a href="unit-selection.html" class="step-item active">
+          <span class="step-dot"></span>
+          <span class="step-label">Unit Selection</span>
+        </a>
+        <div class="step-connector"></div>
+        <a href="results.html" class="step-item upcoming">
+          <span class="step-dot"></span>
+          <span class="step-label">Results</span>
+        </a>
+        <div class="step-connector"></div>
+        <a href="datasheet.html" class="step-item upcoming">
+          <span class="step-dot"></span>
+          <span class="step-label">Datasheet</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE CONTENT ===== -->
+  <main class="page-content">
+    <div class="container">
+
+      <!-- Top Action Bar -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <a href="thermodynamics.html" class="btn btn-outline">
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </a>
+          <button class="btn btn-outline btn-reset">Reset</button>
+          <button class="btn btn-outline">Templates</button>
+        </div>
+        <div class="action-bar-center">
+          <div class="rating-bar" title="Impact rating">
+            <span class="rating-value" id="mygpc-rating-value">—</span>
+            <span class="rating-icons" id="mygpc-rating-stars"></span>
+          </div>
+        </div>
+        <div class="action-bar-right">
+          <a href="results.html" class="btn btn-primary">
+            Next
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- View Toggle -->
+      <div class="view-toggle-bar">
+        <div class="view-toggle" id="usViewToggle">
+          <button type="button" class="view-toggle-btn" data-view="basic">
+            <svg class="view-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="9" x2="15" y2="9"/><line x1="9" y1="13" x2="13" y2="13"/></svg>Basic
+          </button>
+          <button type="button" class="view-toggle-btn active" data-view="expert">
+            <svg class="view-toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>Expert<span class="view-toggle-count" id="usExpertCount">14</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Two-column layout -->
+      <div class="us-layout">
+
+        <!-- LEFT: Series / Single Unit selection -->
+        <div class="us-left">
+          <div class="us-tabs">
+            <button class="us-tab active" data-tab="search-unit">Search Unit</button>
+            <button class="us-tab" data-tab="calculate-single">Calculate Single Unit</button>
+          </div>
+
+          <!-- TAB 1: Search Unit (Series-Liste wird live aus POST /unitgroup gefüllt) -->
+          <div class="us-tab-content active" id="tab-search-unit">
+            <div class="us-series-header">Series</div>
+            <div id="mygpc-series-list">
+              <div class="us-series-item" style="color:#999;cursor:default;justify-content:center;">
+                Loading series from API…
+              </div>
+            </div>
+          </div>
+
+          <!-- TAB 2: Calculate Single Unit -->
+          <div class="us-tab-content" id="tab-calculate-single">
+
+            <!-- Series list dropdown -->
+            <div class="form-group">
+              <label>Series list:</label>
+              <div class="select-integrated">
+                <select>
+                  <option>GADP</option>
+                  <option>GACC</option>
+                  <option>GACV</option>
+                  <option>ADHN</option>
+                </select>
+                <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+
+            <!-- Model filter with Apply/Clear -->
+            <div class="form-group">
+              <label>Model filter:</label>
+              <div style="display:flex; gap:8px; align-items:flex-start;">
+                <div class="input-integrated" style="flex:1; max-width:427px;">
+                  <input type="text" placeholder="Search Model">
+                </div>
+                <button type="button" class="btn btn-primary" style="height:42px; padding:0 24px;">Apply</button>
+                <button type="button" class="btn btn-outline" style="height:42px; width:42px; padding:0; display:flex; align-items:center; justify-content:center;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <!-- Model table -->
+            <div class="us-model-table">
+              <div class="us-model-table-header">
+                Current selection: <em>031.1CN/1A-A2.A-1922.0CH</em>
+              </div>
+              <div class="us-model-table-row">031.1CN/1A A2.A-1922.0CH</div>
+              <div class="us-model-table-row alt">031.1CN/1A A2.A-1922.0CH</div>
+              <div class="us-model-table-row">031.1CN/1A A2.A-1922.0CH</div>
+              <div class="us-model-table-row">031.1CN/1A A2.A-1922.0CH</div>
+              <div class="us-model-table-row">031.1CN/1A A2.A-1922.0CH</div>
+              <div class="us-model-table-footer">Suitable units loaded (15)</div>
+            </div>
+
+            <!-- Passes dropdown -->
+            <div class="form-group" style="margin-top:30px;">
+              <label>Passes:</label>
+              <div class="select-integrated" style="max-width:427px;">
+                <select>
+                  <option>AUTO</option>
+                  <option>1</option>
+                  <option>2</option>
+                  <option>3</option>
+                  <option>4</option>
+                </select>
+                <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- RIGHT: Unit Details -->
+        <div class="us-right">
+
+          <form id="unit-details-form" style="display:flex; flex-direction:column; gap:19px;">
+
+            <!-- LIMITATIONS Section -->
+            <div class="us-section-card">
+            <div class="us-accordion open">
+              <div class="us-accordion-left">
+                <h3>Limitations</h3>
+              </div>
+              <svg class="chevron-toggle" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="collapsible-body open">
+
+              <!-- Max. installation dimensions -->
+              <label class="us-section-label">Max. installation dimensions (length x width x height):</label>
+              <div class="us-field-grid cols-3">
+                <div class="form-group" style="margin-bottom:0;">
+                  <div class="input-with-select">
+                    <input type="number" value="12">
+                    <select class="inline-unit-select">
+                      <option>m</option>
+                      <option>mm</option>
+                      <option>ft</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <div class="input-with-select">
+                    <input type="number" value="10">
+                    <select class="inline-unit-select">
+                      <option>m</option>
+                      <option>mm</option>
+                      <option>ft</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <div class="input-with-select">
+                    <input type="number" value="20">
+                    <select class="inline-unit-select">
+                      <option>m</option>
+                      <option>mm</option>
+                      <option>ft</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fin Specifications -->
+              <div class="us-field-grid cols-3" style="margin-top:16px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Fin Specifications</label>
+                  <div class="select-integrated">
+                    <select>
+                      <option>Fin spacing:</option>
+                      <option>Fin thickness:</option>
+                    </select>
+                    <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Minimum</label>
+                  <div class="input-with-select">
+                    <input type="number" value="1.5">
+                    <select class="inline-unit-select">
+                      <option>mm</option>
+                      <option>in</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Maximum</label>
+                  <div class="input-with-select">
+                    <input type="number" value="15">
+                    <select class="inline-unit-select">
+                      <option>mm</option>
+                      <option>in</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Sound specifications -->
+              <div class="us-field-grid cols-3" style="margin-top:16px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Sound specifications</label>
+                  <div class="select-integrated">
+                    <select>
+                      <option>Max. sound pressure:</option>
+                      <option>Max. sound power:</option>
+                    </select>
+                    <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>Maximum</label>
+                  <div class="input-integrated">
+                    <input type="number" value="99">
+                    <span class="unit-label">dB(A)</span>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>in</label>
+                  <div class="input-with-select">
+                    <input type="number" value="3">
+                    <select class="inline-unit-select">
+                      <option>m</option>
+                      <option>ft</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Tolerance & min fans (expert only) -->
+              <div class="us-field-grid cols-2 us-expert-field" style="margin-top:16px;">
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>tol. of max. sound pressure level</label>
+                  <div class="input-integrated">
+                    <input type="number" value="3">
+                    <span class="unit-label">dB(A)</span>
+                  </div>
+                </div>
+                <div class="form-group" style="margin-bottom:0;">
+                  <label>min. no. of fans</label>
+                  <div class="input-integrated">
+                    <input type="number" value="1">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Delivery time -->
+              <div class="form-group" style="margin-top:16px;">
+                <label>Delivery time:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>Only available units</option>
+                    <option>All units</option>
+                    <option>Stock items only</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+                <div class="checkbox-group" style="margin-top:10px;">
+                  <input type="checkbox" id="stock-items-only"
+                         data-gpc-field="onlyStockUnits" data-gpc-convert="bool-int">
+                  <label for="stock-items-only">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;margin-right:4px;color:var(--text-medium)"><path d="M3 21V8l9-5 9 5v13"/><path d="M3 21h18"/><rect x="9" y="13" width="6" height="8"/><line x1="3" y1="13" x2="21" y2="13"/></svg>
+                    Stock items
+                  </label>
+                </div>
+              </div>
+
+            </div>
+            </div><!-- /us-section-card (Limitations) -->
+
+            <!-- Impact Product Life Cycle card (collapsed by default — activate via checkbox) -->
+            <div class="us-section-card impact-disabled" id="impact-plc-card">
+            <div class="us-accordion">
+              <div class="us-accordion-left">
+                <input type="checkbox" id="impact-plc"
+                       data-gpc-field="impactProductLifeCycle" data-gpc-convert="bool-int">
+                <h3>Impact Product Life Cycle</h3>
+                <svg class="impact-icon" width="24" height="24" viewBox="0 0 24 24" fill="#00c897"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4" fill="none" stroke="white" stroke-width="2"/></svg>
+              </div>
+              <svg class="chevron-toggle" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+
+            <div class="collapsible-body" id="impact-plc-body">
+
+            <!-- Row 1: Operation Life | Planning Factor | Fan Usage Profile -->
+            <div class="us-field-grid cols-3">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Operation Life: <span class="info-hint" title="Geplante Betriebsdauer in Jahren">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="15">
+                  <span class="unit-label">a</span>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Planning Factor: <span class="info-hint" title="Auslegungsreserve in Prozent">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="120">
+                  <span class="unit-label">%</span>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Fan Usage Profile: <span class="info-hint" title="Betriebsprofil der Ventilatoren">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="100">
+                  <span class="unit-label">%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 2: Energy Costs | Location | Energy CO2 -->
+            <div class="us-field-grid cols-3">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Energy Costs: <span class="info-hint" title="Lokale Strompreise">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="0.3" step="0.01">
+                  <span class="unit-label">€/kWh</span>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Location:</label>
+                <div class="select-integrated">
+                  <select id="impact-location">
+                    <option>Germany</option>
+                    <option>Austria</option>
+                    <option>Switzerland</option>
+                    <option>France</option>
+                    <option>United Kingdom</option>
+                    <option>Netherlands</option>
+                    <option>Poland</option>
+                    <option>Italy</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Energy CO₂ - Emissions: <span class="info-hint" title="Lokaler Emissionsfaktor des Stromnetzes">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="380">
+                  <span class="unit-label">g CO₂/kWh</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 3: Defrost / Day | Defrost Duration | Prediction model checkbox -->
+            <div class="us-field-grid cols-3">
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Defrost / Day: <span class="info-hint" title="Anzahl der Abtauzyklen pro Tag">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="0" id="defrost-per-day"
+                         data-gpc-field="impactDefrostPerDay">
+                </div>
+              </div>
+              <div class="form-group" style="margin-bottom:0;">
+                <label>Defrost Duration: <span class="info-hint" title="Dauer eines Abtauzyklus">i</span></label>
+                <div class="input-integrated">
+                  <input type="number" value="0" id="defrost-duration"
+                         data-gpc-field="impactMaxDefrostDuration">
+                  <span class="unit-label">min</span>
+                </div>
+              </div>
+              <div class="impact-prediction-cell">
+                <input type="checkbox" id="prediction-defrost"
+                       data-gpc-field="impactUsePredictionModelDefrost" data-gpc-convert="bool-int">
+                <label for="prediction-defrost">Prediction model<br>for defrosting:</label>
+              </div>
+            </div>
+
+            <div class="us-description" style="margin-top:10px;">
+              Would you like to use our physical prediction model for defrosting instead of manual input?
+              The model predicts the optimum defrosting time and number of defrosting cycles per day for the selected unit.
+            </div>
+            <div class="us-description" style="font-size:13px; color:var(--mid-grey);">
+              The forecast of defrost intervals and duration does not replace the optimal defrost setting made by the system installer when commissioning the system (see installation instructions). It must be adapted to the operating conditions and is not our responsibility. During operation, the values may deviate from the forecasts.
+            </div>
+
+            </div>
+            </div><!-- /us-section-card (Impact) -->
+
+            <!-- OPTIONS Section -->
+            <div class="us-section-card">
+            <div class="us-accordion open">
+              <div class="us-accordion-left">
+                <h3>Options</h3>
+              </div>
+              <svg class="chevron-toggle" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="collapsible-body open">
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="erp" checked
+                       data-gpc-field="erP_Compliant" data-gpc-convert="bool-int">
+                <label for="erp">Only units compliant with ErP</label>
+              </div>
+
+              <div class="form-group us-expert-field">
+                <label>Power supply:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>All 50Hz</option>
+                    <option>All 60Hz</option>
+                    <option>230V / 1ph / 50Hz</option>
+                    <option>400V / 3ph / 50Hz</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Motor technology:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>EC Technology</option>
+                    <option>AC Motor</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Minimum energy efficiency class:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>A+</option>
+                    <option>A</option>
+                    <option>B</option>
+                    <option>C</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Air blow direction:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>Standard</option>
+                    <option>Reverse</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <!-- Defrosting — Cold-Side only (A=DX, B=Pump, C=Coolant). Werte aus PDF #49.
+                   Leaf-Icons 🌿 markieren impact-friendly Optionen analog Live-UI. -->
+              <div class="form-group" data-gpc-classes="A,B,C">
+                <label>Defrosting:</label>
+                <div style="display:flex; gap:20px; align-items:flex-end;">
+                  <div class="select-integrated" style="max-width:427px; flex:1;">
+                    <select data-gpc-field="defrosting">
+                      <option value="80">🌿 Air defrost</option>
+                      <option value="263">El. defrost mounted and wired at factory</option>
+                      <option value="258">Electric defrost kit to be installed by customer</option>
+                      <option value="264">🌿 Hotgas defrost</option>
+                      <option value="-1">User-defined</option>
+                      <option value="265">🌿 Warm brine defrost</option>
+                    </select>
+                    <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group us-expert-field">
+                <label>Hot gas interconnecting tubing:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>with check valve</option>
+                    <option>without check valve</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <div class="us-checkbox-row">
+                <div class="checkbox-group">
+                  <input type="checkbox" id="air-velocity-check">
+                  <label for="air-velocity-check">Air velocity:</label>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="esp">
+                <label for="esp">ESP</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="repair-switch" checked>
+                <label for="repair-switch">Repair switch</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="epoxy"
+                       data-gpc-field="epoxy_Fins" data-gpc-convert="bool-int">
+                <label for="epoxy">Epoxy coated fins</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="wiring-terminal" checked>
+                <label for="wiring-terminal">Wiring to terminal box</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="fan-ring">
+                <label for="fan-ring">Fan ring heater</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="double-tray">
+                <label for="double-tray">Double tray with 10 mm insulation</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="casing-simple">
+                <label for="casing-simple">Casing and simple tray made of stainless steel</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="casing-double" checked>
+                <label for="casing-double">Casing and double tray made of stainless steel</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="legs-floor">
+                <label for="legs-floor">Legs for floor mounting</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="air-sock">
+                <label for="air-sock">Air sock connection incl. Guntner streamer</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="defrost-hose">
+                <label for="defrost-hose">Defrost hose</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="inlet-hood">
+                <label for="inlet-hood">Inlet hood</label>
+              </div>
+
+              <div class="checkbox-group us-expert-field">
+                <input type="checkbox" id="louvre">
+                <label for="louvre">Louvre (with drive) made of galvanised steel</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="guntner-streamer" checked>
+                <label for="guntner-streamer">Guntner Streamer (for an increased air throw)</label>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#00c897"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4" fill="none" stroke="white" stroke-width="2"/></svg>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="hinged-fan"
+                       data-gpc-field="hingedFanPlate" data-gpc-convert="bool-int">
+                <label for="hinged-fan">Hinged fan units</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="design-evap">
+                <label for="design-evap">Design for evaporation temp. 60/-40°C</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="connections-left">
+                <label for="connections-left">Connections in air flow direction left</label>
+              </div>
+            </div>
+            </div><!-- /us-section-card (Options) -->
+
+            <!-- Terminal Box Section -->
+            <div class="us-section-card">
+            <div class="us-accordion open">
+              <div class="us-accordion-left">
+                <input type="checkbox" id="terminal-box" checked
+                       data-gpc-field="switchCabinet" data-gpc-convert="bool-int">
+                <h3>Terminal Box (with option)</h3>
+                <svg class="impact-icon" width="24" height="24" viewBox="0 0 24 24" fill="#00c897"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4" fill="none" stroke="white" stroke-width="2"/></svg>
+              </div>
+              <svg class="chevron-toggle" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </div>
+            <div class="collapsible-body open">
+
+              <div class="form-group">
+                <label>Motor technology:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>Cost-optimised</option>
+                    <option>EC Technology</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+
+              <h4 class="us-subsection">Preselection</h4>
+
+              <div class="checkbox-group">
+                <input type="radio" name="preselection" id="pre-controller" style="width:22px; height:22px; accent-color:var(--blue);">
+                <label for="pre-controller">Controller (EC)</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="radio" name="preselection" id="pre-switch-ac" style="width:22px; height:22px; accent-color:var(--blue);">
+                <label for="pre-switch-ac">Switch/control (AC) or fuse box (EC) with control</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="radio" name="preselection" id="pre-control-panel" style="width:22px; height:22px; accent-color:var(--blue);">
+                <label for="pre-control-panel">Control panel (AC) with fans and to contactor (direct control)</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="radio" name="preselection" id="pre-wiring" checked style="width:22px; height:22px; accent-color:var(--blue);">
+                <label for="pre-wiring">Wiring to terminal box (electrical connection and control signals)</label>
+              </div>
+
+              <div class="checkbox-group">
+                <input type="radio" name="preselection" id="pre-fuse-box" style="width:22px; height:22px; accent-color:var(--blue);">
+                <label for="pre-fuse-box">Fuse box with signals (EC)/thermal contact (AC) wired to terminals</label>
+              </div>
+
+              <hr class="form-divider" style="margin:16px 0;">
+
+              <div class="checkbox-group">
+                <input type="checkbox" id="signal-ec" checked>
+                <label for="signal-ec">0-10V signal required (only EC)</label>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="#00c897"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4" fill="none" stroke="white" stroke-width="2"/></svg>
+              </div>
+
+              <div class="form-group" style="margin-top:8px;">
+                <label>Motor technology:</label>
+                <div class="select-integrated" style="max-width:427px;">
+                  <select>
+                    <option>Cost-optimised</option>
+                    <option>EC Technology</option>
+                  </select>
+                  <svg class="dropdown-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </div>
+            </div><!-- /us-section-card (Terminal Box) -->
+
+          </form>
+        </div>
+      </div>
+
+      <hr class="form-divider form-divider-bottom">
+
+      <!-- Bottom Action Bar -->
+      <div class="action-bar">
+        <div class="action-bar-left">
+          <a href="thermodynamics.html" class="btn btn-outline">
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Back
+          </a>
+          <button class="btn btn-outline btn-reset">Reset</button>
+        </div>
+        <div class="action-bar-right action-bar-right-spaced">
+          <button class="btn btn-outline">Templates</button>
+          <a href="results.html" class="btn btn-primary">
+            Next
+            <svg class="btn-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== CHATBOT WIDGET ===== -->
+  <div class="chatbot-dialog">
+    <div class="chatbot-dialog-header">
+      <h4>Güntner Configuration Assistant</h4>
+      <p>I will help you find the right product.</p>
+      <button class="chatbot-expand" aria-label="Expand chat">
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <svg class="icon-shrink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+      <button class="chatbot-close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="chatbot-dialog-body"></div>
+    <div class="chatbot-dialog-footer">
+      <input type="text" class="chatbot-input" placeholder="Type a message…">
+      <button class="chatbot-send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <!-- Docked layout (visible only in docked mode) -->
+    <div class="chatbot-docked-layout">
+      <div class="chatbot-guidance">
+        <h2 class="chatbot-guidance-title">Configuration Assistant</h2>
+        <p class="chatbot-guidance-subtitle">Answer the following steps to find the right Güntner product.</p>
+        <div class="guidance-steps">
+          <div class="guidance-step-card" data-guidance-step="1">
+            <div class="guidance-step-number">Step 1</div>
+            <div class="guidance-step-label">Product category</div>
+            <div class="guidance-step-value" id="gv-category"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="2">
+            <div class="guidance-step-number">Step 2</div>
+            <div class="guidance-step-label">Application</div>
+            <div class="guidance-step-value" id="gv-application"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="3">
+            <div class="guidance-step-number">Step 3</div>
+            <div class="guidance-step-label">Cooling capacity</div>
+            <div class="guidance-step-value" id="gv-capacity"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="4">
+            <div class="guidance-step-number">Step 4</div>
+            <div class="guidance-step-label">Refrigerant</div>
+            <div class="guidance-step-value" id="gv-refrigerant"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="5">
+            <div class="guidance-step-number">Step 5</div>
+            <div class="guidance-step-label">Temperature</div>
+            <div class="guidance-step-value" id="gv-temperature"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="6">
+            <div class="guidance-step-number">Step 6</div>
+            <div class="guidance-step-label">Summary</div>
+            <div class="guidance-step-value" id="gv-summary"></div>
+          </div>
+        </div>
+        <div class="guidance-active-step" id="guidance-active-area"></div>
+      </div>
+      <div class="chatbot-docked-chat">
+        <div class="chatbot-docked-chat-body"></div>
+        <div class="chatbot-docked-chat-footer">
+          <input type="text" class="chatbot-docked-input" placeholder="Type a message…">
+          <button class="chatbot-docked-send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="chatbot-trigger" aria-label="Open chat">
+    <svg class="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+
+  <script src="main.js"></script>
+  <script>
+    /* ============================================================
+       Unit Selection — Basic / Expert View Toggle
+       ============================================================ */
+    (function() {
+      var toggle = document.getElementById('usViewToggle');
+      if (!toggle) return;
+
+      var btns = toggle.querySelectorAll('.view-toggle-btn');
+      var expertFields = document.querySelectorAll('.us-expert-field');
+      var expertSections = document.querySelectorAll('.us-expert-section');
+      var currentView = localStorage.getItem('gpc_us_view_v2') || 'expert';
+
+      function setView(view) {
+        currentView = view;
+        localStorage.setItem('gpc_us_view_v2', view);
+
+        btns.forEach(function(b) {
+          b.classList.toggle('active', b.getAttribute('data-view') === view);
+        });
+
+        expertFields.forEach(function(el) {
+          if (view === 'expert') {
+            el.classList.add('visible');
+          } else {
+            el.classList.remove('visible');
+          }
+        });
+
+        expertSections.forEach(function(el) {
+          if (view === 'expert') {
+            el.classList.add('visible');
+          } else {
+            el.classList.remove('visible');
+          }
+        });
+      }
+
+      btns.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          setView(btn.getAttribute('data-view'));
+        });
+      });
+
+      /* Check admin feature flag — hide toggle if Basic & Expert View is disabled */
+      var featureEnabled = localStorage.getItem('gpc_feature_basic_expert_view') === '1';
+      if (!featureEnabled) {
+        toggle.closest('.view-toggle-bar').style.display = 'none';
+        setView('basic');
+      } else {
+        setView(currentView);
+      }
+    })();
+
+    /* ============================================================
+       Impact Product Life Cycle — checkbox collapses the section body
+       ============================================================ */
+    (function() {
+      var cb   = document.getElementById('impact-plc');
+      var card = document.getElementById('impact-plc-card');
+      var body = document.getElementById('impact-plc-body');
+      if (!cb || !card || !body) return;
+
+      var accordion = card.querySelector('.us-accordion');
+
+      function syncFromCheckbox() {
+        var on = cb.checked;
+        body.classList.toggle('open', on);
+        if (accordion) accordion.classList.toggle('open', on);
+        card.classList.toggle('impact-disabled', !on);
+      }
+
+      cb.addEventListener('change', syncFromCheckbox);
+
+      /* Initial state (checkbox is checked by default in HTML) */
+      syncFromCheckbox();
+    })();
+
+    /* ============================================================
+       Stock items filter — persists to localStorage so the
+       results page can render warehouse markers when active.
+       ============================================================ */
+    (function() {
+      var STOCK_KEY = 'mygpc_stock_items_only';
+      var box = document.getElementById('stock-items-only');
+      if (!box) return;
+      try { box.checked = localStorage.getItem(STOCK_KEY) === '1'; } catch (e) {}
+      box.addEventListener('change', function() {
+        try { localStorage.setItem(STOCK_KEY, box.checked ? '1' : '0'); } catch (e) {}
+      });
+    })();
+  </script>
+  <script src="learn-mode.js"></script>
+  <script src="site-header.js"></script>
+
+  <!-- ===== myGPC Foundation — Step 3 Series-Liste live ===== -->
+  <script src="mygpc-state.js"></script>
+  <script src="mygpc-api.js"></script>
+  <script src="mygpc-class-config.js"></script>
+  <script src="mygpc-bind.js"></script>
+  <script src="mygpc-impact.js"></script>
+  <script>
+    (async function () {
+      try {
+        await MyGPC.bind.init({ loadDefaults: false });  // unitInputData ist schon aus Step 2 da
+        if (window.MyGPC && MyGPC.impact && MyGPC.impact.init) MyGPC.impact.init();
+        // Kleine Status-Anzeige oben, damit User sieht, dass Foundation aktiv ist
+        var s = MyGPC.state.snapshot();
+        var marker = document.createElement('div');
+        marker.style.cssText = 'font-size:12px;color:#666;margin:8px 0;padding:6px 12px;background:#f0f4f8;border-left:3px solid #003865;';
+        if (s.architectureClass) {
+          marker.textContent = 'myGPC State: Class ' + s.architectureClass + ' · '
+            + (s.productCategoryName || 'cat=' + s.productCategory)
+            + (s.unitInputData ? ' · UnitInputData loaded' : ' · UnitInputData missing — go back to Step 2');
+        } else {
+          marker.textContent = 'No category selected — go back to Step 1';
+          marker.style.color = '#cc0000';
+        }
+        var container = document.querySelector('.us-layout') || document.querySelector('.container');
+        if (container) container.parentNode.insertBefore(marker, container);
+      } catch (e) {
+        console.error('[mygpc/unit-selection] init failed:', e);
+      }
+
+      /* ========================================================
+         Series-Liste — POST /unitgroup → linke Spalte rendern
+         ======================================================== */
+      await renderSeriesList();
+    })();
+
+    async function renderSeriesList() {
+      var listEl = document.getElementById('mygpc-series-list');
+      if (!listEl) return;
+      var s = MyGPC.state.snapshot();
+      var uid = s.unitInputData;
+      if (!uid) {
+        listEl.innerHTML = '<div class="us-series-item" style="color:#cc0000;cursor:default;justify-content:center;">No UnitInputData — go back to Step 2</div>';
+        return;
+      }
+
+      try {
+        var res = await MyGPC.api.unitGroup(uid, 2);
+        if (!res || !res.success || !Array.isArray(res.content)) {
+          listEl.innerHTML = '<div class="us-series-item" style="color:#cc0000;cursor:default;justify-content:center;">/unitgroup failed: ' + (res && res.message || 'unknown') + '</div>';
+          return;
+        }
+
+        // Pre-selection aus unitInputData.units[]
+        var preSelected = new Set(Array.isArray(uid.units) ? uid.units : []);
+
+        // Nur visible=true Series rendern, in API-Reihenfolge
+        var visible = res.content.filter(function (x) { return x.visible === true; });
+        if (visible.length === 0) {
+          listEl.innerHTML = '<div class="us-series-item" style="color:#cc0000;cursor:default;justify-content:center;">No matching series for current inputs</div>';
+          return;
+        }
+
+        listEl.innerHTML = visible.map(function (sr) {
+          var isValid = sr.validationResult === true;
+          var isSelected = preSelected.has(sr.unitGroupID);
+          var protocolMsg = (sr.validationInfos && sr.validationInfos.protocolDescription) || '';
+          var titleAttr = !isValid && protocolMsg ? ' title="' + String(protocolMsg).replace(/"/g, '&quot;').replace(/\n/g, ' ') + '"' : '';
+          var dotColor = isValid ? '#00c897' : '#cc0000';
+          var imgSrc = sr.image || '';
+          return '' +
+            '<div class="us-series-item' + (isSelected ? ' active' : '') + '" data-unit-group-id="' + sr.unitGroupID + '"' + titleAttr + ' style="position:relative;">' +
+              '<span class="mygpc-series-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:' + dotColor + ';flex-shrink:0;"></span>' +
+              '<div class="us-series-item-img">' +
+                (imgSrc ? '<img src="' + imgSrc + '" alt="" onerror="this.style.display=\'none\';">' : '') +
+              '</div>' +
+              '<div class="us-series-item-text" style="flex:1;">' +
+                '<h4>' + escapeHtml(sr.serieName || sr.unitGroupID) + '</h4>' +
+                '<p>' + escapeHtml(sr.serieDescription || '') + '</p>' +
+              '</div>' +
+              (isSelected ? '<span class="mygpc-series-check" style="color:#003865;font-weight:600;font-size:18px;flex-shrink:0;">✓</span>' : '') +
+            '</div>';
+        }).join('');
+
+        // Click-Handler: in/aus uid.units[] togglen
+        listEl.querySelectorAll('.us-series-item[data-unit-group-id]').forEach(function (el) {
+          el.addEventListener('click', function () {
+            var id = el.getAttribute('data-unit-group-id');
+            if (!id) return;
+            var snap = MyGPC.state.snapshot();
+            var current = Array.isArray(snap.unitInputData && snap.unitInputData.units) ? snap.unitInputData.units.slice() : [];
+            var idx = current.indexOf(id);
+            if (idx >= 0) current.splice(idx, 1);
+            else current.push(id);
+            MyGPC.state.patchUid({ units: current });
+            // Re-render (nur Selection-Marker, ohne API-Call)
+            updateSelectionMarkers(current);
+          });
+        });
+      } catch (e) {
+        console.error('[mygpc/unit-selection] /unitgroup failed:', e);
+        listEl.innerHTML = '<div class="us-series-item" style="color:#cc0000;cursor:default;justify-content:center;">Network error: ' + escapeHtml(e.message) + '</div>';
+      }
+    }
+
+    function updateSelectionMarkers(unitsArr) {
+      var selected = new Set(unitsArr);
+      document.querySelectorAll('#mygpc-series-list .us-series-item[data-unit-group-id]').forEach(function (el) {
+        var id = el.getAttribute('data-unit-group-id');
+        var isSelected = selected.has(id);
+        el.classList.toggle('active', isSelected);
+        // Checkmark ein-/ausblenden
+        var existing = el.querySelector('.mygpc-series-check');
+        if (isSelected && !existing) {
+          var check = document.createElement('span');
+          check.className = 'mygpc-series-check';
+          check.style.cssText = 'color:#003865;font-weight:600;font-size:18px;flex-shrink:0;';
+          check.textContent = '✓';
+          el.appendChild(check);
+        } else if (!isSelected && existing) {
+          existing.remove();
+        }
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+  </script>
+</body>
+</html>

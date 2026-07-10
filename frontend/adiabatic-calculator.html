@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adiabatic Efficiency Calculator — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    /* Page-level wrappers (page version of an existing modal feature) */
+    .aec-page-title-row { display: flex; align-items: center; gap: 14px; margin: 28px 0 4px; }
+    .aec-page-title { font-size: 28px; font-weight: 300; text-transform: uppercase; letter-spacing: 1.6px; color: var(--text-dark); }
+    .aec-impact-badge {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #00897B; color: #fff;
+    }
+    .aec-rule { width: 60px; height: 2px; background: #00897B; margin: 0 0 26px; }
+
+    .aec-results-block { padding-top: 12px; border-top: 1px solid var(--border-light); margin-top: 8px; }
+    .aec-map-fab {
+      position: absolute; bottom: 14px; left: 14px;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: var(--primary); color: #fff;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-md);
+      border: none; cursor: pointer; z-index: 1000;
+    }
+    .aec-map-fab:hover { background: var(--primary-dark); }
+    .ae-map { position: relative; }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active="mytools"></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <div class="aec-page-title-row">
+        <h1 class="aec-page-title">Adiabatic Efficiency Calculator</h1>
+        <span class="aec-impact-badge" title="Güntner Impact® Label">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M12 4c-1 4-3 5-7 5 0 4 2 6 7 7 5-1 7-3 7-7-4 0-6-1-7-5z"/></svg>
+        </span>
+      </div>
+      <div class="aec-rule"></div>
+
+      <div class="ae-guide-note">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        <span>The Adiabatic Efficiency Guide can be found <a href="#" class="ae-link">here</a>.</span>
+      </div>
+
+      <div class="ae-input-row">
+        <div class="ae-field">
+          <label for="aec-app">Application</label>
+          <select id="aec-app">
+            <option>Data Center</option>
+            <option>Industrial Process</option>
+            <option>Cold Storage</option>
+            <option>Comfort Cooling</option>
+          </select>
+        </div>
+        <div class="ae-field">
+          <label for="aec-app-detail">Application details</label>
+          <select id="aec-app-detail">
+            <option>1. Data Center 500 kW Cooling</option>
+            <option>2. Data Center 1 MW Cooling</option>
+            <option>3. Data Center 2 MW Cooling</option>
+          </select>
+        </div>
+        <div class="ae-field">
+          <label for="aec-country">Country</label>
+          <select id="aec-country">
+            <option>GERMANY</option>
+            <option>AUSTRIA</option>
+            <option>SWITZERLAND</option>
+            <option>FRANCE</option>
+            <option>NETHERLANDS</option>
+            <option>UNITED KINGDOM</option>
+            <option>POLAND</option>
+            <option>CZECH REPUBLIC</option>
+          </select>
+        </div>
+        <div class="ae-field">
+          <label for="aec-location">Location</label>
+          <select id="aec-location">
+            <option>Augsburg</option>
+            <option>Berlin</option>
+            <option>Munich</option>
+            <option>Hamburg</option>
+            <option>Frankfurt</option>
+            <option>Stuttgart</option>
+            <option>Cologne</option>
+          </select>
+        </div>
+        <div class="ae-field">
+          <label for="aec-water">Water price (€/m³)</label>
+          <input type="number" id="aec-water" value="0,20" step="0.01">
+        </div>
+        <div class="ae-field">
+          <label for="aec-elec">Electricity price (€/kWh)</label>
+          <input type="number" id="aec-elec" value="0,35" step="0.01">
+        </div>
+      </div>
+
+      <div class="ae-actions-row">
+        <button class="ae-btn ae-btn-primary" type="button">Generate Report</button>
+        <button class="ae-btn ae-btn-primary" type="button" style="background:#a5c4ec;color:#1d4f8a">Generate Map Report</button>
+      </div>
+
+      <div class="aec-results-block">
+        <h2 class="ae-results-title" id="aec-results-title">Calculation Results — Germany — Augsburg</h2>
+
+        <div class="ae-control-row">
+          <span class="ae-control-label">Temperature unit</span>
+          <div class="ae-segmented" id="aec-unit-toggle">
+            <button class="ae-seg active" type="button" data-unit="c">°C</button>
+            <button class="ae-seg" type="button" data-unit="f">°F</button>
+          </div>
+        </div>
+
+        <div class="ae-control-row">
+          <span class="ae-control-label">Map type</span>
+          <div class="ae-segmented" id="aec-map-toggle">
+            <button class="ae-seg active" type="button" data-type="energy">Energy savings</button>
+            <button class="ae-seg" type="button" data-type="money">Money savings</button>
+            <button class="ae-seg" type="button" data-type="roi-ex">ROI ex works</button>
+            <button class="ae-seg" type="button" data-type="roi-retrofit">ROI retrofit</button>
+            <button class="ae-seg" type="button" data-type="hot-days">Hot days</button>
+            <button class="ae-seg" type="button" data-type="hottest">Hottest condition</button>
+            <button class="ae-seg" type="button" data-type="hydroblu">HydroBLU&trade; wet potential</button>
+          </div>
+        </div>
+
+        <div class="ae-map" id="aec-map">
+          <button class="aec-map-fab" type="button" aria-label="HydroBLU info" title="HydroBLU info">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v6"/><path d="M5 8a7 7 0 0014 0"/><path d="M12 14a4 4 0 100 8 4 4 0 000-8z"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ===== Map setup (Leaflet + OpenStreetMap tiles)
+    const map = L.map('aec-map', { zoomControl: true, attributionControl: false })
+      .setView([52.5, 10.5], 5);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // Sample reference dots scattered across Europe (decorative)
+    const REF_DOTS = [
+      [51.51,-0.13],[48.86,2.35],[52.52,13.40],[50.11,8.68],[48.13,11.58],[53.55,9.99],
+      [51.22,6.78],[51.05,3.72],[51.92,4.48],[50.85,4.35],[47.50,19.04],[50.07,14.43],
+      [52.23,21.01],[59.33,18.07],[55.68,12.57],[60.17,24.94],[41.90,12.50],[40.42,-3.70],
+      [38.72,-9.14],[55.95,-3.19],[54.97,-1.61],[53.41,-2.99],[53.48,-2.24],[55.86,-4.25],
+      [50.73,-3.53],[52.95,-1.15],[53.80,-1.55],[53.41,-2.99],[51.45,-2.58],[50.37,-4.14],
+      [47.49,8.73],[46.94,7.45],[46.20,6.15],[47.68,9.18],[48.21,16.37],[49.61,6.13]
+    ];
+    const refIcon = L.divIcon({
+      className: 'ae-leaflet-dot',
+      iconSize: [10, 10]
+    });
+    REF_DOTS.forEach(([lat, lng]) => L.marker([lat, lng], { icon: refIcon, interactive: false }).addTo(map));
+
+    // Active location marker (Augsburg)
+    let activeMarker = L.marker([48.366, 10.898], {
+      icon: L.divIcon({ className: 'ae-leaflet-active', iconSize: [16, 16] })
+    }).addTo(map);
+
+    // ===== Toggle behaviour for both segmented controls
+    function wireSegmented(rootId) {
+      const root = document.getElementById(rootId);
+      root.querySelectorAll('.ae-seg').forEach(b => {
+        b.addEventListener('click', () => {
+          root.querySelectorAll('.ae-seg').forEach(x => x.classList.remove('active'));
+          b.classList.add('active');
+        });
+      });
+    }
+    wireSegmented('aec-unit-toggle');
+    wireSegmented('aec-map-toggle');
+
+    // ===== Results title reflects Country + Location
+    const country  = document.getElementById('aec-country');
+    const location = document.getElementById('aec-location');
+    const title    = document.getElementById('aec-results-title');
+    function updateTitle() {
+      const c = country.options[country.selectedIndex].text;
+      const l = location.options[location.selectedIndex].text;
+      title.textContent = `Calculation Results — ${c[0]}${c.slice(1).toLowerCase()} — ${l}`;
+    }
+    country.addEventListener('change', updateTitle);
+    location.addEventListener('change', updateTitle);
+  </script>
+
+  <script src="site-header.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

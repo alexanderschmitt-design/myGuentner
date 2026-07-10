@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — RAG Settings</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin-catalog.css">
+  <link rel="stylesheet" href="admin-documents.css">
+  <link rel="stylesheet" href="admin-rag-settings.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active=""></header>
+
+  <!-- ===== ADMIN LAYOUT ===== -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-title">Administration</div>
+      <a class="admin-nav-item" href="admin.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Feature Flags
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        User Management
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Layout &amp; Theme
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">Catalog</div>
+      <a class="admin-nav-item" href="admin-products.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Product Management
+      </a>
+      <a class="admin-nav-item" href="admin-spareparts.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Spare Part Management
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">AI &amp; Knowledge</div>
+      <a class="admin-nav-item" href="admin-documents.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        RAG Management
+      </a>
+      <a class="admin-nav-item active" href="admin-rag-settings.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        RAG Settings
+      </a>
+      <a class="admin-nav-item" href="admin-rag-test.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2v7.31"/><path d="M14 9.3V2"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 11-4 0"/><line x1="12" y1="14" x2="12.01" y2="14"/></svg>
+        RAG Test
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">System</div>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Activity Log
+      </a>
+      <a class="admin-nav-item" href="admin-system.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        System Info
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <div class="admin-header">
+        <h1>RAG Settings</h1>
+        <p>Konfigurieren Sie die Retrieval-Augmented Generation Pipeline — Embedding-Modell, Chunking-Parameter, Retrieval-Schwellwerte und Vector Store.</p>
+      </div>
+
+      <!-- Status Bar -->
+      <div class="admin-status-bar" id="statusBar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span id="statusMsg">Einstellungen gespeichert.</span>
+      </div>
+
+      <!-- Settings Grid -->
+      <div class="rag-settings-grid">
+
+        <!-- ============ 1. Embedding Model ============ -->
+        <div class="rag-card">
+          <div class="rag-card-header">
+            <div class="rag-card-icon rag-card-icon--embed">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/></svg>
+            </div>
+            <div>
+              <h3>Embedding-Modell</h3>
+              <span class="rag-card-subtitle">Bestimmt die Qualität der semantischen Suche</span>
+            </div>
+          </div>
+
+          <div class="rag-field-group">
+            <label class="rag-label">Modus</label>
+            <div class="rag-radio-group" id="embedding-mode">
+              <label class="rag-radio">
+                <input type="radio" name="embeddingMode" value="local" checked>
+                <div class="rag-radio-content">
+                  <strong>Lokal (TF-IDF)</strong>
+                  <span>Kein API-Key nötig. Gut für Entwicklung und Tests. Geringere Qualität bei komplexen Anfragen.</span>
+                </div>
+              </label>
+              <label class="rag-radio">
+                <input type="radio" name="embeddingMode" value="openai">
+                <div class="rag-radio-content">
+                  <strong>OpenAI Embeddings</strong>
+                  <span>Produktionsqualität. Erfordert API-Schlüssel. Kosten: ~$0.02 / 1M Tokens.</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="rag-field-group" id="openai-settings" style="display:none;">
+            <label class="rag-label" for="openai-model">OpenAI Modell</label>
+            <select class="catalog-input" id="openai-model">
+              <option value="text-embedding-3-small" selected>text-embedding-3-small (1536 dim, günstig)</option>
+              <option value="text-embedding-3-large">text-embedding-3-large (3072 dim, beste Qualität)</option>
+              <option value="text-embedding-ada-002">text-embedding-ada-002 (1536 dim, legacy)</option>
+            </select>
+            <span class="rag-hint">Kleineres Modell ist schneller und günstiger, größeres liefert bessere Ergebnisse.</span>
+          </div>
+
+          <div class="rag-field-group" id="local-settings">
+            <label class="rag-label" for="local-dimensions">Vektor-Dimensionen (lokal)</label>
+            <input type="number" class="catalog-input" id="local-dimensions" value="384" min="64" max="1024" step="64">
+            <span class="rag-hint">Höhere Dimensionen = genauere Suche, aber mehr Speicher. Standard: 384.</span>
+          </div>
+        </div>
+
+        <!-- ============ 2. API Key ============ -->
+        <div class="rag-card">
+          <div class="rag-card-header">
+            <div class="rag-card-icon rag-card-icon--key">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.778 7.778 5.5 5.5 0 017.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+            </div>
+            <div>
+              <h3>API-Schlüssel</h3>
+              <span class="rag-card-subtitle">Nur benötigt wenn OpenAI-Modus aktiv</span>
+            </div>
+          </div>
+
+          <div class="rag-field-group">
+            <label class="rag-label" for="api-key">OpenAI API Key</label>
+            <div class="rag-key-input-wrap">
+              <input type="password" class="catalog-input" id="api-key" placeholder="sk-..." autocomplete="off">
+              <button class="rag-key-toggle" id="toggle-key-vis" title="Anzeigen/Verbergen">
+                <svg id="key-eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+              </button>
+            </div>
+            <span class="rag-hint">Wird nur lokal im Browser gespeichert (<code>localStorage</code>). Wird nie an Dritte übertragen.</span>
+          </div>
+
+          <div class="rag-field-group">
+            <button class="btn btn-outline" id="btn-test-key">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+              Verbindung testen
+            </button>
+            <div class="rag-test-result" id="key-test-result"></div>
+          </div>
+        </div>
+
+        <!-- ============ 3. Chunking ============ -->
+        <div class="rag-card">
+          <div class="rag-card-header">
+            <div class="rag-card-icon rag-card-icon--chunk">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+            </div>
+            <div>
+              <h3>Text-Chunking</h3>
+              <span class="rag-card-subtitle">Wie Dokumente in durchsuchbare Abschnitte aufgeteilt werden</span>
+            </div>
+          </div>
+
+          <div class="rag-field-row">
+            <div class="rag-field-group">
+              <label class="rag-label" for="chunk-size">Chunk-Größe (Zeichen)</label>
+              <input type="number" class="catalog-input" id="chunk-size" value="1000" min="200" max="8000" step="100">
+              <span class="rag-hint">Zielgröße pro Chunk. Größer = mehr Kontext, aber unschärfere Suche.</span>
+            </div>
+            <div class="rag-field-group">
+              <label class="rag-label" for="chunk-overlap">Overlap (Zeichen)</label>
+              <input type="number" class="catalog-input" id="chunk-overlap" value="200" min="0" max="2000" step="50">
+              <span class="rag-hint">Überlappung zwischen benachbarten Chunks. Verhindert Informationsverlust an Grenzen.</span>
+            </div>
+          </div>
+
+          <div class="rag-field-group">
+            <label class="rag-label" for="chunk-separator">Trennzeichen</label>
+            <select class="catalog-input" id="chunk-separator">
+              <option value="\n\n" selected>Absatz (doppelter Zeilenumbruch)</option>
+              <option value="\n">Einzelner Zeilenumbruch</option>
+              <option value=". ">Satzende (Punkt + Leerzeichen)</option>
+            </select>
+            <span class="rag-hint">Bevorzugte Stelle, an der Text aufgetrennt wird.</span>
+          </div>
+
+          <!-- Visual chunk preview -->
+          <div class="rag-chunk-preview">
+            <label class="rag-label">Vorschau</label>
+            <div class="rag-chunk-viz" id="chunk-viz">
+              <div class="rag-chunk-block" id="chunk-block-1">
+                <span class="rag-chunk-label">Chunk 1</span>
+                <div class="rag-chunk-bar" style="width:100%"></div>
+              </div>
+              <div class="rag-chunk-overlap-indicator" id="overlap-viz">Overlap</div>
+              <div class="rag-chunk-block" id="chunk-block-2">
+                <span class="rag-chunk-label">Chunk 2</span>
+                <div class="rag-chunk-bar" style="width:100%"></div>
+              </div>
+            </div>
+            <span class="rag-hint" id="chunk-preview-info">Bei 1000 Zeichen / Chunk mit 200 Zeichen Overlap ergeben sich ca. 20% Überlappung.</span>
+          </div>
+        </div>
+
+        <!-- ============ 4. Retrieval ============ -->
+        <div class="rag-card">
+          <div class="rag-card-header">
+            <div class="rag-card-icon rag-card-icon--search">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/><line x1="11" y1="8" x2="11" y2="14"/></svg>
+            </div>
+            <div>
+              <h3>Retrieval-Parameter</h3>
+              <span class="rag-card-subtitle">Wie viele und welche Chunks dem Sprachmodell übergeben werden</span>
+            </div>
+          </div>
+
+          <div class="rag-field-row">
+            <div class="rag-field-group">
+              <label class="rag-label" for="retrieval-top-k">Top K (Anzahl Ergebnisse)</label>
+              <input type="number" class="catalog-input" id="retrieval-top-k" value="5" min="1" max="20" step="1">
+              <span class="rag-hint">Anzahl der relevantesten Chunks, die als Kontext gesendet werden.</span>
+            </div>
+            <div class="rag-field-group">
+              <label class="rag-label" for="retrieval-min-score">Min. Similarity Score</label>
+              <input type="number" class="catalog-input" id="retrieval-min-score" value="0.1" min="0" max="1" step="0.05">
+              <span class="rag-hint">Chunks unter diesem Schwellwert werden verworfen (0 = alle, 1 = exakte Übereinstimmung).</span>
+            </div>
+          </div>
+
+          <div class="rag-field-group">
+            <label class="rag-label" for="retrieval-language">Antwortsprache</label>
+            <select class="catalog-input" id="retrieval-language">
+              <option value="de" selected>Deutsch</option>
+              <option value="en">English</option>
+              <option value="fr">Fran&ccedil;ais</option>
+            </select>
+            <span class="rag-hint">Sprache, in der der Chatbot antwortet. Beeinflusst den System-Prompt.</span>
+          </div>
+
+          <div class="rag-field-group">
+            <label class="rag-label" for="system-prompt">System-Prompt (optional)</label>
+            <textarea class="catalog-input" id="system-prompt" rows="4" placeholder="Leer lassen für Standard-Prompt..."></textarea>
+            <span class="rag-hint">Eigener System-Prompt für den RAG-Chatbot. Wird vor dem Kontext eingefügt. Leer = Standard-Güntner-Prompt.</span>
+          </div>
+        </div>
+
+        <!-- ============ 5. Vector Store Status ============ -->
+        <div class="rag-card rag-card--full">
+          <div class="rag-card-header">
+            <div class="rag-card-icon rag-card-icon--db">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            </div>
+            <div>
+              <h3>Vector Store</h3>
+              <span class="rag-card-subtitle">Status der Vektor-Datenbank</span>
+            </div>
+          </div>
+
+          <div class="rag-store-stats">
+            <div class="rag-store-stat">
+              <span class="rag-store-stat-value" id="vs-docs">—</span>
+              <span class="rag-store-stat-label">Indexierte Dokumente</span>
+            </div>
+            <div class="rag-store-stat">
+              <span class="rag-store-stat-value" id="vs-chunks">—</span>
+              <span class="rag-store-stat-label">Chunks gesamt</span>
+            </div>
+            <div class="rag-store-stat">
+              <span class="rag-store-stat-value" id="vs-updated">—</span>
+              <span class="rag-store-stat-label">Letztes Update</span>
+            </div>
+            <div class="rag-store-stat">
+              <span class="rag-store-stat-value" id="vs-mode">Lokal</span>
+              <span class="rag-store-stat-label">Aktiver Modus</span>
+            </div>
+          </div>
+
+          <div class="rag-store-actions">
+            <button class="btn btn-outline" id="btn-clear-store">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
+              Vector Store leeren
+            </button>
+            <button class="btn btn-outline" id="btn-refresh-stats">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+              Status aktualisieren
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Save Button Bar -->
+      <div class="rag-save-bar">
+        <div class="rag-save-bar-info">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          Einstellungen werden in <code>localStorage</code> gespeichert und beim nächsten Indexierungsvorgang angewendet.
+        </div>
+        <div class="rag-save-bar-actions">
+          <button class="btn btn-outline" id="btn-reset-defaults">Standardwerte</button>
+          <button class="btn btn-primary" id="btn-save-settings">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+            Einstellungen speichern
+          </button>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ============================================================
+       Admin — RAG Settings Controller
+       ============================================================ */
+    (function() {
+      var API_BASE = 'http://localhost:3001/api';
+      var STORAGE_KEY = 'gpc_rag_settings';
+
+      var DEFAULTS = {
+        embeddingMode: 'local',
+        openaiModel: 'text-embedding-3-small',
+        localDimensions: 384,
+        apiKey: '',
+        chunkSize: 1000,
+        chunkOverlap: 200,
+        chunkSeparator: '\\n\\n',
+        retrievalTopK: 5,
+        retrievalMinScore: 0.1,
+        retrievalLanguage: 'de',
+        systemPrompt: ''
+      };
+
+      /* DOM refs */
+      var statusBar = document.getElementById('statusBar');
+      var statusMsg = document.getElementById('statusMsg');
+      var hideTimer = null;
+
+      function showStatus(msg, isError) {
+        statusMsg.textContent = msg;
+        statusBar.style.background = isError ? '#fef2f2' : '#f0fdf4';
+        statusBar.style.borderColor = isError ? '#fecaca' : '#bbf7d0';
+        statusBar.style.color = isError ? '#991b1b' : '#166534';
+        statusBar.classList.add('visible');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function() { statusBar.classList.remove('visible'); }, 3500);
+      }
+
+      /* ---- Load / Save Settings ---- */
+      function loadSettings() {
+        try {
+          var stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) return Object.assign({}, DEFAULTS, JSON.parse(stored));
+        } catch (e) {}
+        return Object.assign({}, DEFAULTS);
+      }
+
+      function saveSettings(settings) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+      }
+
+      function readFormValues() {
+        return {
+          embeddingMode: document.querySelector('input[name="embeddingMode"]:checked').value,
+          openaiModel: document.getElementById('openai-model').value,
+          localDimensions: parseInt(document.getElementById('local-dimensions').value) || 384,
+          apiKey: document.getElementById('api-key').value,
+          chunkSize: parseInt(document.getElementById('chunk-size').value) || 1000,
+          chunkOverlap: parseInt(document.getElementById('chunk-overlap').value) || 200,
+          chunkSeparator: document.getElementById('chunk-separator').value,
+          retrievalTopK: parseInt(document.getElementById('retrieval-top-k').value) || 5,
+          retrievalMinScore: parseFloat(document.getElementById('retrieval-min-score').value) || 0.1,
+          retrievalLanguage: document.getElementById('retrieval-language').value,
+          systemPrompt: document.getElementById('system-prompt').value
+        };
+      }
+
+      function applyToForm(s) {
+        document.querySelector('input[name="embeddingMode"][value="' + s.embeddingMode + '"]').checked = true;
+        document.getElementById('openai-model').value = s.openaiModel;
+        document.getElementById('local-dimensions').value = s.localDimensions;
+        document.getElementById('api-key').value = s.apiKey;
+        document.getElementById('chunk-size').value = s.chunkSize;
+        document.getElementById('chunk-overlap').value = s.chunkOverlap;
+        document.getElementById('chunk-separator').value = s.chunkSeparator;
+        document.getElementById('retrieval-top-k').value = s.retrievalTopK;
+        document.getElementById('retrieval-min-score').value = s.retrievalMinScore;
+        document.getElementById('retrieval-language').value = s.retrievalLanguage;
+        document.getElementById('system-prompt').value = s.systemPrompt;
+        updateModeVisibility(s.embeddingMode);
+        updateChunkPreview();
+      }
+
+      /* ---- Embedding mode toggle ---- */
+      function updateModeVisibility(mode) {
+        document.getElementById('openai-settings').style.display = mode === 'openai' ? '' : 'none';
+        document.getElementById('local-settings').style.display = mode === 'local' ? '' : 'none';
+        document.getElementById('vs-mode').textContent = mode === 'openai' ? 'OpenAI' : 'Lokal (TF-IDF)';
+      }
+
+      document.querySelectorAll('input[name="embeddingMode"]').forEach(function(radio) {
+        radio.addEventListener('change', function() { updateModeVisibility(this.value); });
+      });
+
+      /* ---- API Key visibility toggle ---- */
+      var apiKeyInput = document.getElementById('api-key');
+      document.getElementById('toggle-key-vis').addEventListener('click', function() {
+        var isPassword = apiKeyInput.type === 'password';
+        apiKeyInput.type = isPassword ? 'text' : 'password';
+      });
+
+      /* ---- Test API Key ---- */
+      document.getElementById('btn-test-key').addEventListener('click', function() {
+        var resultEl = document.getElementById('key-test-result');
+        var key = apiKeyInput.value.trim();
+        if (!key) {
+          resultEl.className = 'rag-test-result rag-test-result--error';
+          resultEl.textContent = 'Bitte zuerst einen API-Key eingeben.';
+          return;
+        }
+        resultEl.className = 'rag-test-result rag-test-result--loading';
+        resultEl.textContent = 'Teste Verbindung...';
+
+        /* Test via RAG-Server Proxy (avoids CORS issues) */
+        fetch(API_BASE + '/rag/test-key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ apiKey: key })
+        })
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            if (data.success) {
+              resultEl.className = 'rag-test-result rag-test-result--success';
+              resultEl.textContent = 'Verbindung erfolgreich. API-Key ist gültig.';
+            } else {
+              resultEl.className = 'rag-test-result rag-test-result--error';
+              resultEl.textContent = 'Ungültig: ' + (data.error || 'Unbekannter Fehler');
+            }
+          })
+          .catch(function() {
+            resultEl.className = 'rag-test-result rag-test-result--error';
+            resultEl.textContent = 'RAG-Server nicht erreichbar. Bitte starten Sie den Server mit: npm run rag';
+          });
+      });
+
+      /* ---- Chunk Preview ---- */
+      function updateChunkPreview() {
+        var size = parseInt(document.getElementById('chunk-size').value) || 1000;
+        var overlap = parseInt(document.getElementById('chunk-overlap').value) || 200;
+        var pct = Math.round((overlap / size) * 100);
+        document.getElementById('chunk-preview-info').textContent =
+          'Bei ' + size + ' Zeichen / Chunk mit ' + overlap + ' Zeichen Overlap ergeben sich ca. ' + pct + '% Überlappung.';
+        var overlapViz = document.getElementById('overlap-viz');
+        overlapViz.style.width = Math.max(pct, 5) + '%';
+      }
+
+      document.getElementById('chunk-size').addEventListener('input', updateChunkPreview);
+      document.getElementById('chunk-overlap').addEventListener('input', updateChunkPreview);
+
+      /* ---- Save ---- */
+      document.getElementById('btn-save-settings').addEventListener('click', function() {
+        var settings = readFormValues();
+        saveSettings(settings);
+        showStatus('Einstellungen gespeichert. Werden beim nächsten Indexierungsvorgang angewendet.');
+
+        /* Try to push to server */
+        fetch(API_BASE + '/rag/settings', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(settings)
+        }).catch(function() { /* server offline, settings saved locally */ });
+      });
+
+      /* ---- Reset Defaults ---- */
+      document.getElementById('btn-reset-defaults').addEventListener('click', function() {
+        applyToForm(DEFAULTS);
+        showStatus('Standardwerte wiederhergestellt. Zum Übernehmen „Einstellungen speichern" klicken.');
+      });
+
+      /* ---- Vector Store Stats ---- */
+      function loadVectorStoreStats() {
+        fetch(API_BASE + '/rag/stats')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            var s = data.stats || {};
+            document.getElementById('vs-docs').textContent = s.documentCount || 0;
+            document.getElementById('vs-chunks').textContent = (s.totalChunks || 0).toLocaleString();
+            document.getElementById('vs-updated').textContent = s.lastUpdated
+              ? new Date(s.lastUpdated).toLocaleDateString('de-DE') + ' ' + new Date(s.lastUpdated).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })
+              : '—';
+          })
+          .catch(function() {
+            document.getElementById('vs-docs').textContent = '—';
+            document.getElementById('vs-chunks').textContent = '—';
+            document.getElementById('vs-updated').textContent = 'Server offline';
+          });
+      }
+
+      document.getElementById('btn-refresh-stats').addEventListener('click', loadVectorStoreStats);
+
+      document.getElementById('btn-clear-store').addEventListener('click', function() {
+        if (!confirm('Vector Store wirklich komplett leeren? Alle Embeddings werden gelöscht. Die Originaldokumente bleiben erhalten.')) return;
+        fetch(API_BASE + '/rag/store', { method: 'DELETE' })
+          .then(function(r) { return r.json(); })
+          .then(function() { showStatus('Vector Store geleert.'); loadVectorStoreStats(); })
+          .catch(function() { showStatus('Server nicht erreichbar.', true); });
+      });
+
+      /* ---- Init ---- */
+      var settings = loadSettings();
+      applyToForm(settings);
+      loadVectorStoreStats();
+
+    })();
+  </script>
+  <script src="main.js"></script>
+  <script src="learn-mode.js"></script>
+  <script src="site-header.js"></script>
+</body>
+</html>

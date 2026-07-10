@@ -1,0 +1,272 @@
+{
+  "generatedAt": "2026-05-11T12:15:20.774Z",
+  "source": "dms-inventory-gacc.json",
+  "scope": "strict+other-pdfs>200KB minus commercial-prefixes",
+  "dmsIds": [
+    "P002927147",
+    "P002926225",
+    "P002927140",
+    "P002927177",
+    "P002655313",
+    "P002655333",
+    "P002926258",
+    "P002926259",
+    "P002926260",
+    "P002926756",
+    "P002926835",
+    "P002926856",
+    "P002926891",
+    "P002926939",
+    "P002927125",
+    "P002927161",
+    "P003341147",
+    "P003367096",
+    "P003381454",
+    "P003381456",
+    "P003402915",
+    "P003405014",
+    "P003412175",
+    "P003415153",
+    "P003415591",
+    "P003436958",
+    "P003437275",
+    "P003438771",
+    "P003439108",
+    "P003440216",
+    "P003442974",
+    "P003498549"
+  ],
+  "items": [
+    {
+      "dmsId": "P002927147",
+      "filename": "Guntner Manual Cubic COMPACT EN 2026-03 - Manual (P002927147).PDF",
+      "classification": "manual",
+      "sizeBytes": 3060693,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926225",
+      "filename": "Guntner Manual Cubic COMPACT SV 2025-05 - Manual (P002926225).PDF",
+      "classification": "manual",
+      "sizeBytes": 3048904,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002927140",
+      "filename": "Guntner Manual Cubic COMPACT DE 2026-03 - Manual (P002927140).PDF",
+      "classification": "manual",
+      "sizeBytes": 3082914,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002927177",
+      "filename": "Guntner Manual Cubic COMPACT FR 2026-03 - Manual (P002927177).PDF",
+      "classification": "manual",
+      "sizeBytes": 3075255,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002655313",
+      "filename": "TV1006975_0090_00 (P002655313).PDF",
+      "classification": "other",
+      "sizeBytes": 352563,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002655333",
+      "filename": "TV1006976_0020_00 (P002655333).PDF",
+      "classification": "other",
+      "sizeBytes": 355112,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926258",
+      "filename": "Guentner_GACC-RX_Manual_HU - Manual (P002926258).PDF",
+      "classification": "manual",
+      "sizeBytes": 1766365,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926259",
+      "filename": "Guentner_GACC-RX_Manual_IT - Manual (P002926259).PDF",
+      "classification": "manual",
+      "sizeBytes": 1604393,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926260",
+      "filename": "Guentner_GACC-RX_Manual_RO - Manual (P002926260).PDF",
+      "classification": "manual",
+      "sizeBytes": 1603022,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926756",
+      "filename": "Guentner_Heating_kit_GASC_GACC_GADC_Quick_Installation_Guide - Quick Installation Guide (P002926756).PDF",
+      "classification": "other",
+      "sizeBytes": 6341037,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926835",
+      "filename": "Guentner Manual Cubic COMPACT DE 2023-11 - Manual (P002926835).PDF",
+      "classification": "manual",
+      "sizeBytes": 3422986,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926856",
+      "filename": "Guentner Manual Cubic COMPACT EN 2023-11 - Manual (P002926856).PDF",
+      "classification": "manual",
+      "sizeBytes": 3392141,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926891",
+      "filename": "Guentner Manual Cubic COMPACT FR 2023-11 - Manual (P002926891).PDF",
+      "classification": "manual",
+      "sizeBytes": 3446649,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002926939",
+      "filename": "Guentner Manual Cubic COMPACT DE 2024-06 - Manual (P002926939).PDF",
+      "classification": "manual",
+      "sizeBytes": 3394189,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002927125",
+      "filename": "Guentner Manual Cubic COMPACT FR 2024-06 - Manual (P002927125).PDF",
+      "classification": "manual",
+      "sizeBytes": 3440838,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P002927161",
+      "filename": "Guentner Manual Cubic COMPACT PL 2025-05 - Manual (P002927161).PDF",
+      "classification": "manual",
+      "sizeBytes": 3038955,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003341147",
+      "filename": "SKM_C30826032315450 (P003341147).PDF",
+      "classification": "other",
+      "sizeBytes": 825044,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003367096",
+      "filename": "SKM_C30826032714460 (P003367096).PDF",
+      "classification": "other",
+      "sizeBytes": 1362583,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003381454",
+      "filename": "SKM_C30826040613180 (P003381454).PDF",
+      "classification": "other",
+      "sizeBytes": 1019397,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003381456",
+      "filename": "SKM_C30826040613210 (P003381456).PDF",
+      "classification": "other",
+      "sizeBytes": 1041000,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003402915",
+      "filename": "SKM_C224e26041614100 (P003402915).PDF",
+      "classification": "other",
+      "sizeBytes": 1604504,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003405014",
+      "filename": "SKM_C224e26041710130 (P003405014).PDF",
+      "classification": "other",
+      "sizeBytes": 3374388,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003412175",
+      "filename": "SKM_C224e26042113380 (P003412175).PDF",
+      "classification": "other",
+      "sizeBytes": 2640816,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003415153",
+      "filename": "SKM_C30826042213060 (P003415153).PDF",
+      "classification": "other",
+      "sizeBytes": 502648,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003415591",
+      "filename": "SKM_C30826042214240 (P003415591).PDF",
+      "classification": "other",
+      "sizeBytes": 1421287,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003436958",
+      "filename": "SKM_C224e26050413250 (P003436958).PDF",
+      "classification": "other",
+      "sizeBytes": 3460242,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003437275",
+      "filename": "SKM_C224e26043011390 (P003437275).PDF",
+      "classification": "other",
+      "sizeBytes": 2887161,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003438771",
+      "filename": "SKM_C224e26042409180 (P003438771).PDF",
+      "classification": "other",
+      "sizeBytes": 3081265,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003439108",
+      "filename": "SKM_C224e26042409060 (P003439108).PDF",
+      "classification": "other",
+      "sizeBytes": 2508969,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003440216",
+      "filename": "SKM_C3350260505131300 (P003440216).PDF",
+      "classification": "other",
+      "sizeBytes": 5267566,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003442974",
+      "filename": "SKM_C30826050612451 (P003442974).PDF",
+      "classification": "other",
+      "sizeBytes": 874415,
+      "inRagIndex": false
+    },
+    {
+      "dmsId": "P003444058",
+      "filename": "GACC CX_IOM_001_EN_2026_04_KAT1001.2 - Manual (P003444058).PDF",
+      "classification": "manual",
+      "sizeBytes": 1641792,
+      "inRagIndex": true
+    },
+    {
+      "dmsId": "P003498549",
+      "filename": "661053651 (P003498549).PDF",
+      "classification": "other",
+      "sizeBytes": 345033,
+      "inRagIndex": false
+    }
+  ]
+}

@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spare Parts — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============================================================
+       Spare Parts page — same 2-row, 1/3+2/3 layout as catalog.html
+       ============================================================ */
+    .cat-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto 1fr;
+      column-gap: 32px;
+      row-gap: 0;
+      margin-top: 16px;
+    }
+    .cat-sidebar,
+    .cat-main { display: contents; }
+
+    .cat-sidebar-head {
+      grid-column: 1; grid-row: 1;
+      align-self: end;
+      padding: 4px 0 14px;
+    }
+    .cat-sidebar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .4px;
+      color: var(--text-dark);
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .cat-sidebar-subtitle {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin: 4px 0 0;
+    }
+    .cat-main-head {
+      grid-column: 2; grid-row: 1;
+      min-width: 0;
+      padding-bottom: 14px;
+    }
+    .cat-fam-list {
+      grid-column: 1; grid-row: 2;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cat-main-body {
+      grid-column: 2; grid-row: 2;
+      min-width: 0;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+    }
+
+    /* Sidebar family menu items */
+    .cat-fam-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: transparent;
+      border: none;
+      border-left: 3px solid transparent;
+      color: var(--text-medium);
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      text-align: left;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .cat-fam-item:hover {
+      background: rgba(38, 102, 224, .04);
+      color: var(--text-dark);
+    }
+    .cat-fam-item.active {
+      background: rgba(38, 102, 224, .08);
+      color: var(--primary);
+      border-left-color: var(--primary);
+    }
+    .cat-fam-item .cat-fam-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: currentColor;
+    }
+    .cat-fam-item .cat-fam-count {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 22px;
+      height: 18px;
+      padding: 0 6px;
+      background: var(--surface-gray-light);
+      color: var(--text-medium);
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0;
+      border-radius: 9px;
+    }
+    .cat-fam-item.active .cat-fam-count {
+      background: var(--primary);
+      color: #fff;
+    }
+    .cat-fam-item[disabled] {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+
+    /* Hero */
+    .cat-hero h1 {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: .3px;
+      color: var(--text-dark);
+      margin: 0 0 6px;
+    }
+    .cat-hero p {
+      font-size: 13px;
+      color: var(--text-medium);
+      margin: 0;
+      max-width: 720px;
+    }
+
+    /* List/Grid toggle */
+    .cat-view-toggle button { padding: 7px 9px; }
+
+    /* Compact dropdowns */
+    .cat-toolbar-left .cat-dd-btn {
+      height: 34px;
+      padding: 0 10px;
+      font-size: 11.5px;
+      gap: 6px;
+    }
+    .cat-toolbar-left .cat-dd-chevron { width: 10px; height: 10px; }
+
+    /* Toolbar */
+    .cat-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+    .cat-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .cat-toolbar-row--filters { min-height: 38px; }
+    .cat-toolbar-left {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 8px;
+      overflow: visible;
+    }
+    .cat-toolbar-right-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Type-name link blue */
+    .dg .unit-link { color: var(--primary); font-weight: 400; text-decoration: none; }
+    .dg .unit-link:hover { text-decoration: underline; }
+
+    /* Multi-select dropdowns */
+    .cat-dd { position: relative; }
+    .cat-dd-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text-dark);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      border: 1px solid var(--border-light);
+      border-radius: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+    .cat-dd-btn:hover { border-color: var(--primary); }
+    .cat-dd-btn.has-selection {
+      background: rgba(38, 102, 224, .06);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .cat-dd.is-open .cat-dd-btn {
+      border-color: var(--primary);
+      background: rgba(38, 102, 224, .04);
+    }
+    .cat-dd-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 9px;
+      order: -1;
+    }
+    .cat-dd-count[hidden] { display: none; }
+    .cat-dd-chevron {
+      flex-shrink: 0;
+      width: 12px;
+      height: 12px;
+      transition: transform .2s;
+    }
+    .cat-dd.is-open .cat-dd-chevron { transform: rotate(180deg); }
+    .cat-dd-clearx {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      color: var(--primary);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .cat-dd-clearx svg { width: 12px; height: 12px; }
+    .cat-dd-clearx:hover { background: var(--primary); color: #fff; }
+    .cat-dd-btn.has-selection .cat-dd-chevron { display: none; }
+    .cat-dd-btn.has-selection .cat-dd-clearx { display: inline-flex; }
+    .cat-dd-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 50;
+      min-width: 220px;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      padding: 4px 0;
+      max-height: 320px;
+      overflow-y: auto;
+      display: none;
+    }
+    .cat-dd.is-open .cat-dd-panel { display: block; }
+    .cat-dd-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 14px;
+      font-size: 12px;
+      color: var(--text-dark);
+      cursor: pointer;
+      user-select: none;
+    }
+    .cat-dd-option:hover { background: rgba(38, 102, 224, .06); }
+    .cat-dd-option input {
+      width: 14px; height: 14px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .cat-dd-foot {
+      border-top: 1px solid var(--border-light);
+      padding: 6px 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .cat-dd-clear {
+      background: transparent;
+      color: var(--text-medium);
+      border: none;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .cat-dd-clear:hover { color: var(--primary); }
+
+    /* Card grid view */
+    .cat-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .cat-prod-card {
+      position: relative;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm, 4px);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: box-shadow var(--transition), border-color var(--transition);
+      text-decoration: none;
+    }
+    .cat-prod-card:hover {
+      box-shadow: var(--shadow-md, 0 6px 18px rgba(0,0,0,.08));
+      border-color: var(--primary-light);
+    }
+    /* Image header at the top of the card */
+    .cat-prod-image {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      background: linear-gradient(135deg, #f5f7fb, #e8ecf3);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cat-prod-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+    }
+    .cat-prod-badges {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      z-index: 1;
+    }
+    .cat-prod-chip {
+      padding: 2px 7px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      border-radius: 2px;
+      line-height: 1.5;
+    }
+    .cat-prod-chip--heater { background: #d97706; }
+    .cat-prod-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.3;
+      margin: 2px 0 0;
+      word-break: break-word;
+    }
+    .cat-prod-cat {
+      font-size: 10.5px;
+      color: var(--text-light);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .cat-prod-meta {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 10px;
+      font-size: 11.5px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-light);
+    }
+    .cat-prod-meta dt { color: var(--text-light); font-weight: 400; white-space: nowrap; }
+    .cat-prod-meta dd {
+      color: var(--text-dark);
+      font-weight: 600;
+      margin: 0;
+      font-family: ui-monospace, "DM Mono", "SF Mono", Consolas, monospace;
+    }
+    .cat-prod-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-light);
+    }
+    .cat-prod-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .cat-prod-link {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      color: var(--primary);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .cat-prod-link:hover { color: var(--primary-dark); text-decoration: underline; }
+
+    .cat-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1024px) {
+      .cat-layout { grid-template-columns: 220px 1fr; gap: 24px; }
+    }
+    @media (max-width: 900px) {
+      .cat-layout { grid-template-columns: 200px 1fr; gap: 20px; }
+    }
+    @media (max-width: 768px) {
+      .cat-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        row-gap: 16px;
+      }
+      .cat-sidebar-head,
+      .cat-main-head,
+      .cat-fam-list,
+      .cat-main-body { grid-column: 1; grid-row: auto; }
+      .cat-fam-list { flex-direction: row; flex-wrap: wrap; padding-top: 0; }
+      .cat-fam-item { border-left: none; border-bottom: 3px solid transparent; }
+      .cat-fam-item.active { border-left: none; border-bottom-color: var(--primary); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active="spareparts"></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <div class="cat-layout">
+
+        <!-- ============ SIDEBAR ============ -->
+        <aside class="cat-sidebar">
+          <div class="cat-sidebar-head">
+            <h2 class="cat-sidebar-title">Spare Parts</h2>
+            <p class="cat-sidebar-subtitle">Available Categories</p>
+          </div>
+          <nav class="cat-fam-list" id="cat-fam-list" aria-label="Spare part categories"></nav>
+        </aside>
+
+        <!-- ============ MAIN ============ -->
+        <section class="cat-main">
+
+          <div class="cat-main-head">
+            <div class="cat-hero">
+              <h1>Spare Parts Catalog</h1>
+              <p>Find original Güntner spare parts — installed faster, running longer. Filter by category and technical attributes to locate the exact replacement part.</p>
+            </div>
+          </div>
+
+          <div id="cat-listing" class="cat-main-body cat-listing dg-view-grid">
+
+            <div class="cat-toolbar">
+              <div class="cat-toolbar-row cat-toolbar-row--filters">
+                <div class="cat-toolbar-left" id="cat-dropdowns"></div>
+                <div class="cat-toolbar-right-row">
+                  <div class="dg-view-toggle cat-view-toggle" data-target="#cat-listing">
+                    <button type="button" data-view="list" aria-label="List view" title="List view">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    </button>
+                    <button type="button" data-view="grid" class="active" aria-label="Grid view" title="Grid view">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== TABLE VIEW ===== -->
+            <div class="dg-table-view">
+              <div class="dg-wrap">
+                <table class="dg dg--compact dg--auto-headers" id="sp-grid">
+                  <thead>
+                    <tr>
+                      <th style="width:160px">Part Number</th>
+                      <th>Type</th>
+                      <th>Product Line</th>
+                      <th>Diameter</th>
+                      <th>RPM</th>
+                      <th>Technology</th>
+                      <th>Power (W)</th>
+                      <th>Mounting</th>
+                      <th>Price (€)</th>
+                    </tr>
+                  </thead>
+                  <tbody id="sp-tbody"></tbody>
+                </table>
+                <div class="dg-pagination">
+                  <span id="sp-pageinfo">Showing 0 of 0</span>
+                  <span style="display:inline-flex;gap:6px;align-items:center">
+                    <button class="dg-tool-icon" type="button" id="sp-prev" aria-label="Previous"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+                    <span id="sp-page-label">Page 1 of 1</span>
+                    <button class="dg-tool-icon" type="button" id="sp-next" aria-label="Next"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- ===== CARD VIEW ===== -->
+            <div class="dg-card-view">
+              <div class="cat-card-grid" id="sp-card-grid"></div>
+            </div>
+          </div>
+
+        </section>
+      </div><!-- /.cat-layout -->
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="site-header.js"></script>
+  <script src="dg.js"></script>
+  <script>
+    /* ============================================================
+       Spare Parts page — categories sidebar + filter dropdowns + result grid
+       ============================================================ */
+
+    // Category families (sidebar)
+    const CATEGORIES = [
+      { key: 'Fan',    label: 'Fans',    icon: 'fan' },
+      { key: 'Heater', label: 'Heater',  icon: 'heater' },
+    ];
+
+    const CAT_ICONS = {
+      fan:    '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="2"/><path d="M12 4a4 4 0 014 4c0 2-1 3-2 4-1-1-2-2-2-4V4z"/><path d="M20 12a4 4 0 01-4 4c-2 0-3-1-4-2 1-1 2-2 4-2h4z"/><path d="M12 20a4 4 0 01-4-4c0-2 1-3 2-4 1 1 2 2 2 4v4z"/><path d="M4 12a4 4 0 014-4c2 0 3 1 4 2-1 1-2 2-4 2H4z"/></svg>',
+      heater: '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4v16M7 4v16M11 4v16M15 4v16M19 4v16"/><path d="M5 8c0-1 1-2 2-2s2 1 2 2-1 2-2 2-2 1-2 2 1 2 2 2"/></svg>',
+    };
+
+    // Filter dropdowns
+    const DROPDOWNS = [
+      { key: 'Itemcode',           label: 'Product Line', getter: p => p['Itemcode'] },
+      { key: 'Diameter (mm)',      label: 'Diameter',     getter: p => p['Diameter (mm)'], format: v => v + ' mm' },
+      { key: 'Ec Technology',      label: 'Technology',   getter: p => p['Ec Technology'], format: v => v === 'Yes' ? 'EC' : 'AC' },
+      { key: 'Air Flow Direction', label: 'Air Flow',     getter: p => p['Air Flow Direction'] },
+      { key: 'Mounting Type',      label: 'Mounting',     getter: p => p['Mounting Type'] },
+    ];
+
+    // ---- State ----
+    const state = {
+      all: [],
+      activeCategory: null,        // 'Fan' or 'Heater' — null = all
+      activeOptions: {},
+      page: 1,
+      pageSize: 25,
+    };
+    DROPDOWNS.forEach(d => state.activeOptions[d.key] = new Set());
+
+    const $ = id => document.getElementById(id);
+
+    // ---- Boot ----
+    fetch('database/spareparts.json')
+      .then(r => r.json())
+      .then(data => {
+        // Each part already has a `category` field of 'Fan' or 'Heater'
+        state.all = (data.parts || []).map(p => Object.assign({ category: 'Fan' }, p));
+        init();
+      })
+      .catch(err => {
+        $('sp-tbody').innerHTML = `<tr><td colspan="9" class="cat-empty">Could not load spare parts: ${err.message || err}</td></tr>`;
+        state.all = [];
+        init();
+      });
+
+    function init() {
+      buildCategoryMenu();
+      buildDropdowns();
+
+      $('sp-prev').addEventListener('click', () => goto(state.page - 1));
+      $('sp-next').addEventListener('click', () => goto(state.page + 1));
+
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.cat-dd')) closeAllDropdowns();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeAllDropdowns();
+      });
+
+      document.getElementById('cat-listing').addEventListener('dg:view-change', () => render());
+
+      render();
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.cat-dd.is-open').forEach(d => d.classList.remove('is-open'));
+    }
+
+    // ---- Sidebar ----
+    function buildCategoryMenu() {
+      const list = $('cat-fam-list');
+      const counts = {};
+      state.all.forEach(p => { counts[p.category] = (counts[p.category] || 0) + 1; });
+      list.innerHTML = CATEGORIES.map(cat => {
+        const cnt = counts[cat.key] || 0;
+        return `<button class="cat-fam-item" data-category="${cat.key}" ${cnt === 0 ? 'disabled' : ''}>
+                  ${CAT_ICONS[cat.icon] || ''}
+                  <span>${cat.label}</span>
+                  <span class="cat-fam-count">${cnt.toLocaleString('en-GB')}</span>
+                </button>`;
+      }).join('');
+      list.querySelectorAll('button[data-category]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const k = btn.dataset.category;
+          state.activeCategory = state.activeCategory === k ? null : k;
+          // clear dropdowns when switching category (different attribute spaces)
+          DROPDOWNS.forEach(d => state.activeOptions[d.key].clear());
+          state.page = 1;
+          buildDropdowns();   // rebuild options for the new category subset
+          render();
+        });
+      });
+    }
+
+    // ---- Dropdowns ----
+    function buildDropdowns() {
+      const wrap = $('cat-dropdowns');
+      const subset = state.activeCategory
+        ? state.all.filter(p => p.category === state.activeCategory)
+        : state.all;
+      const html = DROPDOWNS.map(dd => {
+        const valuesSet = new Set();
+        subset.forEach(p => {
+          const v = dd.getter(p);
+          if (v != null && v !== '' && v !== '—') valuesSet.add(String(v));
+        });
+        const values = [...valuesSet].sort((a, b) => {
+          const na = Number(a), nb = Number(b);
+          if (!isNaN(na) && !isNaN(nb)) return na - nb;
+          return String(a).localeCompare(String(b));
+        });
+        const optionsHtml = values.map(v => {
+          const label = dd.format ? dd.format(v) : v;
+          return `<label class="cat-dd-option">
+                    <input type="checkbox" data-key="${escAttr(dd.key)}" data-val="${escAttr(v)}">
+                    <span>${escHtml(label)}</span>
+                  </label>`;
+        }).join('') || `<div class="cat-dd-option" style="color:var(--text-light)">No options</div>`;
+        return `
+          <div class="cat-dd" data-dd="${escAttr(dd.key)}">
+            <button type="button" class="cat-dd-btn" aria-haspopup="true" aria-expanded="false">
+              <span class="cat-dd-count" hidden>0</span>
+              <span class="cat-dd-label">${escHtml(dd.label)}</span>
+              <svg class="cat-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              <span class="cat-dd-clearx" data-dd-clear-inline="${escAttr(dd.key)}" role="button" aria-label="Clear filter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+            </button>
+            <div class="cat-dd-panel" role="menu">
+              ${optionsHtml}
+              <div class="cat-dd-foot">
+                <button type="button" class="cat-dd-clear" data-dd-clear="${escAttr(dd.key)}">Clear</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+      wrap.innerHTML = html;
+
+      wrap.querySelectorAll('.cat-dd-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          if (e.target.closest('.cat-dd-clearx')) return;
+          e.stopPropagation();
+          const dd = btn.closest('.cat-dd');
+          const isOpen = dd.classList.contains('is-open');
+          closeAllDropdowns();
+          if (!isOpen) {
+            dd.classList.add('is-open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+      wrap.querySelectorAll('.cat-dd-clearx').forEach(x => {
+        x.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          const key = x.dataset.ddClearInline;
+          state.activeOptions[key].clear();
+          state.page = 1; render();
+        });
+      });
+      wrap.querySelectorAll('.cat-dd-option input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const key = cb.dataset.key;
+          const val = cb.dataset.val;
+          const set = state.activeOptions[key];
+          if (cb.checked) set.add(val); else set.delete(val);
+          state.page = 1; render();
+        });
+      });
+      wrap.querySelectorAll('button[data-dd-clear]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          state.activeOptions[btn.dataset.ddClear].clear();
+          state.page = 1; render();
+        });
+      });
+    }
+
+    function escAttr(v) { return String(v).replace(/"/g, '&quot;'); }
+    function escHtml(v) { const d = document.createElement('div'); d.textContent = v; return d.innerHTML; }
+
+    // ---- Filtering ----
+    function getFiltered() {
+      return state.all.filter(p => {
+        if (state.activeCategory && p.category !== state.activeCategory) return false;
+        for (const dd of DROPDOWNS) {
+          const set = state.activeOptions[dd.key];
+          if (set.size && !set.has(String(dd.getter(p)))) return false;
+        }
+        return true;
+      });
+    }
+
+    // ---- Render ----
+    function render() {
+      // Categories
+      document.querySelectorAll('button[data-category]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === state.activeCategory);
+      });
+
+      // Dropdown badges
+      document.querySelectorAll('.cat-dd').forEach(dd => {
+        const key = dd.dataset.dd;
+        const set = state.activeOptions[key];
+        const btn = dd.querySelector('.cat-dd-btn');
+        const cntEl = dd.querySelector('.cat-dd-count');
+        if (set && set.size) {
+          btn.classList.add('has-selection');
+          cntEl.hidden = false;
+          cntEl.textContent = set.size;
+        } else {
+          btn.classList.remove('has-selection');
+          cntEl.hidden = true;
+        }
+        dd.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = set ? set.has(cb.dataset.val) : false;
+        });
+      });
+
+      const list = getFiltered();
+      const total = list.length;
+      const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+      if (state.page > totalPages) state.page = totalPages;
+      const start = (state.page - 1) * state.pageSize;
+      const slice = list.slice(start, start + state.pageSize);
+
+      renderTable(slice);
+      renderCards(slice);
+
+      const last = Math.min(start + slice.length, total);
+      $('sp-pageinfo').textContent = total
+        ? `Showing ${start + 1}–${last} of ${total.toLocaleString('en-GB')} parts`
+        : 'No parts match';
+      $('sp-page-label').textContent = `Page ${state.page} of ${totalPages}`;
+      $('sp-prev').disabled = state.page === 1;
+      $('sp-next').disabled = state.page === totalPages;
+
+      if (window.dgRefresh) window.dgRefresh($('sp-grid'));
+    }
+
+    function goto(p) {
+      const total = getFiltered().length;
+      const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+      state.page = Math.min(totalPages, Math.max(1, p));
+      render();
+    }
+
+    // ---- Table ----
+    function renderTable(slice) {
+      const tbody = $('sp-tbody');
+      if (!slice.length) {
+        tbody.innerHTML = `<tr><td colspan="9" class="cat-empty">No parts match the current filters.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = slice.map(p => {
+        const itemNo = p['Item No'] || p.id || '';
+        const type   = p['Type'] || '';
+        const code   = p['Itemcode'] || '';
+        const dia    = p['Diameter (mm)'];
+        const rpm    = p['Min-1'];
+        const ec     = p['Ec Technology'];
+        const watts  = p['Nominal Capacity (kW)'] != null ? Math.round(p['Nominal Capacity (kW)'] * 1000) : null;
+        const mount  = (p['Mounting Type'] || '').toString();
+        const price  = priceOf(p);
+        return `
+          <tr>
+            <td><a href="sparepart-detail.html?id=${escAttr(itemNo)}" class="unit-link">${escHtml(itemNo)}</a></td>
+            <td>${escHtml(type)}</td>
+            <td>${escHtml(code)}</td>
+            <td>${dia != null && dia !== '—' ? escHtml(dia) + ' mm' : '—'}</td>
+            <td>${rpm != null && rpm !== '—' ? Number(rpm).toLocaleString('en-GB') : '—'}</td>
+            <td>${ec === 'Yes' ? 'EC' : (ec === 'No' ? 'AC' : '—')}</td>
+            <td>${watts != null ? watts : '—'}</td>
+            <td>${escHtml(mount.length > 24 ? mount.slice(0, 24) + '…' : mount)}</td>
+            <td>${price != null ? price.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—'}</td>
+          </tr>`;
+      }).join('');
+    }
+
+    function priceOf(p) {
+      if (typeof p.price === 'number') return p.price;
+      const v = p['spare part price 2026 '] || p['spare part price 2026'];
+      return typeof v === 'number' ? v : null;
+    }
+
+    // ---- Card view ----
+    function renderCards(slice) {
+      const grid = $('sp-card-grid');
+      if (!slice.length) {
+        grid.innerHTML = `<div class="cat-empty">No parts match the current filters.</div>`;
+        return;
+      }
+      grid.innerHTML = slice.map(p => {
+        const itemNo = p['Item No'] || p.id || '';
+        const type   = p['Type'] || '';
+        const code   = p['Itemcode'] || '';
+        const dia    = p['Diameter (mm)'];
+        const rpm    = p['Min-1'];
+        const ec     = p['Ec Technology'];
+        const watts  = p['Nominal Capacity (kW)'] != null ? Math.round(p['Nominal Capacity (kW)'] * 1000) : null;
+        const price  = priceOf(p);
+        const isHeater = p.category === 'Heater';
+        const imgSrc = isHeater ? 'images/spare-heater.jpg' : 'images/spare-fan.png';
+        const altTxt = isHeater ? 'Heater spare part' : 'Fan spare part';
+        return `
+          <a href="sparepart-detail.html?id=${escAttr(itemNo)}" class="cat-prod-card">
+            <div class="cat-prod-image">
+              <div class="cat-prod-badges">
+                <span class="cat-prod-chip ${isHeater ? 'cat-prod-chip--heater' : ''}">${isHeater ? 'Heater' : 'Fan'}</span>
+                ${code && code !== 'Multiple' ? `<span class="cat-prod-chip" style="background:var(--text-light)">${escHtml(code)}</span>` : ''}
+              </div>
+              <img src="${imgSrc}" alt="${altTxt}" loading="lazy">
+            </div>
+            <div>
+              <div class="cat-prod-cat">${escHtml(itemNo)}</div>
+              <h3 class="cat-prod-name">${escHtml(type)}</h3>
+            </div>
+            <dl class="cat-prod-meta">
+              ${dia && dia !== '—' ? `<dt>Ø</dt><dd>${escHtml(dia)} mm</dd>` : ''}
+              ${rpm && rpm !== '—' ? `<dt>RPM</dt><dd>${Number(rpm).toLocaleString('en-GB')}</dd>` : ''}
+              ${!isHeater ? `<dt>Tech</dt><dd>${ec === 'Yes' ? 'EC' : (ec === 'No' ? 'AC' : '—')}</dd>` : ''}
+              ${watts != null ? `<dt>Power</dt><dd>${watts} W</dd>` : ''}
+              ${isHeater && p['Heat Voltage (V)'] ? `<dt>Voltage</dt><dd>${p['Heat Voltage (V)']} V</dd>` : ''}
+            </dl>
+            <div class="cat-prod-foot">
+              <span class="cat-prod-price">${price != null ? price.toLocaleString('en-GB', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €' : '—'}</span>
+              <span class="cat-prod-link">View →</span>
+            </div>
+          </a>`;
+      }).join('');
+    }
+  </script>
+
+  <script src="main.js"></script>
+</body>
+</html>

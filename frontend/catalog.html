@@ -1,0 +1,1011 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Catalog — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============================================================
+       Catalog page — series filter grid (matches reference layout)
+       + documents.html-style toolbar & dual list/card view
+       ============================================================ */
+
+    /* ============================================================
+       2-row grid layout: sidebar-head + main-head share row 1,
+       fam-list + main-body share row 2 — so the sidebar's bottom
+       border (the divider) lines up exactly with the table top.
+       ============================================================ */
+    .cat-layout {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      grid-template-rows: auto 1fr;
+      column-gap: 32px;
+      row-gap: 0;
+      margin-top: 16px;
+    }
+    .cat-sidebar,
+    .cat-main {
+      display: contents;       /* let children participate directly in the grid */
+    }
+
+    /* Row 1, left column — pinned to bottom so subtitle sits right above the divider */
+    .cat-sidebar-head {
+      grid-column: 1;
+      grid-row: 1;
+      align-self: end;
+      padding: 4px 0 14px;
+    }
+    .cat-sidebar-title {
+      font-size: 16px;
+      font-weight: 800;
+      letter-spacing: .4px;
+      color: var(--text-dark);
+      margin: 0;
+      text-transform: uppercase;
+    }
+    .cat-sidebar-subtitle {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin: 4px 0 0;
+    }
+
+    /* Row 1, right column */
+    .cat-main-head {
+      grid-column: 2;
+      grid-row: 1;
+      min-width: 0;
+      padding-bottom: 14px;
+    }
+
+    /* Row 2, left column — divider sits ON the row boundary via border-top */
+    .cat-fam-list {
+      grid-column: 1;
+      grid-row: 2;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+    }
+
+    /* Row 2, right column — same border-top → exact same Y position as the sidebar's */
+    .cat-main-body {
+      grid-column: 2;
+      grid-row: 2;
+      min-width: 0;
+      border-top: 1px solid var(--border-light);
+      padding-top: 14px;
+    }
+
+    /* --- Sidebar family menu --- */
+    .cat-fam-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .cat-fam-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: transparent;
+      border: none;
+      border-left: 3px solid transparent;
+      color: var(--text-medium);
+      font-family: inherit;
+      font-size: 11.5px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      text-align: left;
+      cursor: pointer;
+      transition: background .15s, color .15s, border-color .15s;
+    }
+    .cat-fam-item:hover {
+      background: rgba(38, 102, 224, .04);
+      color: var(--text-dark);
+    }
+    .cat-fam-item.active {
+      background: rgba(38, 102, 224, .08);
+      color: var(--primary);
+      border-left-color: var(--primary);
+    }
+    .cat-fam-item .cat-fam-icon {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      color: currentColor;
+    }
+    .cat-fam-item .cat-fam-count {
+      margin-left: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0;
+      border-radius: 9px;
+    }
+    .cat-fam-item:not(.active) .cat-fam-count { display: none; }
+    .cat-fam-item[disabled] {
+      opacity: .35;
+      cursor: not-allowed;
+    }
+
+    /* Hero in main column (no longer using dg-page-header) */
+    .cat-hero h1 {
+      font-size: 28px;
+      font-weight: 300;
+      letter-spacing: .3px;
+      color: var(--text-dark);
+      margin: 0 0 6px;
+    }
+    .cat-hero p {
+      font-size: 13px;
+      color: var(--text-medium);
+      margin: 0;
+      max-width: 720px;
+    }
+
+    /* Icon-only List/Grid toggle (compact) */
+    .cat-view-toggle button {
+      padding: 7px 9px;
+    }
+
+    /* Compact dropdown buttons so all 5 + toggle fit on one line */
+    .cat-toolbar-left .cat-dd-btn {
+      height: 34px;
+      padding: 0 10px;
+      font-size: 11.5px;
+      gap: 6px;
+    }
+    .cat-toolbar-left .cat-dd-chevron { width: 10px; height: 10px; }
+
+    /* --- Toolbar (3 stacked rows, all fixed height to prevent layout shift) ---
+       Row 1: dropdowns left  | list/grid + pager right
+       Row 2: active filter chips (always reserves height, even when empty)
+       Row 3: search field right-aligned, directly above the table header     */
+    .cat-toolbar {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 18px;     /* breathing space between filter dropdowns and the table header */
+    }
+    .cat-toolbar-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+    .cat-toolbar-row--filters {
+      min-height: 38px;
+    }
+    .cat-toolbar-left {
+      flex: 1 1 auto;
+      min-width: 0;
+      display: flex;
+      flex-wrap: nowrap;       /* prevent wrap-induced height changes */
+      align-items: center;
+      gap: 8px;
+      overflow: visible;       /* no scrollbar — buttons stay compact */
+    }
+    .cat-toolbar-right-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Type-name link inside the result table — same blue style as results.html */
+    .dg .unit-link { color: var(--primary); font-weight: 400; text-decoration: none; }
+    .dg .unit-link:hover { text-decoration: underline; }
+
+    /* Clear-all inline link in the toolbar */
+    .cat-clear-link {
+      padding: 4px 10px;
+      background: transparent;
+      color: var(--text-medium);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+    .cat-clear-link:hover { color: var(--primary); }
+
+    /* --- Multi-select dropdowns --- */
+    .cat-dd { position: relative; }
+    .cat-dd-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      height: 36px;
+      padding: 0 12px;
+      background: #fff;
+      color: var(--text-dark);
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      border: 1px solid var(--border-light);
+      border-radius: 2px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: border-color .15s, background .15s, color .15s;
+    }
+    .cat-dd-btn:hover { border-color: var(--primary); }
+    .cat-dd-btn.has-selection {
+      background: rgba(38, 102, 224, .06);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    .cat-dd.is-open .cat-dd-btn {
+      border-color: var(--primary);
+      background: rgba(38, 102, 224, .04);
+    }
+    .cat-dd-count {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      border-radius: 9px;
+      order: -1;            /* always first → counter sits on the LEFT */
+    }
+    .cat-dd-count[hidden] { display: none; }
+    .cat-dd-chevron {
+      flex-shrink: 0;
+      width: 12px;
+      height: 12px;
+      transition: transform .2s;
+    }
+    .cat-dd.is-open .cat-dd-chevron { transform: rotate(180deg); }
+    /* Inline X (only shown when filter is active) — clears that filter on click */
+    .cat-dd-clearx {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      color: var(--primary);
+      cursor: pointer;
+      transition: background .15s, color .15s;
+    }
+    .cat-dd-clearx svg { width: 12px; height: 12px; }
+    .cat-dd-clearx:hover { background: var(--primary); color: #fff; }
+    .cat-dd-btn.has-selection .cat-dd-chevron { display: none; }
+    .cat-dd-btn.has-selection .cat-dd-clearx { display: inline-flex; }
+    .cat-dd-panel {
+      position: absolute;
+      top: calc(100% + 4px);
+      left: 0;
+      z-index: 50;
+      min-width: 200px;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 2px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.12);
+      padding: 4px 0;
+      max-height: 280px;
+      overflow-y: auto;
+      display: none;
+    }
+    .cat-dd.is-open .cat-dd-panel { display: block; }
+    .cat-dd-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      font-size: 12px;
+      color: var(--text-dark);
+      cursor: pointer;
+      user-select: none;
+    }
+    .cat-dd-option:hover { background: rgba(38, 102, 224, .06); }
+    .cat-dd-option input {
+      width: 14px; height: 14px;
+      accent-color: var(--primary);
+      cursor: pointer;
+    }
+    .cat-dd-option.is-disabled {
+      opacity: .35;
+      pointer-events: none;
+    }
+    .cat-dd-foot {
+      border-top: 1px solid var(--border-light);
+      padding: 6px 8px;
+      display: flex;
+      justify-content: flex-end;
+    }
+    .cat-dd-clear {
+      background: transparent;
+      color: var(--text-medium);
+      border: none;
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+    .cat-dd-clear:hover { color: var(--primary); }
+
+    /* --- Card grid view (mirrors docs-card style but tuned for products) --- */
+    .cat-card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 14px;
+    }
+    .cat-prod-card {
+      position: relative;
+      background: var(--surface-white, #fff);
+      border: 1px solid var(--border-light);
+      border-radius: var(--radius-sm, 4px);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      cursor: pointer;
+      transition: box-shadow var(--transition), border-color var(--transition);
+      text-decoration: none;
+    }
+    .cat-prod-card:hover {
+      box-shadow: var(--shadow-md, 0 6px 18px rgba(0,0,0,.08));
+      border-color: var(--primary-light);
+    }
+    /* Image header at the top of the card — full-width product photo */
+    .cat-prod-image {
+      position: relative;
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      background: linear-gradient(135deg, #f5f7fb, #e8ecf3);
+      border-radius: 4px;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .cat-prod-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 8px;
+    }
+    .cat-prod-badges {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+      z-index: 1;
+    }
+    .cat-prod-chip {
+      padding: 2px 7px;
+      background: var(--primary);
+      color: #fff;
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      border-radius: 2px;
+      line-height: 1.5;
+    }
+    .cat-prod-chip--stock { background: #1aa169; }
+    .cat-prod-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dark);
+      line-height: 1.3;
+      margin: 2px 0 0;
+      word-break: break-word;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .cat-prod-cat {
+      font-size: 10.5px;
+      color: var(--text-light);
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+    .cat-prod-meta {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 3px 10px;
+      font-size: 11.5px;
+      padding-top: 8px;
+      border-top: 1px solid var(--border-light);
+    }
+    .cat-prod-meta dt { color: var(--text-light); font-weight: 400; white-space: nowrap; }
+    .cat-prod-meta dd { color: var(--text-dark); font-weight: 600; margin: 0; font-family: ui-monospace, "DM Mono", "SF Mono", Consolas, monospace; }
+    .cat-prod-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 6px;
+      border-top: 1px solid var(--border-light);
+    }
+    .cat-prod-price {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .cat-prod-link {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .5px;
+      color: var(--primary);
+      text-transform: uppercase;
+      text-decoration: none;
+    }
+    .cat-prod-link:hover { color: var(--primary-dark); text-decoration: underline; }
+
+    /* Stock indicator in table cell */
+    .cat-stock-yes { color: #1aa169; font-weight: 700; }
+    .cat-stock-no  { color: var(--text-light); }
+
+    /* Empty state */
+    .cat-empty {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 64px 24px;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+
+    @media (max-width: 1024px) {
+      .cat-layout { grid-template-columns: 220px 1fr; gap: 24px; }
+    }
+    @media (max-width: 900px) {
+      .cat-layout { grid-template-columns: 200px 1fr; gap: 20px; }
+    }
+    @media (max-width: 768px) {
+      .cat-layout {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+        row-gap: 16px;
+      }
+      .cat-sidebar-head,
+      .cat-main-head,
+      .cat-fam-list,
+      .cat-main-body { grid-column: 1; grid-row: auto; }
+      .cat-fam-list { flex-direction: row; flex-wrap: wrap; padding-top: 0; }
+      .cat-fam-item { border-left: none; border-bottom: 3px solid transparent; }
+      .cat-fam-item.active { border-left: none; border-bottom-color: var(--primary); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active="catalog"></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <div class="cat-layout">
+
+        <!-- ============ SIDEBAR (left, both rows) ============ -->
+        <aside class="cat-sidebar">
+          <div class="cat-sidebar-head">
+            <h2 class="cat-sidebar-title">Series Catalog</h2>
+            <p class="cat-sidebar-subtitle">Technical Specifications</p>
+          </div>
+          <nav class="cat-fam-list" id="cat-fam-list" aria-label="Series families"></nav>
+        </aside>
+
+        <!-- ============ MAIN (right, both rows) ============ -->
+        <section class="cat-main">
+
+          <div class="cat-main-head">
+            <div class="cat-hero">
+              <h1>Güntner Catalog</h1>
+              <p>Precision-engineered cooling systems and heat exchangers for industrial performance. Select a series to view technical specifications.</p>
+            </div>
+          </div>
+
+          <!-- ============ TOOLBAR + TABLE / CARDS BODY ============ -->
+          <div id="cat-listing" class="cat-main-body cat-listing dg-view-grid">
+
+            <div class="cat-toolbar">
+              <div class="cat-toolbar-row cat-toolbar-row--filters">
+                <div class="cat-toolbar-left" id="cat-dropdowns"></div>
+                <div class="cat-toolbar-right-row">
+                  <div class="dg-view-toggle cat-view-toggle" data-target="#cat-listing">
+                    <button type="button" data-view="list" aria-label="List view" title="List view">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    </button>
+                    <button type="button" data-view="grid" class="active" aria-label="Grid view" title="Grid view">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+        <!-- ===== TABLE VIEW ===== -->
+        <div class="dg-table-view">
+          <div class="dg-wrap">
+            <table class="dg dg--compact dg--auto-headers" id="cat-grid">
+              <thead>
+                <tr>
+                  <th style="width:280px">Type Name</th>
+                  <th>Series</th>
+                  <th>Category</th>
+                  <th>Surface (m²)</th>
+                  <th>Air flow (m³/h)</th>
+                  <th>Sound L<sub>WA</sub></th>
+                  <th>Fan</th>
+                  <th>Fin spacing</th>
+                  <th>E-Class</th>
+                  <th>Stock</th>
+                  <th>Price (€)</th>
+                </tr>
+              </thead>
+              <tbody id="cat-tbody"></tbody>
+            </table>
+            <div class="dg-pagination">
+              <span id="cat-pageinfo">Showing 0 of 0</span>
+              <span style="display:inline-flex;gap:6px;align-items:center">
+                <button class="dg-tool-icon" type="button" id="cat-prev" aria-label="Previous"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+                <span id="cat-page-label">Page 1 of 1</span>
+                <button class="dg-tool-icon" type="button" id="cat-next" aria-label="Next"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== GRID (CARD) VIEW ===== -->
+        <div class="dg-card-view">
+          <div class="cat-card-grid" id="cat-card-grid"></div>
+        </div>
+      </div>
+
+        </section>
+      </div><!-- /.cat-layout -->
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="site-header.js"></script>
+  <script src="dg.js"></script>
+  <script>
+    /* ============================================================
+       Catalog page logic — series filter grid (6-col layout)
+       Same grid + button principle is applied to filter options.
+       ============================================================ */
+
+    /* ---- Series families for the left-sidebar menu.
+       Selecting a family toggles all its series in the activeSeries set.       */
+    const SERIES_FAMILIES = [
+      { label: 'Mini Compact',     icon: 'mini',     series: ['GAMC PX', 'GAMC CX'] },
+      { label: 'Slim Compact',     icon: 'slim',     series: ['GASC RX', 'GASC PX', 'GASC CX'] },
+      { label: 'Cubic Compact',    icon: 'cubic',    series: ['GACC RX', 'GACC PX', 'GACC CX'] },
+      { label: 'Dual Compact',     icon: 'dual',     series: ['GADC RX', 'GADC CX'] },
+      { label: 'Flat Compact',     icon: 'flat',     series: ['GCHC RD'] },
+      { label: 'Vertical Compact', icon: 'vertical', series: ['GCVC RD'] },
+    ];
+
+    // Inline SVG icons for the family menu (matches the reference screenshot)
+    const FAM_ICONS = {
+      mini:     '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3.5"/><path d="M12 5v3M12 16v3M5 12h3M16 12h3"/></svg>',
+      slim:     '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="12" rx="1.5"/><path d="M7 10h10M7 14h6"/></svg>',
+      cubic:    '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>',
+      dual:     '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 3l9 9-9 9-9-9z"/></svg>',
+      flat:     '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="8" width="18" height="8" rx="1.5"/><path d="M7 12h10"/></svg>',
+      vertical: '<svg class="cat-fam-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M8 4l4-2 4 2M8 20l4 2 4-2M12 2v20"/></svg>',
+    };
+
+    /* ---- Filter options dropdowns (left side of the toolbar) ---- */
+    const DROPDOWNS = [
+      { key: 'fanTech',    label: 'Fan Technology', options: ['EC motor', 'AC motor'] },
+      { key: 'defrost',    label: 'Defrosting',     options: ['Air', 'Electric'] },
+      { key: 'finSpacing', label: 'Fin Spacing',    options: ['4 mm', '7 mm'] },
+      { key: 'stockUnit',  label: 'Stock',          options: ['Stock', 'Non-stock'] },
+      { key: 'eClass',     label: 'Energy Class',   options: ['A', 'B', 'C', 'D', 'E', 'F', 'G'] },
+    ];
+
+    // Map button-label → underlying data value, per filter key.
+    const VALUE_MAP = {
+      fanTech: { 'EC motor': 'EC motor', 'AC motor': 'AC motor' },
+      finSpacing: { '4 mm': '4', '7 mm': '7' },
+      defrost: { 'Air': 'A', 'Electric': 'E' },
+      eClass: { 'A':'A','B':'B','C':'C','D':'D','E':'E','F':'F','G':'G' },
+      stockUnit: { 'Stock': 'yes', 'Non-stock': 'no' },
+    };
+    // Reverse map: filter key + value → label (for chips)
+    function labelFor(key, value) {
+      const m = VALUE_MAP[key] || {};
+      for (const lbl in m) if (m[lbl] === value) return lbl;
+      return value;
+    }
+    const KEY_TITLES = {
+      fanTech: 'Fan technology', finSpacing: 'Fin spacing', defrost: 'Defrosting',
+      eClass: 'Energy class', stockUnit: 'Stock',
+    };
+
+    // -------- State --------
+    const state = {
+      all: [],
+      activeSeries: new Set(),
+      activeOptions: {
+        fanTech: new Set(), defrost: new Set(),
+        finSpacing: new Set(), eClass: new Set(), stockUnit: new Set(),
+      },
+      page: 1,
+      pageSize: 24,
+    };
+
+    // -------- Icons --------
+    const $ = id => document.getElementById(id);
+
+    // -------- Boot --------
+    fetch('database/products-summary.json')
+      .then(r => r.json())
+      .then(data => { state.all = data.products || []; init(); })
+      .catch(err => {
+        $('cat-tbody').innerHTML = `<tr><td colspan="11" class="cat-empty">Could not load catalog: ${err.message || err}</td></tr>`;
+      });
+
+    function init() {
+      buildFamilyMenu();
+      buildDropdowns();
+
+      $('cat-prev').addEventListener('click', () => goto(state.page - 1));
+      $('cat-next').addEventListener('click', () => goto(state.page + 1));
+
+      document.getElementById('cat-listing').addEventListener('dg:view-change', () => render());
+
+      // Close any open dropdown on outside click / Escape
+      document.addEventListener('click', e => {
+        if (!e.target.closest('.cat-dd')) closeAllDropdowns();
+      });
+      document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') closeAllDropdowns();
+      });
+
+      render();
+    }
+
+    function closeAllDropdowns() {
+      document.querySelectorAll('.cat-dd.is-open').forEach(d => d.classList.remove('is-open'));
+    }
+
+    /* ---------- Build family menu (left sidebar) ----------
+       Each menu item toggles ALL series of that family in activeSeries.        */
+    function buildFamilyMenu() {
+      const list = $('cat-fam-list');
+      const present = new Set(state.all.map(p => p.series));
+      const html = SERIES_FAMILIES.map(fam => {
+        const enabled = fam.series.some(s => present.has(s));
+        return `<button class="cat-fam-item" data-family="${fam.label}" ${enabled ? '' : 'disabled'}>
+                  ${FAM_ICONS[fam.icon] || ''}
+                  <span>${fam.label}</span>
+                  <span class="cat-fam-count" data-family-count="${fam.label}">0</span>
+                </button>`;
+      }).join('');
+      list.innerHTML = html;
+      list.querySelectorAll('button[data-family]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const famLabel = btn.dataset.family;
+          const fam = SERIES_FAMILIES.find(f => f.label === famLabel);
+          if (!fam) return;
+          // If any series in family is active, clear all of them; else add all
+          const anyActive = fam.series.some(s => state.activeSeries.has(s));
+          if (anyActive) {
+            fam.series.forEach(s => state.activeSeries.delete(s));
+          } else {
+            fam.series.forEach(s => { if (present.has(s)) state.activeSeries.add(s); });
+          }
+          state.page = 1; render();
+        });
+      });
+    }
+
+    /* ---------- Build multi-select dropdowns ---------- */
+    function buildDropdowns() {
+      const wrap = $('cat-dropdowns');
+      const html = DROPDOWNS.map(dd => {
+        const optionsHtml = dd.options.map(label => {
+          const value = (VALUE_MAP[dd.key] && VALUE_MAP[dd.key][label] != null)
+            ? String(VALUE_MAP[dd.key][label]) : label;
+          const present = new Set(state.all.map(p => String(getValue(p, dd.key))));
+          const disabled = !present.has(value);
+          return `<label class="cat-dd-option ${disabled ? 'is-disabled' : ''}">
+                    <input type="checkbox" data-key="${dd.key}" data-val="${escAttr(value)}" ${disabled ? 'disabled' : ''}>
+                    <span>${label}</span>
+                  </label>`;
+        }).join('');
+        return `
+          <div class="cat-dd" data-dd="${dd.key}">
+            <button type="button" class="cat-dd-btn" aria-haspopup="true" aria-expanded="false">
+              <span class="cat-dd-count" hidden>0</span>
+              <span class="cat-dd-label">${dd.label}</span>
+              <svg class="cat-dd-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+              <span class="cat-dd-clearx" data-dd-clear-inline="${dd.key}" role="button" aria-label="Clear filter">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+              </span>
+            </button>
+            <div class="cat-dd-panel" role="menu">
+              ${optionsHtml}
+              <div class="cat-dd-foot">
+                <button type="button" class="cat-dd-clear" data-dd-clear="${dd.key}">Clear</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('') + `
+        <button type="button" class="cat-clear-link" id="cat-clear-all" hidden>Clear all filters</button>
+      `;
+      wrap.innerHTML = html;
+
+      // Toggle dropdown
+      wrap.querySelectorAll('.cat-dd-btn').forEach(btn => {
+        btn.addEventListener('click', e => {
+          // If the click hit the inline X clear-icon, just clear the filter; do not open
+          if (e.target.closest('.cat-dd-clearx')) return;
+          e.stopPropagation();
+          const dd = btn.closest('.cat-dd');
+          const isOpen = dd.classList.contains('is-open');
+          closeAllDropdowns();
+          if (!isOpen) {
+            dd.classList.add('is-open');
+            btn.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
+
+      // Inline X — clear that filter without opening the dropdown
+      wrap.querySelectorAll('.cat-dd-clearx').forEach(x => {
+        x.addEventListener('click', e => {
+          e.stopPropagation();
+          e.preventDefault();
+          const key = x.dataset.ddClearInline;
+          state.activeOptions[key].clear();
+          state.page = 1; render();
+        });
+      });
+
+      // Checkbox change
+      wrap.querySelectorAll('.cat-dd-option input[type="checkbox"]').forEach(cb => {
+        cb.addEventListener('change', () => {
+          const key = cb.dataset.key;
+          const val = cb.dataset.val;
+          const set = state.activeOptions[key];
+          if (cb.checked) set.add(val); else set.delete(val);
+          state.page = 1; render();
+        });
+      });
+
+      // Per-dropdown clear button
+      wrap.querySelectorAll('button[data-dd-clear]').forEach(btn => {
+        btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const key = btn.dataset.ddClear;
+          state.activeOptions[key].clear();
+          state.page = 1; render();
+        });
+      });
+
+      // Clear all
+      wrap.querySelector('#cat-clear-all').addEventListener('click', clearAll);
+    }
+
+    function getValue(p, key) {
+      if (key === 'fanTech')    return p.fanTech;
+      if (key === 'finSpacing') return p.finSpacing;
+      if (key === 'defrost')    return p.defrost;
+      if (key === 'eClass')     return p.eClass;
+      if (key === 'stockUnit')  return p.stockUnit;
+      return null;
+    }
+
+    function escAttr(v) { return String(v).replace(/"/g, '&quot;'); }
+
+    // -------- Filtering --------
+    function getFiltered() {
+      return state.all.filter(p => {
+        if (state.activeSeries.size && !state.activeSeries.has(p.series)) return false;
+        for (const key in state.activeOptions) {
+          const set = state.activeOptions[key];
+          if (set.size && !set.has(String(getValue(p, key)))) return false;
+        }
+        return true;
+      });
+    }
+
+    // -------- Render --------
+    function render() {
+      // Reflect active state on family menu items
+      document.querySelectorAll('button[data-family]').forEach(btn => {
+        const fam = SERIES_FAMILIES.find(f => f.label === btn.dataset.family);
+        if (!fam) return;
+        const activeCount = fam.series.filter(s => state.activeSeries.has(s)).length;
+        btn.classList.toggle('active', activeCount > 0);
+        const countEl = btn.querySelector('.cat-fam-count');
+        if (countEl) countEl.textContent = activeCount;
+      });
+
+      // Reflect active state on dropdowns (count badges + checkbox state)
+      document.querySelectorAll('.cat-dd').forEach(dd => {
+        const key = dd.dataset.dd;
+        const set = state.activeOptions[key];
+        const btn = dd.querySelector('.cat-dd-btn');
+        const countEl = dd.querySelector('.cat-dd-count');
+        if (set.size) {
+          btn.classList.add('has-selection');
+          countEl.hidden = false;
+          countEl.textContent = set.size;
+        } else {
+          btn.classList.remove('has-selection');
+          countEl.hidden = true;
+        }
+        dd.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+          cb.checked = set.has(cb.dataset.val);
+        });
+      });
+
+      const clearAllBtn = $('cat-clear-all');
+      if (clearAllBtn) clearAllBtn.hidden = !hasAnyActive();
+
+      const list = getFiltered();
+      const total = list.length;
+      const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+      if (state.page > totalPages) state.page = totalPages;
+      const start = (state.page - 1) * state.pageSize;
+      const slice = list.slice(start, start + state.pageSize);
+
+      renderTable(slice);
+      renderCards(slice);
+
+      const last = Math.min(start + slice.length, total);
+      $('cat-pageinfo').textContent = total
+        ? `Showing ${start + 1}–${last} of ${total.toLocaleString('en-GB')} products`
+        : 'No products match';
+      $('cat-page-label').textContent = `Page ${state.page} of ${totalPages}`;
+      $('cat-prev').disabled = state.page === 1;
+      $('cat-next').disabled = state.page === totalPages;
+
+      if (window.dgRefresh) window.dgRefresh($('cat-grid'));
+    }
+
+    function hasAnyActive() {
+      if (state.activeSeries.size) return true;
+      for (const k in state.activeOptions) if (state.activeOptions[k].size) return true;
+      return false;
+    }
+
+    function clearAll() {
+      state.activeSeries.clear();
+      for (const k in state.activeOptions) state.activeOptions[k].clear();
+      state.page = 1;
+      render();
+    }
+
+    function goto(p) {
+      const total = getFiltered().length;
+      const totalPages = Math.max(1, Math.ceil(total / state.pageSize));
+      state.page = Math.min(totalPages, Math.max(1, p));
+      render();
+    }
+
+    // -------- Render: Table --------
+    function renderTable(slice) {
+      const tbody = $('cat-tbody');
+      if (!slice.length) {
+        tbody.innerHTML = `<tr><td colspan="11" class="cat-empty">No products match the current filters.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = slice.map(p => `
+        <tr>
+          <td><a href="datasheet.html" class="unit-link">${p.typeName || p.sku}</a></td>
+          <td>${p.series || ''}</td>
+          <td>${p.category || ''}</td>
+          <td>${num(p.surface, 1)}</td>
+          <td>${num(p.airFlow, 0)}</td>
+          <td>${num(p.sound, 1)} dB(A)</td>
+          <td>${p.fanCount || 0} × ${p.fanDiameter || 0} mm</td>
+          <td>${p.finSpacing != null ? p.finSpacing + ' mm' : '—'}</td>
+          <td>${p.eClass || '—'}</td>
+          <td>${p.stockUnit === 'yes' ? '<span class="cat-stock-yes">✓</span>' : '<span class="cat-stock-no">—</span>'}</td>
+          <td>${p.price ? p.price.toLocaleString('en-GB') : '—'}</td>
+        </tr>
+      `).join('');
+    }
+
+    // -------- Render: Cards --------
+    function renderCards(slice) {
+      const grid = $('cat-card-grid');
+      if (!slice.length) {
+        grid.innerHTML = `<div class="cat-empty">No products match the current filters.</div>`;
+        return;
+      }
+      grid.innerHTML = slice.map(p => {
+        const stock = p.stockUnit === 'yes';
+        const price = p.price ? p.price.toLocaleString('en-GB') + ' €' : '—';
+        return `
+        <a href="datasheet.html" class="cat-prod-card">
+          <div class="cat-prod-image">
+            <div class="cat-prod-badges">
+              <span class="cat-prod-chip">${p.series || ''}</span>
+              ${stock ? '<span class="cat-prod-chip cat-prod-chip--stock">Stock</span>' : ''}
+            </div>
+            <img src="${imageForSeries(p.series)}" alt="${p.series || ''}" loading="lazy">
+          </div>
+          <div>
+            <div class="cat-prod-cat">${p.category || ''}</div>
+            <h3 class="cat-prod-name">${p.typeName || p.sku}</h3>
+          </div>
+          <dl class="cat-prod-meta">
+            <dt>Surface</dt>      <dd>${num(p.surface, 1)} m²</dd>
+            <dt>Air flow</dt>     <dd>${num(p.airFlow, 0)} m³/h</dd>
+            <dt>Sound</dt>        <dd>${num(p.sound, 1)} dB(A)</dd>
+            <dt>Fan</dt>          <dd>${p.fanCount || 0}×${p.fanDiameter || 0} mm</dd>
+            <dt>Fin spacing</dt>  <dd>${p.finSpacing != null ? p.finSpacing + ' mm' : '—'}</dd>
+            <dt>E-Class</dt>      <dd>${p.eClass || '—'}</dd>
+          </dl>
+          <div class="cat-prod-foot">
+            <span class="cat-prod-price">${price}</span>
+            <span class="cat-prod-link">View →</span>
+          </div>
+        </a>`;
+      }).join('');
+    }
+
+    // Map series → product photo. Uses the family prefix so all variants of a
+    // family share the same product photo (e.g. GACC RX/PX/CX → series-gacc.png).
+    function imageForSeries(series) {
+      if (!series) return 'images/series-gacc.png';
+      const code = series.replace(/\s+.*$/, '').toLowerCase();   // 'GACC PX' → 'gacc'
+      const map = {
+        gacc: 'images/series-gacc.png',
+        gadc: 'images/series-gadc.png',
+        gasc: 'images/series-gasc.png',
+        gamc: 'images/series-gamc.png',
+        // Fallbacks for series without a dedicated photo
+        gchc: 'images/series-gacc.png',
+        gcvc: 'images/series-gacc.png',
+      };
+      return map[code] || 'images/series-gacc.png';
+    }
+
+    function num(v, d = 0) {
+      if (v == null || isNaN(v)) return '—';
+      return Number(v).toFixed(d);
+    }
+  </script>
+
+  <script src="main.js"></script>
+</body>
+</html>

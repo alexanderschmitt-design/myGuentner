@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>myGPC Visibility Test — alle 8 Klassen</title>
+  <style>
+    body { font-family: monospace; padding: 24px; background: #f5f5f5; max-width: 1400px; margin: 0 auto; }
+    h1 { color: #003865; }
+    table { border-collapse: collapse; margin-top: 20px; background: #fff; }
+    th, td { border: 1px solid #ddd; padding: 6px 10px; font-size: 12px; }
+    th { background: #003865; color: #fff; position: sticky; top: 0; }
+    th.field { text-align: left; min-width: 280px; }
+    td.field { text-align: left; font-weight: 500; }
+    td.show { background: #d4edda; color: #155724; text-align: center; }
+    td.hide { background: #f8d7da; color: #721c24; text-align: center; opacity: 0.5; }
+    .ok { color: #006633; }
+    .fail { color: #cc0000; font-weight: bold; }
+    button { padding: 8px 16px; cursor: pointer; margin-right: 8px; }
+    iframe { width: 100%; height: 600px; border: 2px solid #003865; margin-top: 20px; }
+    #legend { padding: 12px; background: #fff; border: 1px solid #ddd; margin-top: 16px; font-size: 13px; }
+  </style>
+</head>
+<body>
+  <h1>myGPC Visibility Test — alle 8 Architektur-Klassen</h1>
+  <p>Setzt nacheinander jede der 8 Kategorien als productCategory, lädt thermodynamics.html in iframe, und protokolliert welche Felder sichtbar/ausgeblendet sind.</p>
+
+  <div>
+    <button onclick="runAllClasses()">Alle 8 Klassen testen</button>
+    <button onclick="document.getElementById('table-out').innerHTML = ''; log = ''; out();">Reset</button>
+  </div>
+
+  <div id="legend">
+    <strong>Legende:</strong> <span class="ok">✓</span> sichtbar &nbsp; <span class="fail">×</span> hidden via .mygpc-hidden &nbsp; <em>—</em> Feld nicht vorhanden
+  </div>
+
+  <pre id="output"></pre>
+  <div id="table-out"></div>
+  <iframe id="frame" src="about:blank"></iframe>
+
+  <script>
+    var log = '';
+    function out() { document.getElementById('output').textContent = log; }
+
+    var CATEGORIES = [
+      { cat: 0,  cls: 'A',  name: 'Evaporator DX' },
+      { cat: 1,  cls: 'B',  name: 'Evaporator Pump' },
+      { cat: 2,  cls: 'C',  name: 'Air Cooler Coolant' },
+      { cat: 3,  cls: 'D1', name: 'Condenser' },
+      { cat: 4,  cls: 'E1', name: 'Dry cooler' },
+      { cat: 5,  cls: 'D2', name: 'Subcooler' },
+      { cat: 6,  cls: 'E2', name: 'Oil cooler' },
+      { cat: 10, cls: 'F',  name: 'CO2 Gas Cooler' }
+    ];
+
+    // Repräsentative Felder pro Klasse — die wir checken
+    var TEST_FIELDS = [
+      // (label, fieldName, expected: { A, B, C, D1, D2, E1, E2, F })
+      ['Capacity (W-kW)',         'thermalCapacity',                 { all: true }],
+      ['Calculation mode',         'inputModeCapacity',               { all: true }],
+      ['min surface reserve',      'tC_Tolerance_L',                  { all: true }],
+      ['max surface reserve',      'tC_Tolerance_H',                  { all: true }],
+      ['Frost thickness',          'frostThickness',                  { A:1,B:1,C:1, D1:0,D2:0,E1:0,E2:0,F:0 }],
+      ['Medium select (fluidID)',  'fluidID',                         { A:1,B:1,C:1,D1:1,D2:1,E1:1,E2:1, F:0 }],
+      ['Evaporation temp',         'fluidTempEvap',                   { A:1,B:1, C:0,D1:0,D2:0,E1:0,E2:0,F:0 }],
+      ['Cond. temp (refrigerant)', 'fluidTempCond',                   { all: true }],  // appears in multiple class-specific blocks
+      ['Superheating (DX expert)', 'fluidSuperHeating',               { A:1, B:0,C:0,D1:0,D2:0,E1:0,E2:0,F:0 }],
+      ['gravity flooded (Pump)',   'fluidPumpMode',                   { A:0,B:1, C:0,D1:0,D2:0,E1:0,E2:0,F:0 }],
+      ['Feed rate (Pump)',         'fluidPumpRate',                   { A:0,B:1, C:0,D1:0,D2:0,E1:0,E2:0,F:0 }],
+      ['Concentration (C, E1)',    'fluidVolConcentration',           { A:0,B:0, C:1, D1:0,D2:0, E1:1, E2:0, F:0 }],
+      ['Parameter mode',           'fluidInputMode',                  { all: true }],  // A has it as radio, C/D2/E1/E2 as select
+      ['Multiple circuits (D1)',   'noOfCircuitsThermo',              { A:0,B:0,C:0, D1:1, D2:0,E1:0,E2:0,F:0 }],
+      ['Hot gas temp (D1)',        'isHotGasAuto',                    { A:0,B:0,C:0, D1:1, D2:0,E1:0,E2:0,F:0 }],
+      ['Rel. humidity (warm)',     'airRelHumidity',                  { all: true }],  // F has subcritic+supercritic too
+      ['Altitude (warm)',          'altitude',                        { A:0,B:0,C:0, D1:1,D2:1,E1:1,E2:1, F:1 }],
+      ['Humidity factor (cold)',   'capacitySensibleHeatOnly',        { A:1,B:1,C:1, D1:0,D2:0,E1:0,E2:0,F:0 }],
+      ['CO2 Supercritic master',   'isSupercritic',                   { A:0,B:0,C:0,D1:0,D2:0,E1:0,E2:0, F:1 }],
+      ['CO2 Subcritic master',     'isSubcritic',                     { A:0,B:0,C:0,D1:0,D2:0,E1:0,E2:0, F:1 }],
+      ['CO2 Pressure',             'fluidPressure',                   { A:0,B:0,C:0,D1:0,D2:0,E1:0,E2:0, F:1 }],
+      ['CO2 Subcritic capacity',   'subcriticThermalCapacity',        { A:0,B:0,C:0,D1:0,D2:0,E1:0,E2:0, F:1 }]
+    ];
+
+    function isVisible(el) {
+      if (!el) return null;
+      var hidden = el.classList.contains('mygpc-hidden');
+      // Climb up to check parent visibility too
+      var cur = el.parentElement;
+      while (cur && cur !== document.body) {
+        if (cur.classList.contains('mygpc-hidden')) return false;
+        cur = cur.parentElement;
+      }
+      return !hidden;
+    }
+
+    async function setupClass(cat) {
+      var iframe = document.getElementById('frame');
+      var prom = new Promise(function (resolve) {
+        iframe.onload = function () { setTimeout(resolve, 1500); }; // give MyGPC.bind.init() time
+      });
+      // Prime state in iframe context before navigation
+      iframe.src = 'about:blank';
+      await new Promise(function (r) { iframe.onload = r; });
+      var w = iframe.contentWindow;
+      w.localStorage.setItem('mygpc_state_v1', JSON.stringify({
+        productSection: 1,
+        productCategory: cat,
+        productCategoryName: 'TestCat' + cat,
+        architectureClass: null  // will be re-derived
+      }));
+      iframe.src = 'thermodynamics.html';
+      await prom;
+      return iframe.contentDocument;
+    }
+
+    async function runAllClasses() {
+      log = ''; out();
+      var results = {};
+
+      for (var i = 0; i < CATEGORIES.length; i++) {
+        var c = CATEGORIES[i];
+        log += '[' + (i+1) + '/' + CATEGORIES.length + '] cat=' + c.cat + ' (' + c.cls + ' ' + c.name + ') wird geladen…\n';
+        out();
+        var doc = await setupClass(c.cat);
+
+        // Check current class is set
+        var w = document.getElementById('frame').contentWindow;
+        var s = w.MyGPC && w.MyGPC.state && w.MyGPC.state.snapshot();
+        var actualClass = s && s.architectureClass;
+        log += '   architectureClass = ' + actualClass + (actualClass === c.cls ? ' ✓' : ' ✗ erwartet ' + c.cls) + '\n';
+
+        // For each field, find DOM element and check visibility
+        var fieldResults = {};
+        TEST_FIELDS.forEach(function (tf) {
+          var label = tf[0], fieldName = tf[1];
+          var elements = doc.querySelectorAll('[data-gpc-field="' + fieldName + '"]');
+          if (!elements.length) {
+            fieldResults[label] = '—';
+            return;
+          }
+          // If ANY element with this field is visible, count as visible
+          var anyVisible = false;
+          elements.forEach(function (el) {
+            if (isVisible(el)) anyVisible = true;
+          });
+          fieldResults[label] = anyVisible ? '✓' : '×';
+        });
+        results[c.cls] = { name: c.name, cat: c.cat, fields: fieldResults };
+        out();
+      }
+
+      log += '\nAlle Kategorien gerendert. Tabelle wird gebaut…\n';
+      out();
+      renderTable(results);
+    }
+
+    function renderTable(results) {
+      var classes = ['A', 'B', 'C', 'D1', 'D2', 'E1', 'E2', 'F'];
+      var html = '<table><thead><tr><th class="field">Feld</th>';
+      classes.forEach(function (cls) {
+        html += '<th>' + cls + '</th>';
+      });
+      html += '</tr><tr><th class="field"></th>';
+      classes.forEach(function (cls) {
+        html += '<th style="font-weight:normal;font-size:10px;">' + (results[cls]?.name || '?') + '</th>';
+      });
+      html += '</tr></thead><tbody>';
+
+      TEST_FIELDS.forEach(function (tf) {
+        var label = tf[0];
+        html += '<tr><td class="field">' + label + '</td>';
+        classes.forEach(function (cls) {
+          var val = results[cls]?.fields[label] ?? '?';
+          var cssClass = val === '✓' ? 'show' : (val === '×' ? 'hide' : '');
+          html += '<td class="' + cssClass + '">' + val + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+      document.getElementById('table-out').innerHTML = html;
+    }
+  </script>
+</body>
+</html>

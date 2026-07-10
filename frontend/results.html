@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — Results</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Results page — fit columns to viewport (no horizontal scroll) */
+    #results-table { overflow-x: visible; }
+    #results-table .dg,
+    #results-table .dg.dg--compact {
+      min-width: 0;
+      width: 100%;
+      table-layout: fixed;
+      font-size: 12.5px;
+    }
+    #results-table .dg.dg--compact thead th { padding: 8px 6px; }
+    #results-table .dg.dg--compact tbody td { padding: 6px 6px; }
+    #results-table .dg thead th {
+      white-space: normal;
+      line-height: 1.2;
+      vertical-align: bottom;
+      font-size: 11.5px;
+    }
+    #results-table .dg tbody td {
+      white-space: normal;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    /* Center-align numeric / categorical columns (2 through 9) */
+    #results-table .dg thead th:nth-child(n+2):nth-child(-n+9),
+    #results-table .dg tbody td:nth-child(n+2):nth-child(-n+9) {
+      text-align: center;
+    }
+    /* Price right-aligned */
+    #results-table .dg thead th:last-child,
+    #results-table .dg tbody td:last-child {
+      text-align: right;
+      white-space: nowrap;
+    }
+    /* Unit Key — keep readable, allow break inside the long code */
+    #results-table .dg tbody td:first-child .unit-link {
+      word-break: break-all;
+    }
+    /* Stock-item warehouse marker on delivery cell */
+    #results-table .dg tbody td.delivery .stock-icon {
+      color: var(--teal, #00897B);
+      flex-shrink: 0;
+    }
+    /* When the delivery cell only contains the stock icon, center it */
+    #results-table .dg tbody td.delivery--stock {
+      text-align: center;
+      vertical-align: middle;
+      padding: 6px;
+    }
+    #results-table .dg tbody td.delivery--stock .stock-icon {
+      display: inline-block;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active="mygpc"></header>
+
+  <!-- ===== STEP WIZARD ===== -->
+  <div class="step-wizard">
+    <div class="container">
+      <div class="step-wizard-inner">
+        <a href="index.html" class="step-item completed">
+          <span class="step-dot"></span>
+          <span class="step-label">Category</span>
+        </a>
+        <div class="step-connector completed"></div>
+        <a href="thermodynamics.html" class="step-item completed">
+          <span class="step-dot"></span>
+          <span class="step-label">Thermodynamics</span>
+        </a>
+        <div class="step-connector completed"></div>
+        <a href="unit-selection.html" class="step-item completed">
+          <span class="step-dot"></span>
+          <span class="step-label">Unit Selection</span>
+        </a>
+        <div class="step-connector completed"></div>
+        <a href="results.html" class="step-item active">
+          <span class="step-dot"></span>
+          <span class="step-label">Results</span>
+        </a>
+        <div class="step-connector"></div>
+        <a href="datasheet.html" class="step-item upcoming">
+          <span class="step-dot"></span>
+          <span class="step-label">Datasheet</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PAGE CONTENT ===== -->
+  <main class="page-content">
+    <div class="container">
+
+      <!-- Results Header -->
+      <div class="results-header">
+        <h1 class="results-title" id="mygpc-results-title">Loading…</h1>
+        <div class="results-toolbar">
+          <div class="rating-bar" title="Impact rating" style="margin-right:12px;">
+            <span class="rating-value" id="mygpc-rating-value">—</span>
+            <span class="rating-icons" id="mygpc-rating-stars"></span>
+          </div>
+          <button class="btn btn-outline">Manage Columns</button>
+          <div class="search-input-wrap">
+            <input type="text" placeholder="">
+            <button class="clear-btn">&times;</button>
+          </div>
+          <div class="toolbar-icons">
+            <button class="toolbar-icon-btn" title="Print">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            </button>
+            <button class="toolbar-icon-btn" title="Save">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </button>
+            <button class="toolbar-icon-btn" title="Export">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div class="dg-wrap" id="results-table">
+        <table class="dg dg--compact dg--auto-headers">
+          <colgroup>
+            <col style="width:16%">
+            <col style="width:7%">
+            <col style="width:6%">
+            <col style="width:7%">
+            <col style="width:6%">
+            <col style="width:7%">
+            <col style="width:8%">
+            <col style="width:6%">
+            <col style="width:7%">
+            <col style="width:13%">
+            <col style="width:8%">
+            <col style="width:9%">
+          </colgroup>
+          <thead>
+            <tr>
+              <th>Unit Key</th>
+              <th>Similarity Score</th>
+              <th>Capacity (kW)</th>
+              <th>Surface Reserve (%)</th>
+              <th>Surface (m&sup2;)</th>
+              <th>Tube Volume (L)</th>
+              <th>Pressure Drop (bar/K)</th>
+              <th>Air (m&sup3;/h)</th>
+              <th>Motor Technology</th>
+              <th>L / W / H</th>
+              <th>Delivery Time (W)</th>
+              <th>Price (EUR)</th>
+            </tr>
+          </thead>
+          <tbody id="mygpc-results-tbody">
+            <!-- Demo-Rows (werden bei API-Erfolg von mygpc-bind ersetzt) -->
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 031.1FE/4A-70.A-18VU.0CHM</a></td>
+              <td><span class="sim-score sim-score--high">10</span></td>
+              <td>10.0</td>
+              <td>-9.8</td>
+              <td>34.2</td>
+              <td>6.0</td>
+              <td>0.79 / 1.00</td>
+              <td>6436</td>
+              <td>AC</td>
+              <td>2461 mm / 586 mm / 457 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>3 691,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 045.1HE/1A-40.A-150E.0CJM</a></td>
+              <td><span class="sim-score sim-score--high">10</span></td>
+              <td>10.0</td>
+              <td>1.5</td>
+              <td>56.0</td>
+              <td>6.0</td>
+              <td>0.83 / 1.05</td>
+              <td>4562</td>
+              <td>AC</td>
+              <td>1430 mm / 711 mm / 664 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>3 923,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 040.1FE/2A-40.A-14GD.1H0M</a></td>
+              <td><span class="sim-score sim-score--high">9</span></td>
+              <td>10.0</td>
+              <td>11.6</td>
+              <td>53.5</td>
+              <td>5.6</td>
+              <td>0.75 / 0.95</td>
+              <td>5795</td>
+              <td>AC</td>
+              <td>1871 mm / 666 mm / 564 mm</td>
+              <td class="delivery">7 weeks</td>
+              <td>4 169,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 031.1FE/3E-40.A-18UP.1TZM</a></td>
+              <td><span class="sim-score sim-score--high">8</span></td>
+              <td>10.0</td>
+              <td>-6.8</td>
+              <td>43.4</td>
+              <td>4.6</td>
+              <td>0.29 / 0.36</td>
+              <td>4095</td>
+              <td>EC</td>
+              <td>2001 mm / 582 mm / 457 mm</td>
+              <td class="delivery">9 weeks</td>
+              <td>4 177,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 031.1FE/4E-40.A-18VL.1TZM</a></td>
+              <td><span class="sim-score sim-score--high">8</span></td>
+              <td>10.0</td>
+              <td>12.0</td>
+              <td>57.9</td>
+              <td>6.0</td>
+              <td>0.79 / 1.00</td>
+              <td>5460</td>
+              <td>EC</td>
+              <td>2461 mm / 582 mm / 457 mm</td>
+              <td class="delivery">9 weeks</td>
+              <td>4 254,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 031.1FE/4E-70.A-18VU.1TZM</a></td>
+              <td><span class="sim-score sim-score--high">7</span></td>
+              <td>10.0</td>
+              <td>-9.7</td>
+              <td>34.2</td>
+              <td>6.0</td>
+              <td>0.79 / 1.00</td>
+              <td>6452</td>
+              <td>EC</td>
+              <td>2461 mm / 582 mm / 457 mm</td>
+              <td class="delivery">9 weeks</td>
+              <td>4 257,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 031.1FE/4A-70.A-18VZ.0CHM</a></td>
+              <td><span class="sim-score sim-score--high">7</span></td>
+              <td>10.0</td>
+              <td>11.2</td>
+              <td>34.2</td>
+              <td>5.9</td>
+              <td>0.36 / 0.46</td>
+              <td>6436</td>
+              <td>AC</td>
+              <td>2461 mm / 586 mm / 457 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>4 311,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 045.1JE/1A-70.A-1511.0CJM</a></td>
+              <td><span class="sim-score sim-score--mid">6</span></td>
+              <td>10.0</td>
+              <td>-3.7</td>
+              <td>41.4</td>
+              <td>7.4</td>
+              <td>1.02 / 1.29</td>
+              <td>4924</td>
+              <td>AC</td>
+              <td>1430 mm / 711 mm / 664 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>4 316,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 050.1FE/1A-40.A-15N9.01DM</a></td>
+              <td><span class="sim-score sim-score--mid">6</span></td>
+              <td>10.0</td>
+              <td>20.7</td>
+              <td>55.1</td>
+              <td>5.9</td>
+              <td>0.80 / 1.01</td>
+              <td>6319</td>
+              <td>AC</td>
+              <td>1581 mm / 745 mm / 763 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>4 324,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 050.1FE/1A-70.A-15NV.01DM</a></td>
+              <td><span class="sim-score sim-score--mid">5</span></td>
+              <td>10.0</td>
+              <td>-8.2</td>
+              <td>32.6</td>
+              <td>5.9</td>
+              <td>0.80 / 1.01</td>
+              <td>6825</td>
+              <td>AC</td>
+              <td>1581 mm / 745 mm / 763 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>4 330,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 045.1FE/1A-40.A-150P.0CJM</a></td>
+              <td><span class="sim-score sim-score--mid">5</span></td>
+              <td>10.0</td>
+              <td>8.6</td>
+              <td>42.0</td>
+              <td>4.6</td>
+              <td>1.05 / 1.32</td>
+              <td>4845</td>
+              <td>AC</td>
+              <td>1430 mm / 711 mm / 664 mm</td>
+              <td class="delivery">8 weeks</td>
+              <td>4 337,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 031.1HE/3E-70.A-18V0.1TZM</a></td>
+              <td><span class="sim-score sim-score--mid">4</span></td>
+              <td>10.0</td>
+              <td>-9.9</td>
+              <td>34.2</td>
+              <td>6.0</td>
+              <td>0.15 / 0.19</td>
+              <td>4513</td>
+              <td>EC</td>
+              <td>2001 mm / 582 mm / 457 mm</td>
+              <td class="delivery">9 weeks</td>
+              <td>4 482,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 045.1FE/1A-40.A-150P.012M</a></td>
+              <td><span class="sim-score sim-score--mid">4</span></td>
+              <td>10.0</td>
+              <td>-3.7</td>
+              <td>42.0</td>
+              <td>4.6</td>
+              <td>0.29 / 0.37</td>
+              <td>4298</td>
+              <td>AC</td>
+              <td>1430 mm / 724 mm / 664 mm</td>
+              <td class="delivery">10 weeks</td>
+              <td>4 494,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 045.1FM/1A-40.A-2F0F.0CJM</a></td>
+              <td><span class="sim-score sim-score--low">3</span></td>
+              <td>10.0</td>
+              <td>-0.5</td>
+              <td>81.0</td>
+              <td>6.9</td>
+              <td>0.29 / 0.36</td>
+              <td>4954</td>
+              <td>AC</td>
+              <td>1430 mm / 711 mm / 664 mm</td>
+              <td class="delivery">12 weeks</td>
+              <td>4 499,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 040.1DE/2A-40.A-14GN.1H0M</a></td>
+              <td><span class="sim-score sim-score--low">2</span></td>
+              <td>10.0</td>
+              <td>7.2</td>
+              <td>35.7</td>
+              <td>3.9</td>
+              <td>0.85 / 1.07</td>
+              <td>6259</td>
+              <td>AC</td>
+              <td>1871 mm / 666 mm / 564 mm</td>
+              <td class="delivery">7 weeks</td>
+              <td>4 519,00 EUR</td>
+            </tr>
+            <tr>
+              <td><a href="datasheet.html" class="unit-link">GACV CX 040.1HE/2A-70.A-14H0.1H0M</a></td>
+              <td><span class="sim-score sim-score--low">1</span></td>
+              <td>10.0</td>
+              <td>9.8</td>
+              <td>42.2</td>
+              <td>7.4</td>
+              <td>0.99 / 1.25</td>
+              <td>6200</td>
+              <td>AC</td>
+              <td>1871 mm / 666 mm / 564 mm</td>
+              <td class="delivery">7 weeks</td>
+              <td>4 532,00 EUR</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="dg-pagination">
+          <span>Showing 1–16 of 142 units</span>
+          <span style="display:inline-flex;gap:6px;align-items:center">
+            <button class="dg-tool-icon" type="button" aria-label="Previous"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <span>Page 1 of 18</span>
+            <button class="dg-tool-icon" type="button" aria-label="Next"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </span>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== CHATBOT WIDGET ===== -->
+  <div class="chatbot-dialog">
+    <div class="chatbot-dialog-header">
+      <h4>Güntner Configuration Assistant</h4>
+      <p>I will help you find the right product.</p>
+      <button class="chatbot-expand" aria-label="Expand chat">
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <svg class="icon-shrink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+      <button class="chatbot-close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="chatbot-dialog-body"></div>
+    <div class="chatbot-dialog-footer">
+      <input type="text" class="chatbot-input" placeholder="Type a message…">
+      <button class="chatbot-send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <!-- Docked layout (visible only in docked mode) -->
+    <div class="chatbot-docked-layout">
+      <div class="chatbot-guidance">
+        <h2 class="chatbot-guidance-title">Configuration Assistant</h2>
+        <p class="chatbot-guidance-subtitle">Answer the following steps to find the right Güntner product.</p>
+        <div class="guidance-steps">
+          <div class="guidance-step-card" data-guidance-step="1">
+            <div class="guidance-step-number">Step 1</div>
+            <div class="guidance-step-label">Product category</div>
+            <div class="guidance-step-value" id="gv-category"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="2">
+            <div class="guidance-step-number">Step 2</div>
+            <div class="guidance-step-label">Application</div>
+            <div class="guidance-step-value" id="gv-application"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="3">
+            <div class="guidance-step-number">Step 3</div>
+            <div class="guidance-step-label">Cooling capacity</div>
+            <div class="guidance-step-value" id="gv-capacity"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="4">
+            <div class="guidance-step-number">Step 4</div>
+            <div class="guidance-step-label">Refrigerant</div>
+            <div class="guidance-step-value" id="gv-refrigerant"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="5">
+            <div class="guidance-step-number">Step 5</div>
+            <div class="guidance-step-label">Temperature</div>
+            <div class="guidance-step-value" id="gv-temperature"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="6">
+            <div class="guidance-step-number">Step 6</div>
+            <div class="guidance-step-label">Summary</div>
+            <div class="guidance-step-value" id="gv-summary"></div>
+          </div>
+        </div>
+        <div class="guidance-active-step" id="guidance-active-area"></div>
+      </div>
+      <div class="chatbot-docked-chat">
+        <div class="chatbot-docked-chat-body"></div>
+        <div class="chatbot-docked-chat-footer">
+          <input type="text" class="chatbot-docked-input" placeholder="Type a message…">
+          <button class="chatbot-docked-send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="chatbot-trigger" aria-label="Open chat">
+    <svg class="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+
+  <script src="main.js"></script>
+  <script src="learn-mode.js"></script>
+  <script src="dg.js"></script>
+  <script src="site-header.js"></script>
+
+  <!-- ===== myGPC Foundation — Live-findunits-Tabelle + Impact-Score ===== -->
+  <script src="mygpc-state.js"></script>
+  <script src="mygpc-api.js"></script>
+  <script src="mygpc-class-config.js"></script>
+  <script src="mygpc-bind.js"></script>
+  <script src="mygpc-impact.js"></script>
+  <script>
+    /* ============================================================
+       Results Renderer — POST /findunits → Tabelle befüllen
+       + Impact-Rating-Bar (zentrale Engine in mygpc-impact.js)
+       ============================================================ */
+    (async function () {
+      // Impact-Score zuerst aufsetzen, bevor wir auf API-Calls warten
+      if (window.MyGPC && MyGPC.impact && MyGPC.impact.init) MyGPC.impact.init();
+
+      var titleEl = document.getElementById('mygpc-results-title');
+      var tbody = document.getElementById('mygpc-results-tbody');
+      if (!titleEl || !tbody) return;
+
+      var s = MyGPC.state.snapshot();
+      if (!s.productCategory && s.productCategory !== 0) {
+        titleEl.textContent = 'No category selected';
+        titleEl.style.color = '#cc0000';
+        return;
+      }
+      titleEl.textContent = (s.productCategoryName || 'Category ' + s.productCategory).toUpperCase()
+        + (s.architectureClass ? ' · Class ' + s.architectureClass : '');
+
+      var uid = s.unitInputData;
+      if (!uid) {
+        // Falls User direkt /results.html aufruft ohne Step 2 durchlaufen: defaultinputdata laden
+        try {
+          var def = await MyGPC.api.defaultInputData(s.productCategory);
+          if (def && def.success && def.content) {
+            uid = def.content;
+            MyGPC.state.set('unitInputData', uid);
+          }
+        } catch (e) { console.warn('[mygpc/results] defaultInputData failed:', e); }
+      }
+      if (!uid) {
+        titleEl.textContent += ' — failed to load defaults';
+        return;
+      }
+
+      // Loading-Indikator
+      tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#666;">Loading from /findunits…</td></tr>';
+
+      try {
+        var res = await MyGPC.api.findUnits(uid, { languageID: 2, unitSystem: 0 });
+        if (!res || !res.success) {
+          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#cc0000;">findunits failed: ' + (res && res.message || 'unknown') + '</td></tr>';
+          return;
+        }
+        var units = res.foundUnits || [];
+        MyGPC.state.set('foundUnits', units);
+        MyGPC.state.set('inputDataMFCBinary', res.inputDataMFCBinary || null);
+
+        if (units.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#cc0000;">Keine passenden Geräte mit diesen Inputs gefunden.</td></tr>';
+          return;
+        }
+
+        // Helpers für die String/Number-mixed Result-Felder
+        function fmtNum(n, digits) { if (n == null || n === '') return '—'; var v = Number(n); return Number.isFinite(v) ? v.toFixed(digits != null ? digits : 1) : String(n); }
+        function fmtStr(s) { return (s == null || s === '') ? '—' : String(s); }
+
+        // Similarity-Score: aus surfaceReserve ableiten (näher an 0 = besser)
+        var minReserve = units.reduce(function (acc, u) { return Math.min(acc, Math.abs(u.surfaceReserve || 100)); }, 100);
+        var maxReserve = units.reduce(function (acc, u) { return Math.max(acc, Math.abs(u.surfaceReserve || 0)); }, 0);
+        var range = maxReserve - minReserve || 1;
+
+        var rows = units.map(function (u, i) {
+          var score = Math.round(10 - 9 * (Math.abs(u.surfaceReserve || 0) - minReserve) / range);
+          var scoreClass = score >= 8 ? 'sim-score--high' : (score >= 4 ? 'sim-score--mid' : 'sim-score--low');
+          // Persist selected unit on click
+          var safeKey = (u.unitKey || ('unit-' + i)).replace(/"/g, '&quot;');
+          return '<tr>'
+            + '<td><a href="datasheet.html" class="unit-link mygpc-pick-unit" data-unit-key="' + safeKey + '" data-unit-index="' + i + '">' + fmtStr(u.unitKey) + '</a></td>'
+            + '<td><span class="sim-score ' + scoreClass + '">' + score + '</span></td>'
+            + '<td>' + fmtNum(u.thermalCapacity, 1) + '</td>'
+            + '<td>' + fmtNum(u.surfaceReserve, 1) + '</td>'
+            + '<td>' + fmtStr(u.surface) + '</td>'
+            + '<td>' + fmtNum(u.tubeVolume, 1) + '</td>'
+            + '<td>' + fmtStr(u.capacityTempDiff || (u.fluidPressureDrop != null ? fmtNum(u.fluidPressureDrop, 2) : '—')) + '</td>'
+            + '<td>' + fmtNum(u.airVolumeFlow, 0) + '</td>'
+            + '<td>' + fmtStr(u.motorTechnologyCode || (u.motorTechnology < 0 ? 'AC' : 'EC')) + '</td>'
+            + '<td>' + fmtStr(u.unitLength) + ' / ' + fmtStr(u.unitWidth) + ' / ' + fmtStr(u.unitHeight) + '</td>'
+            + '<td class="delivery">' + fmtStr(u.deliveryTime) + '</td>'
+            + '<td>' + (u.priceTotal != null ? fmtNum(u.priceTotal, 0) + ' EUR' : '—') + '</td>'
+            + '</tr>';
+        }).join('');
+        tbody.innerHTML = rows;
+
+        // Click-Handler: ausgewählte Unit in State setzen
+        tbody.querySelectorAll('.mygpc-pick-unit').forEach(function (a) {
+          a.addEventListener('click', function () {
+            var idx = parseInt(a.getAttribute('data-unit-index'), 10);
+            if (Number.isFinite(idx) && units[idx]) MyGPC.state.set('selectedUnit', units[idx]);
+          });
+        });
+
+        // Pagination-Text
+        var pag = document.querySelector('.dg-pagination span');
+        if (pag) pag.textContent = 'Showing 1–' + units.length + ' of ' + units.length + ' units';
+      } catch (e) {
+        console.error('[mygpc/results] findUnits failed:', e);
+        tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:24px;color:#cc0000;">Network error: ' + e.message + '</td></tr>';
+      }
+    })();
+  </script>
+  <script>
+    /* ============================================================
+       Stock-items marker — when the "Stock items" checkbox on
+       unit-selection.html is active, prepend a warehouse icon to
+       the delivery cells of the first 4 result rows (placeholder).
+       ============================================================ */
+    (function() {
+      var stockOnly;
+      try { stockOnly = localStorage.getItem('mygpc_stock_items_only') === '1'; }
+      catch (e) { stockOnly = false; }
+      if (!stockOnly) return;
+
+      var WAREHOUSE_SVG = '<svg class="stock-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-label="In stock"><path d="M3 21V8l9-5 9 5v13"/><path d="M3 21h18"/><rect x="9" y="13" width="6" height="8"/><line x1="3" y1="13" x2="21" y2="13"/></svg>';
+
+      var rows = document.querySelectorAll('#results-table .dg tbody tr');
+      Array.prototype.slice.call(rows, 0, 4).forEach(function(tr) {
+        var cell = tr.querySelector('td.delivery');
+        if (!cell) return;
+        // Replace the cell content with the warehouse icon only — no delivery text.
+        cell.innerHTML = WAREHOUSE_SVG;
+        cell.classList.add('delivery--stock');
+        cell.title = 'Stock item — available from warehouse';
+      });
+    })();
+  </script>
+</body>
+</html>

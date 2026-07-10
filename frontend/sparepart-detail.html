@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spare Part — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active="spareparts"></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <nav class="spd-breadcrumbs">
+        <a href="overview.html">Homepage</a><span class="sep">/</span>
+        <a href="spareparts.html">Spare Parts</a><span class="sep">/</span>
+        <a href="spareparts.html" id="spd-bc-cat">Loading…</a><span class="sep">/</span>
+        <span class="current" id="spd-bc-title">Loading…</span>
+      </nav>
+
+      <section class="spd-detail">
+        <div class="spd-gallery">
+          <div class="spd-gallery-main">
+            <img src="images/spare-fan.png" alt="Spare part" id="spd-main-img">
+          </div>
+        </div>
+
+        <div class="spd-info">
+          <span class="spd-brand" id="spd-brand">—</span>
+          <h1 class="spd-title" id="spd-title">Loading…</h1>
+          <span class="spd-articleid" id="spd-articleid">—</span>
+
+          <div class="spd-prices">
+            <span class="spd-price" id="spd-price">—</span>
+          </div>
+
+          <p class="spd-desc" id="spd-desc-1">Loading specifications…</p>
+          <p class="spd-desc" id="spd-desc-2"></p>
+
+          <dl class="spd-specs" id="spd-specs"></dl>
+
+          <div class="spd-hint" id="spd-hint" hidden></div>
+
+          <div class="spd-actions">
+            <button class="spd-add" type="button" id="spd-add-btn">
+              Add to cart
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+            </button>
+            <a href="favorites.html" class="spd-fav">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+              Save to favourites
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== You may also need ===== -->
+      <div class="sp-rail-header">
+        <h3 id="spd-rail-title">Related parts</h3>
+      </div>
+      <div class="sp-rail" id="related-parts"></div>
+
+      <!-- ===== Documents ===== -->
+      <h3 class="spd-section-title">Documents</h3>
+      <div class="spd-docs">
+        <div class="spd-doc-card">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div><div class="spd-doc-card-name">Installation_Manual_EN.pdf</div><div class="spd-doc-card-meta">PDF · 8 pp</div></div>
+        </div>
+        <div class="spd-doc-card">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div><div class="spd-doc-card-name">Installation_Manual_DE.pdf</div><div class="spd-doc-card-meta">PDF · 8 pp</div></div>
+        </div>
+        <div class="spd-doc-card">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <div><div class="spd-doc-card-name">Datasheet_2026.pdf</div><div class="spd-doc-card-meta">PDF · 12 pp</div></div>
+        </div>
+      </div>
+
+      <!-- ===== Compatible Products ===== -->
+      <h3 class="spd-section-title" id="spd-compat-title">Compatible products</h3>
+      <div class="dg-wrap" style="margin-bottom:32px">
+        <table class="dg dg--compact">
+          <thead>
+            <tr>
+              <th><div class="dg-th-inner"><span class="dg-th-label">Product Line</span></div></th>
+              <th><div class="dg-th-inner"><span class="dg-th-label">Compatible Model Types</span></div></th>
+            </tr>
+          </thead>
+          <tbody id="spd-compat-tbody">
+            <tr><td colspan="2" style="text-align:center;color:var(--text-light);padding:24px">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+  /* ============================================================
+     Spare Part Detail — data-driven from database/spareparts.json
+     URL: sparepart-detail.html?id=<Item No>
+     ============================================================ */
+  (function() {
+    const params  = new URLSearchParams(location.search);
+    const idParam = params.get('id');
+
+    const $ = id => document.getElementById(id);
+    const escHtml = v => { const d = document.createElement('div'); d.textContent = (v == null ? '' : String(v)); return d.innerHTML; };
+
+    fetch('database/spareparts.json')
+      .then(r => r.json())
+      .then(data => {
+        const all   = (data.parts || []);
+        // Match by Item No first (the URL canonical id), fall back to numeric id
+        let part = all.find(p => String(p['Item No']) === idParam);
+        if (!part && idParam) part = all.find(p => String(p.id) === idParam);
+        if (!part) part = all[0];
+        if (!part) { showError('No spare parts available.'); return; }
+        renderPart(part, all);
+      })
+      .catch(err => showError('Could not load spare parts: ' + (err.message || err)));
+
+    function showError(msg) {
+      $('spd-title').textContent = 'Spare part not found';
+      $('spd-desc-1').textContent = msg;
+    }
+
+    function renderPart(p, all) {
+      const isHeater = p.category === 'Heater';
+      const itemNo   = p['Item No'] || p.id || '';
+      const type     = p['Type'] || '';
+      const code     = p['Itemcode'] || '';
+
+      // ---- Wire "Add to cart" with this part ----
+      const addBtn = $('spd-add-btn');
+      if (addBtn) {
+        addBtn.onclick = () => {
+          if (!window.Cart) return;
+          window.Cart.add({
+            type: isHeater ? 'heater' : 'fan',
+            id: itemNo,
+            title: type || itemNo,
+            subtitle: isHeater ? 'Heating ' + (p['Heating Type'] || 'Element') : 'Fan · ' + (code || ''),
+            partNumber: itemNo,
+            imageSrc: isHeater ? 'images/spare-heater.jpg' : 'images/spare-fan.png',
+            unitPrice: priceOf(p),
+            discount: 0,
+            deliveryWeeks: null,
+            priceOnRequest: priceOf(p) == null
+          });
+          addBtn.textContent = '✓ Added to cart';
+          setTimeout(() => location.href = 'cart.html', 600);
+        };
+      }
+
+      // ---- Title bar / breadcrumb ----
+      document.title = type + ' — myGüntner';
+      $('spd-bc-cat').textContent  = isHeater ? 'Heater' : 'Fan';
+      $('spd-bc-title').textContent = type || itemNo;
+      $('spd-brand').textContent   = isHeater
+        ? 'Güntner Heating Element'
+        : (code && code !== 'Multiple' ? 'Güntner Fan · ' + code : 'Güntner Fan');
+      $('spd-title').textContent   = type || itemNo;
+      $('spd-articleid').textContent = (isHeater ? 'Heater' : 'Fan') + ' · Item No. ' + itemNo;
+
+      // ---- Image ----
+      $('spd-main-img').src = isHeater ? 'images/spare-heater.jpg' : 'images/spare-fan.png';
+      $('spd-main-img').alt = type || itemNo;
+
+      // ---- Price ----
+      const price = priceOf(p);
+      $('spd-price').textContent = price != null
+        ? price.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'
+        : 'Price on request';
+
+      // ---- Description ----
+      if (isHeater) {
+        const sub = p['Heating Type'] || '';
+        const watts = p['Heat Capacity (W)'];
+        const volts = p['Heat Voltage (V)'];
+        const len = p['Length (mm)'], wid = p['Width (mm)'];
+        $('spd-desc-1').textContent =
+          `Original Güntner heating element (${sub.toLowerCase()} type) used as defrost or anti-frost element in cold-storage and process-cooling units. ` +
+          `Rated at ${watts || '—'} W on ${volts || '—'} V, with a working surface of ${len || '—'} × ${wid || '—'} mm.`;
+        const ranges = p['Compatible Model Ranges'] || [];
+        const cnt    = p['Compatible Model Type Count'] || 0;
+        $('spd-desc-2').textContent =
+          ranges.length
+            ? `Compatible with ${cnt} model variants across ${ranges.length} product line${ranges.length > 1 ? 's' : ''}: ${ranges.join(', ')}.`
+            : '';
+      } else {
+        const dia = p['Diameter (mm)'];
+        const rpm = p['Min-1'];
+        const ec  = p['Ec Technology'];
+        const tech = ec === 'Yes' ? 'EC' : (ec === 'No' ? 'AC' : '');
+        $('spd-desc-1').textContent =
+          `Original Güntner fan motor used as a direct replacement in ${code || 'standard'} units. ` +
+          (dia ? `Ø ${dia} mm` : '') + (rpm ? ` · ${Number(rpm).toLocaleString('en-GB')} rpm` : '') + (tech ? ` · ${tech} technology` : '') + '.';
+        $('spd-desc-2').textContent =
+          (p['Air Flow Direction'] ? 'Air flow direction: ' + p['Air Flow Direction'] + '. ' : '') +
+          (p['Mounting Type'] ? 'Mounting: ' + p['Mounting Type'] + '. ' : '');
+      }
+
+      // ---- Specs ----
+      const specs = isHeater ? heaterSpecs(p) : fanSpecs(p);
+      $('spd-specs').innerHTML = specs
+        .filter(s => s.value != null && s.value !== '')
+        .map(s => `<dt>${escHtml(s.label)}</dt><dd>${escHtml(s.value)}</dd>`)
+        .join('');
+
+      // ---- Hint banner ----
+      const hint = $('spd-hint');
+      if (isHeater) {
+        hint.hidden = false;
+        hint.innerHTML = '<strong>Note:</strong> This heating element is used in multiple Güntner product lines. Refer to the compatibility list below for the exact unit/model match.';
+      } else {
+        hint.hidden = true;
+      }
+
+      // ---- Compatible products / models ----
+      renderCompat(p);
+
+      // ---- Related rail ----
+      $('spd-rail-title').textContent = isHeater ? 'Other heating elements' : 'You may also need…';
+      renderRail('related-parts', findRelated(p, all, 8));
+    }
+
+    function priceOf(p) {
+      if (typeof p.price === 'number') return p.price;
+      const v = p['spare part price 2026 '] || p['spare part price 2026'];
+      return typeof v === 'number' ? v : null;
+    }
+
+    function fanSpecs(p) {
+      const ec = p['Ec Technology'];
+      return [
+        { label: 'Type',                value: p['Type'] },
+        { label: 'Product Line',        value: p['Itemcode'] },
+        { label: 'Diameter',            value: p['Diameter (mm)'] != null ? p['Diameter (mm)'] + ' mm' : null },
+        { label: 'Speed',               value: p['Min-1'] != null ? Number(p['Min-1']).toLocaleString('en-GB') + ' rpm' : null },
+        { label: 'Technology',          value: ec === 'Yes' ? 'EC (electronically commutated)' : (ec === 'No' ? 'AC' : null) },
+        { label: 'Nominal Capacity',    value: p['Nominal Capacity (kW)'] != null ? (p['Nominal Capacity (kW)'] * 1000).toFixed(0) + ' W (' + p['Nominal Capacity (kW)'] + ' kW)' : null },
+        { label: 'Nominal Current',     value: p['Nominal Current (A)'] != null ? p['Nominal Current (A)'] + ' A' : null },
+        { label: 'Power Connection',    value: p['Power Connection'] },
+        { label: 'Air Flow Direction',  value: p['Air Flow Direction'] },
+        { label: 'Mounting Type',       value: p['Mounting Type'] },
+        { label: 'Status',              value: p['status'] || 'Active' },
+      ];
+    }
+
+    function heaterSpecs(p) {
+      return [
+        { label: 'Heating Type',       value: p['Heating Type'] },
+        { label: 'Heat Capacity',      value: p['Heat Capacity (W)'] != null ? p['Heat Capacity (W)'] + ' W' : null },
+        { label: 'Heat Voltage',       value: p['Heat Voltage (V)'] != null ? p['Heat Voltage (V)'] + ' V' : null },
+        { label: 'Length',             value: p['Length (mm)'] != null ? p['Length (mm)'] + ' mm' : null },
+        { label: 'Width',              value: p['Width (mm)'] != null ? p['Width (mm)'] + ' mm' : null },
+        { label: 'Mounting Position',  value: p['Mounting Type'] },
+        { label: 'Power Connection',   value: p['Power Connection'] },
+        { label: 'Compatibility',      value: p['Compatible Model Type Count']
+            ? p['Compatible Model Type Count'] + ' model types'
+            : null },
+        { label: 'Status',             value: p['status'] || 'Active' },
+      ];
+    }
+
+    function renderCompat(p) {
+      const tbody = $('spd-compat-tbody');
+      const isHeater = p.category === 'Heater';
+
+      if (isHeater) {
+        $('spd-compat-title').textContent = 'Compatible products';
+        const ranges = p['Compatible Model Ranges'] || [];
+        const types  = p['Compatible Model Types'] || [];
+        if (!ranges.length) {
+          tbody.innerHTML = '<tr><td colspan="2" style="text-align:center;color:var(--text-light);padding:24px">No compatibility data.</td></tr>';
+          return;
+        }
+        // Group model types by leading range token
+        const byRange = new Map();
+        ranges.forEach(r => byRange.set(r, []));
+        types.forEach(t => {
+          // model types don't carry the range prefix, so just spread them across ranges
+          // (we don't have a stronger join key in the current dataset)
+        });
+        tbody.innerHTML = ranges.map(r => {
+          // Show up to 8 type examples for visual richness, then the total count
+          const examples = types.slice(0, 8).join(', ');
+          return `<tr>
+            <td><strong>${escHtml(r)}</strong></td>
+            <td>${escHtml(examples)}${types.length > 8 ? ' <span style="color:var(--text-light)">+ ' + (types.length - 8) + ' more</span>' : ''}</td>
+          </tr>`;
+        }).join('');
+      } else {
+        $('spd-compat-title').textContent = 'Used in product line';
+        const code = p['Itemcode'] || '—';
+        tbody.innerHTML = `<tr>
+          <td><strong>${escHtml(code)}</strong></td>
+          <td>${escHtml(p['Type'] || '')} fan motor — installed in ${escHtml(code)} series units</td>
+        </tr>`;
+      }
+    }
+
+    // ---- Related parts ----
+    function findRelated(p, all, limit) {
+      // Same category, prefer same product line; skip the current part
+      const sameLine = all.filter(x => x !== p && x.category === p.category && x['Itemcode'] === p['Itemcode']).slice(0, limit);
+      if (sameLine.length >= limit) return sameLine;
+      const sameCat = all.filter(x => x !== p && x.category === p.category && !sameLine.includes(x)).slice(0, limit - sameLine.length);
+      return sameLine.concat(sameCat);
+    }
+
+    function renderRail(target, items) {
+      const host = document.getElementById(target);
+      if (!items.length) { host.innerHTML = '<p style="color:var(--text-light);font-size:13px">No related parts.</p>'; return; }
+      host.innerHTML = items.map(p => {
+        const isHeater = p.category === 'Heater';
+        const itemNo   = p['Item No'] || p.id || '';
+        const type     = p['Type'] || '';
+        const code     = p['Itemcode'] || '';
+        const price    = priceOf(p);
+        const img      = isHeater ? 'images/spare-heater.jpg' : 'images/spare-fan.png';
+        const desc     = isHeater
+          ? (p['Heat Capacity (W)'] ? p['Heat Capacity (W)'] + ' W heating element' : 'Heating element')
+          : (p['Diameter (mm)'] ? 'Ø ' + p['Diameter (mm)'] + ' mm fan motor' : 'Fan motor');
+        return `
+          <div class="sp-card">
+            <a href="sparepart-detail.html?id=${encodeURIComponent(itemNo)}" class="sp-card-image"><img src="${img}" alt="${escHtml(type)}"></a>
+            <div class="sp-card-body">
+              <span class="sp-card-brand">${escHtml(code)}</span>
+              <a href="sparepart-detail.html?id=${encodeURIComponent(itemNo)}" class="sp-card-title" style="color:inherit;text-decoration:none">${escHtml(type || itemNo)}</a>
+              <span class="sp-card-desc">${escHtml(desc)}</span>
+              <div class="sp-card-prices">
+                <span class="sp-card-price">${price != null ? price.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €' : '—'}</span>
+              </div>
+              <div class="sp-card-action">
+                <span class="sp-card-stock">In stock</span>
+              </div>
+            </div>
+          </div>`;
+      }).join('');
+    }
+  })();
+  </script>
+
+  <script src="cart.js"></script>
+  <script src="site-header.js"></script>
+  <script src="dg.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

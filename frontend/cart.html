@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============================================================
+       Cart page styling — clean, consistent with checkout/shipping pages
+       ============================================================ */
+    .cart-page-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 24px 0 6px;
+    }
+    .cart-page-title {
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text-dark);
+      margin: 0;
+      letter-spacing: -.2px;
+    }
+    .checkout-steps {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .checkout-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 16px;
+      background: var(--surface-canvas);
+    }
+    .checkout-step.active {
+      background: rgba(38, 102, 224, .1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .checkout-step .step-num {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(0,0,0,.08);
+      color: var(--text-medium);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .checkout-step.active .step-num { background: var(--primary); color: #fff; }
+    .checkout-step-arrow { color: var(--text-light); }
+
+    /* Two-column layout: cart table on the left, summary on the right */
+    .cart-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 32px;
+    }
+
+    /* ---- Cart table — uses the standard .dg / .dg--compact / .dg--auto-headers
+       look so it matches catalog, spareparts, documents and results tables.
+       Body cells get a bit more vertical breathing room than the default. ---- */
+    .cart-wrap {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    table.dg.cart-table { min-width: 760px; }
+    table.dg.cart-table tbody td { padding: 18px; vertical-align: middle; }
+    table.dg.cart-table thead th .cart-info-icon {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      margin-left: 4px;
+      vertical-align: -2px;
+      color: var(--primary);
+    }
+    /* Remove default .dg row-hover/cursor on cart rows — they aren't navigable rows */
+    table.dg.cart-table tbody tr { cursor: default; }
+    table.dg.cart-table tbody tr:hover { background: transparent; }
+
+    /* Product cell */
+    .cart-product {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 220px;
+    }
+    .cart-product-img {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: var(--surface-canvas);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .cart-product-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+    }
+    .cart-product-text {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .cart-product-cat {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-medium);
+    }
+    .cart-product-id {
+      font-size: 12.5px;
+      color: var(--primary);
+      font-family: ui-monospace, "DM Mono", "SF Mono", Consolas, monospace;
+      letter-spacing: .2px;
+      text-decoration: none;
+    }
+    .cart-product-id:hover { text-decoration: underline; }
+
+    /* Information links column */
+    .cart-info-links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .cart-info-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--primary);
+      text-decoration: none;
+    }
+    .cart-info-link:hover { color: var(--primary-dark); }
+    .cart-info-link svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+    /* Price/Item column */
+    .cart-pricecol {
+      display: grid;
+      grid-template-columns: auto auto;
+      gap: 4px 24px;
+      font-size: 12.5px;
+      min-width: 200px;
+    }
+    .cart-pricecol .label  { color: var(--text-medium); }
+    .cart-pricecol .value  { text-align: right; color: var(--text-dark); }
+    .cart-pricecol .value--total { font-weight: 700; }
+    .cart-pricecol .value--delivery { color: #1aa169; font-weight: 700; }
+    .cart-pricecol .value--request { color: #e89211; font-weight: 700; }
+
+    /* Quantity column */
+    .cart-qty {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .cart-qty-input {
+      display: inline-flex;
+      align-items: stretch;
+      width: 64px;
+      height: 36px;
+      border: 1px solid var(--border-light);
+      border-radius: 2px;
+      overflow: hidden;
+      background: #fff;
+    }
+    .cart-qty-input input {
+      width: 40px;
+      border: none;
+      text-align: center;
+      font-size: 13px;
+      font-family: inherit;
+      color: var(--text-dark);
+      outline: none;
+      -moz-appearance: textfield;
+    }
+    .cart-qty-input input::-webkit-outer-spin-button,
+    .cart-qty-input input::-webkit-inner-spin-button {
+      -webkit-appearance: none; margin: 0;
+    }
+    .cart-qty-arrows {
+      display: flex;
+      flex-direction: column;
+      border-left: 1px solid var(--border-light);
+      width: 22px;
+    }
+    .cart-qty-arrows button {
+      flex: 1;
+      border: none;
+      background: #fff;
+      cursor: pointer;
+      color: var(--text-medium);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+    }
+    .cart-qty-arrows button:hover { background: var(--surface-canvas); color: var(--primary); }
+    .cart-qty-arrows button + button { border-top: 1px solid var(--border-light); }
+    .cart-qty-arrows svg { width: 10px; height: 10px; }
+
+    .cart-remove-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid #e74c3c;
+      background: #fff;
+      color: #e74c3c;
+      border-radius: 2px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .15s, color .15s;
+    }
+    .cart-remove-btn:hover { background: #e74c3c; color: #fff; }
+    .cart-remove-btn svg { width: 16px; height: 16px; }
+
+    /* Subtotal column */
+    .cart-subtotal {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-dark);
+      white-space: nowrap;
+      text-align: right;
+    }
+    .cart-subtotal--request { color: #e89211; font-weight: 600; font-size: 13px; }
+
+    /* Disclaimer */
+    .cart-disclaimer {
+      font-size: 12px;
+      color: var(--text-light);
+      margin: 14px 4px 0;
+    }
+
+    /* ---- Order summary (right column, white card) ---- */
+    .cart-summary {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 22px 22px 24px;
+      position: sticky;
+      top: 84px;
+    }
+    .cart-summary-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0 0 18px;
+    }
+    .cart-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13.5px;
+      color: var(--text-medium);
+      margin-bottom: 12px;
+    }
+    .cart-summary-row .value { color: var(--text-dark); font-weight: 500; }
+    .cart-summary-row .value--muted { color: var(--text-light); font-size: 12.5px; font-weight: 400; }
+    .cart-summary-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 14px 0 16px;
+    }
+    .cart-summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .cart-summary-total .label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .cart-summary-total .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .cart-checkout-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      padding: 13px 20px;
+      margin-top: 20px;
+      background: var(--primary);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .cart-checkout-btn:hover { background: var(--primary-dark); }
+    .cart-checkout-btn svg { width: 16px; height: 16px; }
+    .cart-checkout-btn[aria-disabled="true"],
+    .cart-checkout-btn:disabled { opacity: .5; cursor: not-allowed; pointer-events: none; }
+
+    /* ---- Empty state ---- */
+    .cart-empty {
+      padding: 80px 24px;
+      text-align: center;
+      color: var(--text-light);
+      font-size: 14px;
+    }
+    .cart-empty a {
+      display: inline-block;
+      margin-top: 12px;
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    /* ---- Footer info banner ---- */
+    .cart-info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 22px 26px;
+      border: 1px solid var(--primary);
+      border-radius: 2px;
+      color: var(--primary);
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 32px;
+    }
+    .cart-info-banner svg {
+      flex-shrink: 0;
+      width: 22px;
+      height: 22px;
+      margin-top: 1px;
+    }
+
+    @media (max-width: 1024px) {
+      .cart-layout { grid-template-columns: 1fr; }
+      .cart-summary { position: static; }
+    }
+    @media (max-width: 768px) {
+      .cart-table thead { display: none; }
+      .cart-table, .cart-table tbody, .cart-table tr, .cart-table td { display: block; width: 100%; }
+      .cart-table tbody td { padding: 8px 18px; }
+      .cart-table tbody tr { padding: 14px 0; border-bottom: 1px solid var(--border-light); }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active=""></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <div class="cart-page-header">
+        <h1 class="cart-page-title">Your cart</h1>
+        <div class="checkout-steps">
+          <span class="checkout-step active"><span class="step-num">1</span> Cart</span>
+          <span class="checkout-step-arrow">›</span>
+          <span class="checkout-step"><span class="step-num">2</span> Shipping</span>
+          <span class="checkout-step-arrow">›</span>
+          <span class="checkout-step"><span class="step-num">3</span> Payment</span>
+        </div>
+      </div>
+
+      <div class="cart-layout">
+
+        <!-- ============ CART TABLE ============ -->
+        <div>
+          <div class="cart-wrap dg-wrap">
+            <table class="dg dg--compact dg--auto-headers cart-table">
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Information</th>
+                  <th>
+                    Price / Item
+                    <svg class="cart-info-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                  </th>
+                  <th>Quantity</th>
+                  <th style="text-align:right">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="cart-tbody"></tbody>
+            </table>
+          </div>
+          <p class="cart-disclaimer">*This is your discounted net price — Shipping costs may apply, depending on the shipping method you choose.</p>
+        </div>
+
+        <!-- ============ SUMMARY PANEL ============ -->
+        <aside class="cart-summary">
+          <h2 class="cart-summary-title">Order Summary</h2>
+          <div class="cart-summary-row">
+            <span class="label">Subtotal</span>
+            <span class="value" id="sum-subtotal">—</span>
+          </div>
+          <div class="cart-summary-row">
+            <span class="label">Discount</span>
+            <span class="value" id="sum-discount">—</span>
+          </div>
+          <div class="cart-summary-row">
+            <span class="label">Shipping</span>
+            <span class="value value--muted">Calculated at next step</span>
+          </div>
+          <div class="cart-summary-row">
+            <span class="label">Taxes</span>
+            <span class="value value--muted">Calculated at next step</span>
+          </div>
+          <div class="cart-summary-divider"></div>
+          <div class="cart-summary-total">
+            <span class="label">Order total</span>
+            <span class="value" id="sum-total">—</span>
+          </div>
+          <a href="shipping.html" class="cart-checkout-btn" id="cart-checkout">
+            Continue to shipping
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </a>
+        </aside>
+      </div>
+
+      <!-- ============ FOOTER NOTE ============ -->
+      <div class="cart-info-banner">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        <span>All products are provided by Seller subject to the German Foreign Trade Act / German Foreign Trade Ordinance / EC Dual-Use Regulations as amended from time to time and are intended for use and to remain in the country of delivery agreed with the Customer. In the case of any onward transport, we kindly ask you to observe the currently applicable embargo measures and sanctions.</span>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="cart.js"></script>
+  <script src="dg.js"></script>
+  <script>
+  (function() {
+    const tbody = document.getElementById('cart-tbody');
+    const sumSub  = document.getElementById('sum-subtotal');
+    const sumDisc = document.getElementById('sum-discount');
+    const sumTot  = document.getElementById('sum-total');
+    const checkoutBtn = document.getElementById('cart-checkout');
+
+    const escHtml = v => { const d = document.createElement('div'); d.textContent = (v == null ? '' : String(v)); return d.innerHTML; };
+    const fmt     = n => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const ICON_SKETCH      = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>';
+    const ICON_ACCESSORIES = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/></svg>';
+    const ICON_INFO        = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>';
+    const ICON_TRASH       = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>';
+    const ICON_CHEV_UP     = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="18 15 12 9 6 15"/></svg>';
+    const ICON_CHEV_DN     = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>';
+
+    function detailHref(it) {
+      if (it.type === 'product')        return 'datasheet.html?id=' + encodeURIComponent(it.id);
+      if (it.type === 'fan' || it.type === 'heater')
+                                        return 'sparepart-detail.html?id=' + encodeURIComponent(it.partNumber || it.id);
+      return '#';
+    }
+
+    function render() {
+      const items = Cart.get();
+
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="cart-empty">Your cart is empty.<br><a href="catalog.html">Browse the catalog</a></td></tr>';
+        sumSub.textContent  = fmt(0) + ' EUR';
+        sumDisc.textContent = fmt(0) + ' EUR';
+        sumTot.textContent  = fmt(0) + ' EUR';
+        checkoutBtn.setAttribute('aria-disabled', 'true');
+        return;
+      }
+
+      tbody.innerHTML = items.map(it => {
+        const linePrice = it.unitPrice != null ? it.unitPrice : 0;
+        const lineDisc  = (linePrice * (it.discount || 0) / 100);
+        const linePriced = !it.priceOnRequest && it.unitPrice != null;
+        const lineSubtotal = linePriced ? (linePrice - lineDisc) * it.quantity : null;
+
+        // Price / Item column markup
+        let priceCell;
+        if (it.priceOnRequest || it.unitPrice == null) {
+          priceCell = `
+            <div class="cart-pricecol">
+              <span class="label">Unit price</span>
+              <span class="value value--total">${linePriced ? fmt(it.unitPrice) + ' EUR' : '—'}</span>
+              <span class="label">Delivery time</span>
+              <span class="value value--request">Only upon request!</span>
+            </div>`;
+        } else if (it.discount && it.discount > 0) {
+          priceCell = `
+            <div class="cart-pricecol">
+              <span class="label">Price</span>
+              <span class="value">${fmt(it.unitPrice)} EUR</span>
+              <span class="label">Discount</span>
+              <span class="value">${it.discount.toFixed(2)} %</span>
+              <span class="label">Subtotal</span>
+              <span class="value value--total">${fmt((it.unitPrice - lineDisc))} EUR</span>
+            </div>`;
+        } else {
+          priceCell = `
+            <div class="cart-pricecol">
+              <span class="label">Unit price</span>
+              <span class="value value--total">${fmt(it.unitPrice)} EUR</span>
+              <span class="label">Delivery time</span>
+              <span class="value value--delivery">${it.deliveryWeeks ? it.deliveryWeeks + ' weeks' : '—'}</span>
+            </div>`;
+        }
+
+        return `
+          <tr data-id="${escHtml(it.id)}" data-type="${escHtml(it.type)}">
+            <td>
+              <div class="cart-product">
+                <div class="cart-product-img"><img src="${escHtml(it.imageSrc)}" alt=""></div>
+                <div class="cart-product-text">
+                  <span class="cart-product-cat">${escHtml(it.subtitle || '')}</span>
+                  <a href="${detailHref(it)}" class="cart-product-id">${escHtml(it.title || it.id)}</a>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div class="cart-info-links">
+                <a href="#" class="cart-info-link">${ICON_SKETCH}<span>Sketch</span></a>
+                <a href="#" class="cart-info-link">${ICON_ACCESSORIES}<span>Accessories</span></a>
+                <a href="${detailHref(it)}" class="cart-info-link">${ICON_INFO}<span>Information</span></a>
+              </div>
+            </td>
+            <td>${priceCell}</td>
+            <td>
+              <div class="cart-qty">
+                <div class="cart-qty-input">
+                  <input type="number" min="1" value="${it.quantity}" data-qty>
+                  <div class="cart-qty-arrows">
+                    <button type="button" data-qty-up   aria-label="Increase">${ICON_CHEV_UP}</button>
+                    <button type="button" data-qty-down aria-label="Decrease">${ICON_CHEV_DN}</button>
+                  </div>
+                </div>
+                <button type="button" class="cart-remove-btn" data-remove aria-label="Remove">${ICON_TRASH}</button>
+              </div>
+            </td>
+            <td class="cart-subtotal ${linePriced ? '' : 'cart-subtotal--request'}">
+              ${linePriced ? fmt(lineSubtotal) + ' EUR' : 'Price on request'}
+            </td>
+          </tr>`;
+      }).join('');
+
+      // Wire row controls
+      tbody.querySelectorAll('tr[data-id]').forEach(tr => {
+        const id   = tr.dataset.id;
+        const type = tr.dataset.type;
+        tr.querySelector('[data-remove]').addEventListener('click', () => {
+          Cart.remove(id, type);
+        });
+        const input = tr.querySelector('[data-qty]');
+        input.addEventListener('change', () => Cart.updateQty(id, type, input.value));
+        input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+        tr.querySelector('[data-qty-up]').addEventListener('click', () => {
+          Cart.updateQty(id, type, (parseInt(input.value, 10) || 1) + 1);
+        });
+        tr.querySelector('[data-qty-down]').addEventListener('click', () => {
+          const next = Math.max(1, (parseInt(input.value, 10) || 1) - 1);
+          Cart.updateQty(id, type, next);
+        });
+      });
+
+      // ---- Summary ----
+      const grossSubtotal = items.reduce((s, x) =>
+        s + (!x.priceOnRequest && x.unitPrice != null ? x.unitPrice * x.quantity : 0), 0);
+      const totalDiscount = items.reduce((s, x) =>
+        s + (!x.priceOnRequest && x.unitPrice != null ? x.unitPrice * x.quantity * (x.discount || 0) / 100 : 0), 0);
+      const orderTotal    = grossSubtotal - totalDiscount;
+      const hasRequestItems = items.some(x => x.priceOnRequest || x.unitPrice == null);
+
+      sumSub.textContent  = grossSubtotal > 0 ? fmt(grossSubtotal) + ' EUR' + (hasRequestItems ? ' *' : '') : (hasRequestItems ? 'Price on request' : fmt(0) + ' EUR');
+      sumDisc.textContent = totalDiscount   > 0 ? '− ' + fmt(totalDiscount) + ' EUR' : (hasRequestItems ? 'Price on request' : fmt(0) + ' EUR');
+      sumTot.textContent  = orderTotal      > 0 ? fmt(orderTotal) + ' EUR' + (hasRequestItems ? ' *' : '') : (hasRequestItems ? 'Price on request' : fmt(0) + ' EUR');
+      checkoutBtn.removeAttribute('aria-disabled');
+    }
+
+    Cart.onChange(render);
+    render();
+  })();
+  </script>
+
+  <script src="site-header.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

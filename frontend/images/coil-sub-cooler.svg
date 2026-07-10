@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Background grid -->
+  <rect width="400" height="300" fill="#e8e8e8"/>
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#d4d4d4" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="url(#grid)"/>
+
+  <!-- Coil body (vertical fins) -->
+  <rect x="160" y="60" width="80" height="180" rx="4" fill="none" stroke="#3a3f50" stroke-width="2"/>
+  <line x1="172" y1="60" x2="172" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="184" y1="60" x2="184" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="196" y1="60" x2="196" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="208" y1="60" x2="208" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="220" y1="60" x2="220" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="232" y1="60" x2="232" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+
+  <!-- Inlet pipe (left - warm liquid) -->
+  <line x1="60" y1="100" x2="160" y2="100" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="120" x2="160" y2="120" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="100" x2="60" y2="120" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Outlet pipe (right - subcooled liquid) -->
+  <line x1="240" y1="100" x2="340" y2="100" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="240" y1="120" x2="340" y2="120" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="340" y1="100" x2="340" y2="120" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Secondary circuit pipes -->
+  <line x1="60" y1="190" x2="160" y2="190" stroke="#3a3f50" stroke-width="2" stroke-dasharray="6,3"/>
+  <line x1="60" y1="210" x2="160" y2="210" stroke="#3a3f50" stroke-width="2" stroke-dasharray="6,3"/>
+  <line x1="60" y1="190" x2="60" y2="210" stroke="#3a3f50" stroke-width="2"/>
+  <line x1="240" y1="190" x2="340" y2="190" stroke="#3a3f50" stroke-width="2" stroke-dasharray="6,3"/>
+  <line x1="240" y1="210" x2="340" y2="210" stroke="#3a3f50" stroke-width="2" stroke-dasharray="6,3"/>
+  <line x1="340" y1="190" x2="340" y2="210" stroke="#3a3f50" stroke-width="2"/>
+
+  <!-- Flow arrows -->
+  <polygon points="125,105 115,110 125,115" fill="#3a3f50"/>
+  <polygon points="305,105 315,110 305,115" fill="#3a3f50"/>
+  <polygon points="125,195 115,200 125,205" fill="#3a3f50"/>
+  <polygon points="305,195 315,200 305,205" fill="#3a3f50"/>
+</svg>

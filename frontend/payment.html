@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Payment — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============================================================
+       Payment page — checkout step 3
+       Reuses the same design language as shipping.html.
+       ============================================================ */
+    .ship-page-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 24px 0 24px;
+    }
+    .ship-page-title {
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text-dark);
+      margin: 0;
+      letter-spacing: -.2px;
+    }
+
+    .checkout-steps {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .checkout-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 16px;
+      background: var(--surface-canvas);
+    }
+    .checkout-step.active {
+      background: rgba(38, 102, 224, .1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .checkout-step.done { color: var(--text-medium); }
+    .checkout-step .step-num {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(0,0,0,.08);
+      color: var(--text-medium);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .checkout-step.active .step-num { background: var(--primary); color: #fff; }
+    .checkout-step.done .step-num { background: var(--text-medium); color: #fff; }
+    .checkout-step-arrow { color: var(--text-light); }
+
+    .ship-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 32px;
+    }
+
+    /* ===== Cards ===== */
+    .ship-card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+    .ship-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .ship-section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0;
+    }
+    .ship-section-check {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(38, 102, 224, .12);
+      color: var(--primary);
+    }
+    .ship-section-check svg { width: 11px; height: 11px; }
+    .ship-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .ship-edit:hover { color: var(--primary-dark); text-decoration: underline; }
+    .ship-edit svg { width: 14px; height: 14px; }
+
+    .ship-addresses {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .ship-addr-block { font-size: 13px; line-height: 1.6; color: var(--text-medium); }
+    .ship-addr-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+    .ship-addr-name { color: var(--text-dark); font-weight: 500; }
+
+    /* ===== Payment options ===== */
+    .pay-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .pay-option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .pay-option:hover { border-color: var(--primary-light); }
+    .pay-option.selected {
+      border-color: var(--primary);
+      background: rgba(38, 102, 224, .04);
+    }
+    .pay-option input[type="radio"] {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      margin: 0;
+      cursor: pointer;
+    }
+    .pay-option-icon {
+      flex-shrink: 0;
+      width: 40px;
+      height: 28px;
+      border-radius: 4px;
+      background: var(--surface-canvas);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-medium);
+    }
+    .pay-option-icon svg { width: 22px; height: 22px; }
+    .pay-option-icon-paypal   { background: #003087; color: #fff; font-weight: 800; font-size: 11px; letter-spacing: .3px; font-family: Arial, sans-serif; }
+    .pay-option-icon-paypal i { color: #009cde; font-style: normal; }
+    .pay-option-icon-card     { background: linear-gradient(135deg, #1a1a2e, #16213e); color: #fff; }
+    .pay-option-icon-sepa     { background: #003399; color: #FFCC00; font-weight: 800; font-size: 10px; font-family: Arial, sans-serif; letter-spacing: .5px; }
+    .pay-option-icon-apple    { background: #000; color: #fff; }
+    .pay-option-icon-google   { background: #fff; border: 1px solid var(--border-light); }
+    .pay-option-icon-klarna   { background: #FFA8CD; color: #17120F; font-weight: 800; font-size: 11px; letter-spacing: .5px; font-family: Arial, sans-serif; }
+    .pay-option-icon-invoice  { background: #fff8e1; color: #b08800; }
+
+    .pay-option-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .pay-option-title {
+      font-size: 14px;
+      color: var(--text-dark);
+      font-weight: 500;
+    }
+    .pay-option-desc {
+      font-size: 12.5px;
+      color: var(--text-light);
+    }
+    .pay-option-badges {
+      flex-shrink: 0;
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    .pay-card-badge {
+      width: 30px;
+      height: 20px;
+      border-radius: 3px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 9px;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: .3px;
+      font-family: Arial, sans-serif;
+    }
+    .pay-card-badge--visa { background: #1a1f71; }
+    .pay-card-badge--mc   { background: #fff; border: 1px solid var(--border-light); position: relative; }
+    .pay-card-badge--mc::before, .pay-card-badge--mc::after {
+      content: ''; position: absolute; top: 50%; transform: translateY(-50%);
+      width: 12px; height: 12px; border-radius: 50%;
+    }
+    .pay-card-badge--mc::before { left: 4px; background: #eb001b; }
+    .pay-card-badge--mc::after  { right: 4px; background: #f79e1b; opacity: .82; mix-blend-mode: multiply; }
+    .pay-card-badge--amex { background: #006fcf; }
+
+    /* ===== Card-form panel (revealed when "Credit card" is selected) ===== */
+    .pay-card-form {
+      display: none;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      padding: 18px 16px 6px;
+    }
+    .pay-option.selected[data-method="card"] ~ .pay-card-form,
+    .pay-card-form.is-open { display: grid; }
+    .pay-card-form .pay-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-medium);
+    }
+    .pay-card-form .pay-field--full { grid-column: 1 / -1; }
+    .pay-card-form input {
+      padding: 10px 12px;
+      font-family: inherit;
+      font-size: 13px;
+      color: var(--text-dark);
+      border: 1px solid var(--border-light);
+      border-radius: 4px;
+      outline: none;
+      background: #fff;
+    }
+    .pay-card-form input:focus { border-color: var(--primary); }
+
+    /* ===== Submit button ===== */
+    .pay-submit {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 14px 24px;
+      margin-top: 22px;
+      background: var(--primary);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .pay-submit:hover { background: var(--primary-dark); }
+    .pay-submit svg { width: 14px; height: 14px; }
+    .pay-terms {
+      font-size: 12px;
+      color: var(--text-light);
+      margin: 14px 0 0;
+      line-height: 1.5;
+    }
+    .pay-terms a { color: var(--primary); text-decoration: none; }
+    .pay-terms a:hover { text-decoration: underline; }
+
+    /* ===== Order summary (right) ===== */
+    .ship-summary {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 22px 22px 24px;
+      position: sticky;
+      top: 84px;
+    }
+    .ship-summary-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0 0 18px;
+    }
+    .ship-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13.5px;
+      color: var(--text-medium);
+      margin-bottom: 12px;
+    }
+    .ship-summary-row .value { color: var(--text-dark); font-weight: 500; }
+    .ship-summary-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 14px 0 16px;
+    }
+    .ship-summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .ship-summary-total .label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .ship-summary-total .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+    .ship-summary-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
+    }
+    .ship-summary-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ship-summary-item-img {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      background: var(--surface-canvas);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .ship-summary-item-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+    }
+    .ship-summary-item-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .ship-summary-item-meta {
+      font-size: 10.5px;
+      color: var(--text-light);
+      letter-spacing: .3px;
+      font-family: ui-monospace, "DM Mono", "SF Mono", Consolas, monospace;
+    }
+    .ship-summary-item-name {
+      font-size: 13px;
+      color: var(--text-dark);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ship-summary-item-price {
+      font-size: 12.5px;
+      color: var(--text-medium);
+      margin-top: 2px;
+    }
+    .ship-summary-item-qty {
+      flex-shrink: 0;
+      font-size: 12.5px;
+      color: var(--text-medium);
+      font-weight: 600;
+    }
+
+    @media (max-width: 1024px) {
+      .ship-layout { grid-template-columns: 1fr; }
+      .ship-summary { position: static; }
+    }
+    @media (max-width: 640px) {
+      .ship-addresses { grid-template-columns: 1fr; }
+      .pay-card-form { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active=""></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <div class="ship-page-header">
+        <h1 class="ship-page-title">Checkout</h1>
+        <div class="checkout-steps">
+          <span class="checkout-step done"><span class="step-num">1</span> <a href="cart.html" style="color:inherit;text-decoration:none">Cart</a></span>
+          <span class="checkout-step-arrow">›</span>
+          <span class="checkout-step done"><span class="step-num">2</span> <a href="shipping.html" style="color:inherit;text-decoration:none">Shipping</a></span>
+          <span class="checkout-step-arrow">›</span>
+          <span class="checkout-step active"><span class="step-num">3</span> Payment</span>
+        </div>
+      </div>
+
+      <div class="ship-layout">
+
+        <!-- ============ MAIN ============ -->
+        <div>
+
+          <!-- Billing summary card -->
+          <section class="ship-card">
+            <div class="ship-section-head">
+              <h2 class="ship-section-title">
+                Rechnungs- &amp; Versanddaten
+                <span class="ship-section-check" aria-label="Confirmed">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+              </h2>
+              <a href="shipping.html" class="ship-edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </a>
+            </div>
+
+            <div class="ship-addresses">
+              <div class="ship-addr-block">
+                <span class="ship-addr-label">Lieferadresse</span>
+                <span class="ship-addr-name">Swen Zimmermann</span><br>
+                ACME Inc., 3601 West Algonquin Road<br>
+                Rolling Meadows 600008, IL · United States
+              </div>
+              <div class="ship-addr-block">
+                <span class="ship-addr-label">Versandart</span>
+                <span class="ship-addr-name" id="pay-shipping-name">Freight Priority 2 day(s) (FedEx)</span><br>
+                <span id="pay-shipping-price">342,41 €</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- Payment methods card -->
+          <section class="ship-card">
+            <h2 class="ship-section-title" style="margin-bottom:16px">Zahlungsart</h2>
+
+            <div class="pay-options" id="pay-options">
+
+              <label class="pay-option selected" data-method="card">
+                <input type="radio" name="payment" value="card" checked>
+                <span class="pay-option-icon pay-option-icon-card">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="6" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                </span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">Kreditkarte</span>
+                  <span class="pay-option-desc">Visa, Mastercard, American Express</span>
+                </div>
+                <div class="pay-option-badges">
+                  <span class="pay-card-badge pay-card-badge--visa">VISA</span>
+                  <span class="pay-card-badge pay-card-badge--mc"></span>
+                  <span class="pay-card-badge pay-card-badge--amex">AMEX</span>
+                </div>
+              </label>
+
+              <!-- Card form revealed when Kreditkarte is selected -->
+              <div class="pay-card-form" id="pay-card-form">
+                <div class="pay-field pay-field--full">
+                  <label for="pay-cc-num">Kartennummer</label>
+                  <input type="text" id="pay-cc-num" placeholder="1234 5678 9012 3456" inputmode="numeric" autocomplete="cc-number">
+                </div>
+                <div class="pay-field pay-field--full">
+                  <label for="pay-cc-name">Karteninhaber</label>
+                  <input type="text" id="pay-cc-name" placeholder="Vor- und Nachname" autocomplete="cc-name">
+                </div>
+                <div class="pay-field">
+                  <label for="pay-cc-exp">Ablaufdatum</label>
+                  <input type="text" id="pay-cc-exp" placeholder="MM / JJ" inputmode="numeric" autocomplete="cc-exp">
+                </div>
+                <div class="pay-field">
+                  <label for="pay-cc-cvc">Sicherheitscode (CVC)</label>
+                  <input type="text" id="pay-cc-cvc" placeholder="123" inputmode="numeric" autocomplete="cc-csc">
+                </div>
+              </div>
+
+              <label class="pay-option" data-method="paypal">
+                <input type="radio" name="payment" value="paypal">
+                <span class="pay-option-icon pay-option-icon-paypal">Pay<i>Pal</i></span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">PayPal</span>
+                  <span class="pay-option-desc">Sicher zahlen mit PayPal-Konto.</span>
+                </div>
+              </label>
+
+              <label class="pay-option" data-method="sepa">
+                <input type="radio" name="payment" value="sepa">
+                <span class="pay-option-icon pay-option-icon-sepa">SEPA</span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">SEPA-Lastschrift</span>
+                  <span class="pay-option-desc">Bezahlung per Bankeinzug von Ihrem Girokonto.</span>
+                </div>
+              </label>
+
+              <label class="pay-option" data-method="apple">
+                <input type="radio" name="payment" value="apple">
+                <span class="pay-option-icon pay-option-icon-apple">
+                  <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09M12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25"/></svg>
+                </span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">Apple Pay</span>
+                  <span class="pay-option-desc">Schnelle Zahlung mit Touch ID oder Face ID.</span>
+                </div>
+              </label>
+
+              <label class="pay-option" data-method="google">
+                <input type="radio" name="payment" value="google">
+                <span class="pay-option-icon pay-option-icon-google">
+                  <svg viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.99.66-2.25 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                </span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">Google Pay</span>
+                  <span class="pay-option-desc">Bezahlen mit Google-Konto.</span>
+                </div>
+              </label>
+
+              <label class="pay-option" data-method="klarna">
+                <input type="radio" name="payment" value="klarna">
+                <span class="pay-option-icon pay-option-icon-klarna">K.</span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">Klarna — Rechnung &amp; Ratenkauf</span>
+                  <span class="pay-option-desc">Kauf auf Rechnung oder in 3 Raten zinsfrei.</span>
+                </div>
+              </label>
+
+              <label class="pay-option" data-method="invoice">
+                <input type="radio" name="payment" value="invoice">
+                <span class="pay-option-icon pay-option-icon-invoice">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                </span>
+                <div class="pay-option-body">
+                  <span class="pay-option-title">Rechnung (B2B)</span>
+                  <span class="pay-option-desc">Zahlung innerhalb von 30 Tagen netto. Verfügbar für verifizierte Geschäftskunden.</span>
+                </div>
+              </label>
+
+            </div>
+
+            <button type="button" class="pay-submit" id="pay-submit">
+              Bestellung abschicken
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            </button>
+
+            <p class="pay-terms">
+              Mit Klick auf <strong>„Bestellung abschicken"</strong> akzeptieren Sie unsere
+              <a href="#">Allgemeinen Geschäftsbedingungen</a> und
+              <a href="#">Datenschutzbestimmungen</a>. Es entstehen Ihnen keine versteckten Kosten — der oben genannte Betrag ist final.
+            </p>
+
+          </section>
+
+        </div>
+
+        <!-- ============ ORDER SUMMARY ============ -->
+        <aside class="ship-summary">
+          <h2 class="ship-summary-title">Order Summary</h2>
+
+          <div class="ship-summary-row">
+            <span class="label">Subtotal</span>
+            <span class="value" id="pay-subtotal">—</span>
+          </div>
+          <div class="ship-summary-row">
+            <span class="label">Shipping</span>
+            <span class="value" id="pay-shipping">—</span>
+          </div>
+          <div class="ship-summary-row">
+            <span class="label">Taxes (19% VAT)</span>
+            <span class="value" id="pay-taxes">—</span>
+          </div>
+          <div class="ship-summary-divider"></div>
+          <div class="ship-summary-total">
+            <span class="label">Order total</span>
+            <span class="value" id="pay-total">—</span>
+          </div>
+
+          <div class="ship-summary-items" id="pay-summary-items"></div>
+        </aside>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="cart.js"></script>
+  <script>
+  (function() {
+    const escHtml = v => { const d = document.createElement('div'); d.textContent = (v == null ? '' : String(v)); return d.innerHTML; };
+    const fmt     = n => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const VAT_RATE = 0.19;
+
+    const subtotalEl = document.getElementById('pay-subtotal');
+    const shippingEl = document.getElementById('pay-shipping');
+    const taxesEl    = document.getElementById('pay-taxes');
+    const totalEl    = document.getElementById('pay-total');
+    const itemsEl    = document.getElementById('pay-summary-items');
+    const submitBtn  = document.getElementById('pay-submit');
+    const cardForm   = document.getElementById('pay-card-form');
+
+    // Read freight choice persisted by shipping.html
+    let freightLabel = 'Freight Priority 2 day(s) (FedEx)';
+    let freightPrice = 342.41;
+    try {
+      const f = JSON.parse(localStorage.getItem('mygpc_freight'));
+      if (f && typeof f.price === 'number') {
+        freightPrice = f.price;
+        const map = {
+          economy:  'Freight Economy 4 day(s) (FedEx)',
+          priority: 'Freight Priority 2 day(s) (FedEx)',
+          pickup:   'Pickup at warehouse: Berlin, Friedrichstraße'
+        };
+        if (f.option && map[f.option]) freightLabel = map[f.option];
+      }
+    } catch (e) {}
+
+    document.getElementById('pay-shipping-name').textContent  = freightLabel;
+    document.getElementById('pay-shipping-price').textContent = fmt(freightPrice) + ' €';
+
+    function renderItems(items) {
+      if (!items.length) {
+        itemsEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0">Your cart is empty.</p>';
+        return;
+      }
+      itemsEl.innerHTML = items.map(it => {
+        const lineDisc = it.unitPrice != null ? it.unitPrice * (it.discount || 0) / 100 : 0;
+        const lineTotal = it.unitPrice != null && !it.priceOnRequest
+          ? (it.unitPrice - lineDisc) * it.quantity : null;
+        return `
+          <div class="ship-summary-item">
+            <div class="ship-summary-item-img"><img src="${escHtml(it.imageSrc)}" alt=""></div>
+            <div class="ship-summary-item-text">
+              <span class="ship-summary-item-meta">${escHtml(it.partNumber || it.id || '')}</span>
+              <span class="ship-summary-item-name">${escHtml(it.title || it.id || '')}</span>
+              <span class="ship-summary-item-price">${lineTotal != null ? fmt(lineTotal) + ' €' : 'Price on request'}</span>
+            </div>
+            <span class="ship-summary-item-qty">×${it.quantity}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function recompute() {
+      if (!window.Cart) return;
+      const items = window.Cart.get();
+      const subtotal = items.reduce((s, x) => {
+        if (x.priceOnRequest || x.unitPrice == null) return s;
+        return s + x.unitPrice * x.quantity * (1 - (x.discount || 0) / 100);
+      }, 0);
+      const taxes = (subtotal + freightPrice) * VAT_RATE;
+      const total = subtotal + freightPrice + taxes;
+      const hasRequest = items.some(x => x.priceOnRequest || x.unitPrice == null);
+      const suffix = hasRequest ? ' *' : '';
+
+      subtotalEl.textContent = subtotal > 0 ? fmt(subtotal) + ' €' + suffix : (hasRequest ? 'Price on request' : fmt(0) + ' €');
+      shippingEl.textContent = fmt(freightPrice) + ' €';
+      taxesEl.textContent    = fmt(taxes) + ' €' + suffix;
+      totalEl.textContent    = fmt(total) + ' €' + suffix;
+
+      renderItems(items);
+    }
+
+    // ---- Wire payment option selection ----
+    document.querySelectorAll('.pay-option').forEach(opt => {
+      const radio = opt.querySelector('input[type="radio"]');
+      const sync  = () => {
+        document.querySelectorAll('.pay-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        // Toggle card form visibility
+        if (opt.dataset.method === 'card') cardForm.classList.add('is-open');
+        else cardForm.classList.remove('is-open');
+      };
+      opt.addEventListener('click', e => {
+        if (e.target !== radio) radio.checked = true;
+        sync();
+      });
+      radio.addEventListener('change', sync);
+    });
+
+    // ---- Submit order ----
+    submitBtn.addEventListener('click', () => {
+      const method = document.querySelector('input[name="payment"]:checked').value;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Bestellung wird verarbeitet…';
+      setTimeout(() => {
+        // Persist the order so order-success.html can render it,
+        // then clear the cart and forward to the confirmation page.
+        try {
+          localStorage.setItem('mygpc_last_order', JSON.stringify({
+            method, freight: freightLabel, freightPrice,
+            placedAt: new Date().toISOString(),
+            items: window.Cart ? window.Cart.get() : []
+          }));
+          if (window.Cart) window.Cart.clear();
+        } catch (e) {}
+        location.href = 'order-success.html';
+      }, 800);
+    });
+
+    // ---- Boot ----
+    function ready() {
+      recompute();
+      if (window.Cart && window.Cart.onChange) window.Cart.onChange(recompute);
+    }
+    if (window.Cart) ready();
+    else {
+      const s = document.createElement('script');
+      s.src = 'cart.js';
+      s.onload = ready;
+      document.head.appendChild(s);
+    }
+  })();
+  </script>
+
+  <script src="site-header.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>

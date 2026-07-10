@@ -1,0 +1,160 @@
+{
+  "generatedAt": "2026-05-11T11:43:29.260Z",
+  "repository": "cffcc398-5466-586f-921f-4655e26f70e0",
+  "source": "Productive",
+  "propertiesAnalyzed": 6,
+  "propertiesTotal": 238,
+  "facetApiAvailable": false,
+  "serverErrors": 6,
+  "suggestedFilters": [],
+  "autocompleteFilters": [],
+  "heuristicCandidates": [
+    {
+      "propertyKey": "92361630-453e-4d02-9a03-fd9e8bbeb23d",
+      "displayName": "Customs Documentation types",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "4e13f3aa-4fdc-41db-b4ad-f24ab6f1f31e",
+      "displayName": "Product Series",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "productSeries"
+    },
+    {
+      "propertyKey": "ac4c7c21-429a-48aa-afda-735d24e229c3",
+      "displayName": "Document Type manuals",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "b9596d0b-1a37-4260-846b-0ef5ef63c1e5",
+      "displayName": "Product Series",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "productSeries"
+    },
+    {
+      "propertyKey": "b1940b60-51c2-4535-8d72-81acea5f9614",
+      "displayName": "Document type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "2f1ceeab-5b5c-4236-8efa-d47e5db51ed8",
+      "displayName": "Document Type Annexes",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "94983179-d329-4f53-a751-1eb1c73ab563",
+      "displayName": "Document type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "1452b26c-6fc7-4279-bdd6-ea69e4afd86a",
+      "displayName": "Document Type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "d682b56b-d6ca-4ae3-8262-8dba8afee3a8",
+      "displayName": "Approval of technical documents type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "61760771-fa76-4316-8761-a76af7d2bada",
+      "displayName": "Shipping Documentation types",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "f28faf58-ad57-4bd8-99ca-d5ab0773fae9",
+      "displayName": "Supplier document type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "5efefcd5-7f4a-4ce2-a8a5-e3d1f2b3d656",
+      "displayName": "Service Order Documents Type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "4ef8e6db-b7a7-422a-962d-4407ae64d63b",
+      "displayName": "Document Type legal",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "cf15352e-548f-411c-bf17-2dc5ff7bbdcf",
+      "displayName": "Document type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "2bb3b3ef-5f58-4be2-abd0-55aa9ff3d530",
+      "displayName": "Spark Document type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "d7f1deb8-6004-449e-9417-41ec2f712377",
+      "displayName": "BP Document Type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "67bb1076-10a2-46c5-82bc-bf4ffe3f3af6",
+      "displayName": "Technical Documentation (customer) type",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "21ae9a35-749d-427a-b650-a0bec7696a90",
+      "displayName": "Document Type JWIKI",
+      "type": "String",
+      "priority": 30,
+      "suggestedFrontendField": "docType"
+    },
+    {
+      "propertyKey": "331437f3-d166-4a1f-af21-b547d2d64ccd",
+      "displayName": "Product Category",
+      "type": "String",
+      "priority": 20,
+      "suggestedFrontendField": "productCategory"
+    },
+    {
+      "propertyKey": "ae6fba82-d919-404a-863e-07d32823ca00",
+      "displayName": "Product Group",
+      "type": "String",
+      "priority": 20,
+      "suggestedFrontendField": "productGroup"
+    }
+  ],
+  "notes": [
+    "DMS Facet-API lieferte systematisch HTTP 500 — kein Mapping aus echten Daten möglich.",
+    "heuristicCandidates basiert nur auf Property-Namen.",
+    "Bitte den DMS-Admin um (a) eine Korrektur des /dmsobjectPropFacet-Endpoints oder",
+    "(b) die korrekte Aufrufsyntax für /srm/?sourceid=...&sourceproperties=...",
+    "Cache liegt in rag/.dms-property-cache.json — `--clear-cache` löscht ihn."
+  ]
+}

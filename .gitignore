@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Environment & secrets
+.env
+.env.local
+.env.*.local
+
+# Runtime state (file-based, migrates to Supabase later)
+uploads/
+vector-store/
+rag-settings.json
+rag/.dms-property-cache.json
+jobs.json
+
+# Logs
+*.log
+rag-server.err
+
+# Claude Code local config
+.claude/
+
+# Nuxt build artefacts
+nuxt/.output/
+nuxt/.nuxt/
+nuxt/node_modules/
+nuxt/dist/
+
+# Git safety backup (created during Vercel migration)
+.git.backup/
+
+# OS
+.DS_Store
+Thumbs.db

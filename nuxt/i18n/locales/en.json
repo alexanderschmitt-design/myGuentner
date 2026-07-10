@@ -1,0 +1,199 @@
+{
+  "app": {
+    "title": "Güntner Product Configurator",
+    "phase": "Phase 3 — Vue/Nuxt frontend with GPC.EU API integration"
+  },
+  "nav": {
+    "start": "Start",
+    "mygps": "myGPS Wizard",
+    "debug": "Debug"
+  },
+  "perspective": {
+    "technical": "Technical",
+    "application": "Application",
+    "location": "Location",
+    "switchHint": "Switch perspective — same configuration, different lens"
+  },
+  "wizard": {
+    "next": "Next",
+    "back": "Back",
+    "reset": "Reset",
+    "save": "Save"
+  },
+  "errors": {
+    "proxyConfigMissing": "API URL is not configured. Please contact the administrator.",
+    "proxyAuthMissing": "Authentication is missing. Please contact the administrator.",
+    "proxyAuthFailed": "Login to the GPC API failed. Please contact the administrator.",
+    "proxyAuthRefreshFailed": "Authentication token expired and refresh failed.",
+    "proxyTimeout": "The GPC API did not respond in time. Please try again.",
+    "proxyUpstreamFail": "The GPC API returned an error. Please try again.",
+    "unknown": "Unexpected error: {message}"
+  },
+  "presets": {
+    "title": "Parameter presets",
+    "subtitle": "Quick-start configurations for typical cooling use cases.",
+    "purposes": {
+      "cold-storage": "Cold storage",
+      "deep-freeze": "Deep freeze",
+      "process-cooling": "Process cooling",
+      "air-conditioning": "Air conditioning",
+      "data-center": "Data center",
+      "pharma-lab": "Pharma / laboratory",
+      "condensing": "Heat rejection",
+      "special": "Special applications"
+    },
+    "ui": {
+      "apply": "Apply preset",
+      "dryRun": "Preview only",
+      "filterByCategory": "Filter by category",
+      "filterByPurpose": "Filter by purpose",
+      "search": "Search presets…",
+      "applicableCategories": "Available for: {list}",
+      "appliedSuccessfully": "Preset \"{label}\" applied — review settings in the form.",
+      "appliedDryRun": "Preview of \"{label}\" — no changes were made.",
+      "noPresetsForCategory": "No presets are available for the selected category.",
+      "noSearchResults": "No presets match your search.",
+      "viewDetails": "View parameter details",
+      "conflictWithCategory": "This preset is designed for {expected}, but the current category is {actual}. Applying anyway may produce unexpected results."
+    },
+    "items": {
+      "cold-storage-fruit-vegetables": {
+        "label": "Cold storage — fruit & vegetables (+0 °C)",
+        "description": "Standard cooling chamber for fresh produce. High humidity (~90 %) to prevent dehydration. Air defrost preserves storage atmosphere."
+      },
+      "cold-storage-fruit-with-streamer": {
+        "label": "Cold storage with Güntner Streamer",
+        "description": "Same as fruit/vegetables cold storage but with extended air-throw via Güntner Streamer — improves humidity uniformity in large rooms."
+      },
+      "cold-storage-meat-fish": {
+        "label": "Cold storage — meat & fish (−2 °C)",
+        "description": "Chilled storage near 0 °C. Stainless steel finish for hygiene; minimal frost expected at this temperature range."
+      },
+      "cold-storage-meat-hygienic": {
+        "label": "Hygienic meat & fish (stainless steel double tray)",
+        "description": "Premium hygienic build: stainless steel double tray + Coil Defender for prolonged service in food-contact zones."
+      },
+      "deep-freeze-storage": {
+        "label": "Deep freeze storage (−25 °C)",
+        "description": "Long-term frozen storage. Hot-gas defrost reuses compressor waste heat (energy-efficient). EC fans for variable load."
+      },
+      "deep-freeze-blast-nh3": {
+        "label": "Blast freezing −35 °C (NH₃ pump)",
+        "description": "Fast freezing for industrial food processing. NH₃ pump-fed system with gravity-flooded option for highest efficiency at extreme cold."
+      },
+      "deep-freeze-low-temp": {
+        "label": "Low evap. temp. design (t₀ < −40 °C)",
+        "description": "Special design for ultra-low evaporation temperatures (cryogenic-adjacent). Heavy electric defrost for coil + tray."
+      },
+      "beverages-dairy": {
+        "label": "Beverages & dairy (+2 °C)",
+        "description": "Standard cooling for beverage warehouses and dairy storage. Low noise for indoor distribution centres."
+      },
+      "pharma-laboratory": {
+        "label": "Pharma / laboratory (+5 °C)",
+        "description": "Pharmaceutical cold storage with validation requirements. Redundant cooling (two devices). Efficient EC fans, low-GWP R134a alternative."
+      },
+      "industrial-nh3-pump": {
+        "label": "Industrial process — NH₃ pump",
+        "description": "Industrial process cooling with NH₃ pump-fed system. Often floor-mounted in machine rooms."
+      },
+      "industrial-glycol-cooling": {
+        "label": "Industrial process — glycol coolant",
+        "description": "Industrial process using a secondary glycol-water loop. Inlet/outlet temperature mode is the standard for coolant flows."
+      },
+      "condenser-standard-outdoor": {
+        "label": "Condenser standard +35 °C outdoor",
+        "description": "Standard heat rejection condenser for typical European summer design (T_amb = 35 °C, t_c = 45 °C)."
+      },
+      "condenser-high-ambient": {
+        "label": "Condenser high ambient (+45 °C)",
+        "description": "For hot climates (Middle East, southern Spain summer peaks). Higher capacity to compensate; EC fans mandatory for stable operation."
+      },
+      "condenser-multi-circuit": {
+        "label": "Condenser multi-circuit (parallel compressors)",
+        "description": "Two parallel refrigerant circuits — typical for rack systems with multiple compressors. Activates _2-suffix fields."
+      },
+      "condenser-with-subcooler": {
+        "label": "Condenser with integrated subcooler",
+        "description": "Built-in subcooling stage (~3 K) downstream of condensation — improves expansion valve performance and overall COP."
+      },
+      "subcooler-dedicated": {
+        "label": "Subcooler — dedicated unit",
+        "description": "Standalone subcooler unit (category 5). Uses Inlet/Outlet temperature mode rather than dew point."
+      },
+      "drycooler-glycol-outdoor": {
+        "label": "Dry cooler — glycol, outdoor",
+        "description": "Outdoor glycol heat rejection. THREAD/FLANGE connections, corrosion protection for weather exposure."
+      },
+      "oilcooler-industrial": {
+        "label": "Oil cooler — industrial",
+        "description": "Cooling for compressor or hydraulic oil systems. Lower capacities, no humidity considerations."
+      },
+      "co2-gas-cooler-transcritical": {
+        "label": "CO₂ gas cooler — transcritical",
+        "description": "Supercritical CO₂ heat rejection (T_amb ≥ 25 °C). HBLK valve, high-pressure 92 bar operation. Future-proof natural refrigerant."
+      },
+      "co2-gas-cooler-subcritical": {
+        "label": "CO₂ gas cooler — subcritical mode",
+        "description": "CO₂ at low ambient temperatures where condensation occurs (below 31 °C critical point). Subcritical operation is more efficient when possible."
+      },
+      "comfort-cooling": {
+        "label": "Comfort cooling (chiller +7 °C)",
+        "description": "Building air conditioning via chilled-water loop. Low noise (<55 dB) for office use; glycol concentration only for freeze protection in winter mode."
+      },
+      "datacenter-aircooled": {
+        "label": "Data center — air-cooled (sound-critical)",
+        "description": "IT room cooling with strict noise budget. Glycol loop with high concentration for redundancy resilience."
+      },
+      "datacenter-raised-floor": {
+        "label": "Data center — raised-floor CRAC-style",
+        "description": "Compact in-row coolers near server racks. Cool 12 °C return, 18 °C supply (modern hot/cold-aisle setup)."
+      },
+      "coastal-corrosion": {
+        "label": "Coastal / saline environment",
+        "description": "Increased corrosion protection for coastal sites (salt aerosol). Stainless legs, Coil Defender, corrosion class 4."
+      },
+      "atex-zone-natural-refrigerant": {
+        "label": "ATEX zone — natural refrigerant only",
+        "description": "For installations in explosion-protected zones: only natural refrigerants (NH₃ or R290 propane). Restricted charge limits."
+      },
+      "low-noise-indoor": {
+        "label": "Low-noise indoor (≤ 45 dB(A))",
+        "description": "Strict indoor noise limit (residential, hospital, school). EC fans + sound absorbers achieve <45 dB(A) at 3 m."
+      },
+      "high-efficiency-aplus": {
+        "label": "High-efficiency A++ class",
+        "description": "Maximum energy efficiency. EC fans, efficiency-class filter A++ (excludes lower-class units from search)."
+      },
+      "transport-container-fit": {
+        "label": "Transport by container (≤ 11.8 m)",
+        "description": "Unit dimensions constrained to standard 40-ft container (11.8 × 2.3 × 2.55 m). Sets transport rail flags."
+      }
+    }
+  },
+  "chatTools": {
+    "patchCard": {
+      "title": "Bella suggests updating {count} parameters",
+      "titleOne": "Bella suggests updating 1 parameter",
+      "apply": "Apply",
+      "reject": "Reject",
+      "details": "Show details",
+      "appliedAt": "Applied {time}",
+      "rejected": "Rejected"
+    },
+    "toolUse": {
+      "setParameter": "Set {param} = {value}",
+      "applyPreset": "Apply preset \"{preset}\"",
+      "validateConfig": "Validate configuration",
+      "findUnits": "Find matching units",
+      "getCurrentConfig": "Read current configuration",
+      "getParameterDocs": "Look up documentation for {param}",
+      "listPresets": "List available presets"
+    },
+    "toolResult": {
+      "success": "Done",
+      "failure": "Failed: {reason}",
+      "validationWarning": "Validation: {count} warning(s)"
+    }
+  }
+}

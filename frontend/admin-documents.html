@@ -1,0 +1,2726 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — RAG Management</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="admin.css">
+  <link rel="stylesheet" href="admin-catalog.css">
+  <link rel="stylesheet" href="admin-documents.css">
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active=""></header>
+
+  <!-- ===== ADMIN LAYOUT ===== -->
+  <div class="admin-layout">
+
+    <!-- Sidebar -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-title">Administration</div>
+      <a class="admin-nav-item" href="admin.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 15a3 3 0 100-6 3 3 0 000 6z"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        Feature Flags
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>
+        User Management
+      </a>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+        Layout &amp; Theme
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">Catalog</div>
+      <a class="admin-nav-item" href="admin-products.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+        Product Management
+      </a>
+      <a class="admin-nav-item" href="admin-spareparts.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        Spare Part Management
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">AI &amp; Knowledge</div>
+      <a class="admin-nav-item active" href="admin-documents.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        RAG Management
+      </a>
+      <a class="admin-nav-item" href="admin-rag-settings.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        RAG Settings
+      </a>
+      <a class="admin-nav-item" href="admin-rag-test.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10 2v7.31"/><path d="M14 9.3V2"/><path d="M8.5 2h7"/><path d="M14 9.3a6.5 6.5 0 11-4 0"/><line x1="12" y1="14" x2="12.01" y2="14"/></svg>
+        RAG Test
+      </a>
+      <div class="admin-nav-divider"></div>
+      <div class="admin-sidebar-title">System</div>
+      <a class="admin-nav-item" href="#">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        Activity Log
+      </a>
+      <a class="admin-nav-item" href="admin-system.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        System Info
+      </a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-main">
+
+      <div class="admin-header admin-header--with-action">
+        <div class="admin-header-text">
+          <h1>RAG Management</h1>
+          <p id="rag-subtitle">Dokumente hochladen und verwalten. Hochgeladene Dateien werden automatisch verarbeitet, in Chunks aufgeteilt und in der Vektor-Datenbank indexiert — bereit für den RAG-Chatbot.</p>
+        </div>
+        <div class="admin-header-actions" id="rag-header-actions">
+          <button class="btn btn-outline" id="btn-fetch-dms" title="Dokumente aus dem DMS importieren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+            Fetch DMS Information
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Navigation -->
+      <div class="rag-tabs" role="tablist">
+        <button class="rag-tab active" role="tab" data-tab="doc" aria-selected="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Document Manager
+        </button>
+        <button class="rag-tab" role="tab" data-tab="user" aria-selected="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M21 12c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2z"/><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0113 0"/></svg>
+          User-Info Manager
+          <span class="rag-tab-badge" id="ui-count-badge">0</span>
+        </button>
+      </div>
+
+      <!-- ============================================================ -->
+      <!-- Tab: Document Manager                                         -->
+      <!-- ============================================================ -->
+      <div class="rag-tab-panel active" id="tab-doc" role="tabpanel">
+
+      <!-- Status Bar -->
+      <div class="admin-status-bar" id="statusBar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        <span id="statusMsg">Dokument erfolgreich hochgeladen.</span>
+      </div>
+
+      <!-- Upload Zone -->
+      <div class="doc-upload-zone" id="uploadZone">
+        <div class="doc-upload-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div class="doc-upload-text">
+          <strong>Dateien hierher ziehen</strong>
+          <span>oder klicken zum Auswählen</span>
+        </div>
+        <div class="doc-upload-formats">PDF, DOCX, TXT, MD, CSV, XLSX — max. 50 MB pro Datei</div>
+        <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt,.md,.csv,.xlsx" hidden>
+      </div>
+
+      <!-- Upload Progress (hidden by default) -->
+      <div class="doc-upload-progress" id="uploadProgress" style="display:none;">
+        <div class="doc-upload-progress-header">
+          <span class="doc-upload-progress-title">Upload läuft...</span>
+          <span class="doc-upload-progress-count" id="uploadCount">0 / 0</span>
+        </div>
+        <div class="doc-upload-progress-bar">
+          <div class="doc-upload-progress-fill" id="uploadFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Stats Row -->
+      <div class="catalog-stats doc-stats">
+        <div class="catalog-stat">
+          <span class="catalog-stat-value" id="stat-total">0</span>
+          <span class="catalog-stat-label">Dokumente gesamt</span>
+        </div>
+        <div class="catalog-stat">
+          <span class="catalog-stat-value doc-stat--ready" id="stat-ready">0</span>
+          <span class="catalog-stat-label">Indexiert</span>
+        </div>
+        <div class="catalog-stat">
+          <span class="catalog-stat-value doc-stat--processing" id="stat-processing">0</span>
+          <span class="catalog-stat-label">In Verarbeitung</span>
+        </div>
+        <div class="catalog-stat">
+          <span class="catalog-stat-value doc-stat--failed" id="stat-failed">0</span>
+          <span class="catalog-stat-label">Fehlgeschlagen</span>
+        </div>
+        <div class="catalog-stat">
+          <span class="catalog-stat-value" id="stat-chunks">0</span>
+          <span class="catalog-stat-label">Chunks in VectorDB</span>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="catalog-toolbar">
+        <div class="catalog-toolbar-left">
+          <div class="catalog-search">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" placeholder="Dokumente durchsuchen..." id="doc-search">
+          </div>
+          <select class="catalog-filter" id="filter-type">
+            <option value="">Alle Typen</option>
+            <option value="pdf">PDF</option>
+            <option value="docx">DOCX</option>
+            <option value="txt">TXT</option>
+            <option value="md">Markdown</option>
+            <option value="csv">CSV</option>
+            <option value="xlsx">XLSX</option>
+          </select>
+          <select class="catalog-filter" id="filter-status">
+            <option value="">Alle Status</option>
+            <option value="ready">Indexiert</option>
+            <option value="processing">In Verarbeitung</option>
+            <option value="pending">Ausstehend</option>
+            <option value="failed">Fehlgeschlagen</option>
+          </select>
+          <button class="catalog-reset-btn" id="btn-reset-filters">&times; Filter zurücksetzen</button>
+        </div>
+        <div class="catalog-toolbar-right">
+          <button class="btn btn-outline doc-btn-reindex-selected" id="btn-reindex-selected" style="display:none;" title="Ausgewählte Dokumente neu indexieren">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            <span id="reindex-selected-label">Ausgewählte indexieren</span>
+          </button>
+          <button class="btn btn-danger-outline" id="btn-delete-selected" style="display:none;" title="Ausgewählte Dokumente löschen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            <span id="delete-selected-label">Ausgewählte löschen</span>
+          </button>
+          <button class="btn btn-outline" id="btn-reprocess-all" title="Alle Dokumente neu verarbeiten">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>
+            Alle neu indexieren
+          </button>
+          <button class="btn btn-primary" id="btn-upload-trigger">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Dokument hochladen
+          </button>
+        </div>
+      </div>
+
+      <!-- Document Table -->
+      <div class="catalog-table-wrap doc-loading-host" id="doc-table-wrap">
+        <table class="catalog-table" id="doc-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" class="catalog-check-all" id="check-all"></th>
+              <th>Dokument</th>
+              <th>Typ</th>
+              <th>Größe</th>
+              <th>Chunks</th>
+              <th>Status</th>
+              <th>Hochgeladen</th>
+              <th>Verarbeitet</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="doc-tbody">
+            <!-- Initial loading state — wird beim ersten render() überschrieben -->
+            <tr id="doc-initial-loading"><td colspan="9" style="padding:0;">
+              <div class="doc-loading-block"><span class="doc-spinner-lg"></span><div>Lade Dokumente …</div></div>
+            </td></tr>
+          </tbody>
+        </table>
+        <!-- Refresh-Overlay: wird bei nicht-stillen Reloads (filter/search) eingeblendet -->
+        <div class="doc-loading-overlay doc-loading-overlay--mini" id="docLoadingOverlay" style="display:none;">
+          <span class="doc-spinner-lg"></span>
+          <span>Lade Dokumente …</span>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="doc-empty-state" id="emptyState">
+        <div class="doc-empty-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        </div>
+        <h3>Noch keine Dokumente vorhanden</h3>
+        <p>Laden Sie Dokumente hoch, um die Wissensdatenbank für den RAG-Chatbot aufzubauen.</p>
+      </div>
+
+      <!-- Pagination -->
+      <div class="catalog-pagination" id="doc-pagination">
+        <span class="catalog-pagination-info" id="pagination-info">Zeige 0 Dokumente</span>
+        <div class="catalog-pagination-btns" id="pagination-btns"></div>
+      </div>
+
+      <!-- Job Toast Notification (fixed bottom-right) -->
+      <div class="doc-job-toast-container" id="jobToastContainer"></div>
+
+      <!-- RAG Pipeline Info Panel -->
+      <div class="admin-info-panel doc-info-panel">
+        <h3>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          RAG Pipeline — So funktioniert die Verarbeitung
+        </h3>
+        <div class="doc-pipeline-steps">
+          <div class="doc-pipeline-step">
+            <div class="doc-pipeline-step-num">1</div>
+            <div class="doc-pipeline-step-info">
+              <strong>Upload</strong>
+              <span>Dokument wird im internen Speicher abgelegt (<code>/uploads</code>)</span>
+            </div>
+          </div>
+          <div class="doc-pipeline-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+          <div class="doc-pipeline-step">
+            <div class="doc-pipeline-step-num">2</div>
+            <div class="doc-pipeline-step-info">
+              <strong>Text-Extraktion</strong>
+              <span>Inhalt wird aus PDF, DOCX, TXT etc. extrahiert</span>
+            </div>
+          </div>
+          <div class="doc-pipeline-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+          <div class="doc-pipeline-step">
+            <div class="doc-pipeline-step-num">3</div>
+            <div class="doc-pipeline-step-info">
+              <strong>Chunking</strong>
+              <span>Text wird in überlappende Abschnitte (Chunks) aufgeteilt</span>
+            </div>
+          </div>
+          <div class="doc-pipeline-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+          <div class="doc-pipeline-step">
+            <div class="doc-pipeline-step-num">4</div>
+            <div class="doc-pipeline-step-info">
+              <strong>Embedding</strong>
+              <span>Chunks werden in Vektoren umgewandelt (Embedding-Modell)</span>
+            </div>
+          </div>
+          <div class="doc-pipeline-arrow">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </div>
+          <div class="doc-pipeline-step">
+            <div class="doc-pipeline-step-num">5</div>
+            <div class="doc-pipeline-step-info">
+              <strong>VectorDB</strong>
+              <span>Vektoren werden in der Datenbank gespeichert — bereit für Retrieval</span>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top:16px;">
+          Der RAG-Chatbot nutzt <strong>Semantic Search</strong>, um relevante Chunks zu finden, und übergibt sie als Kontext an das Sprachmodell.
+          Konfigurieren Sie Chunk-Größe, Overlap und Embedding-Modell unter <a href="#" style="color:var(--primary)">RAG Settings</a>.
+        </p>
+      </div>
+
+      </div><!-- /tab-doc -->
+
+      <!-- ============================================================ -->
+      <!-- Tab: User-Info Manager                                        -->
+      <!-- ============================================================ -->
+      <div class="rag-tab-panel" id="tab-user" role="tabpanel" hidden>
+
+        <!-- Stats Row -->
+        <div class="catalog-stats doc-stats">
+          <div class="catalog-stat">
+            <span class="catalog-stat-value" id="ui-stat-total">0</span>
+            <span class="catalog-stat-label">Einträge gesamt</span>
+          </div>
+          <div class="catalog-stat">
+            <span class="catalog-stat-value" id="ui-stat-info">0</span>
+            <span class="catalog-stat-label">Info Icon</span>
+          </div>
+          <div class="catalog-stat">
+            <span class="catalog-stat-value" id="ui-stat-dep">0</span>
+            <span class="catalog-stat-label">Dependency</span>
+          </div>
+          <div class="catalog-stat">
+            <span class="catalog-stat-value" id="ui-stat-chat">0</span>
+            <span class="catalog-stat-label">Chatbot Information</span>
+          </div>
+          <div class="catalog-stat">
+            <span class="catalog-stat-value" id="ui-stat-tip">0</span>
+            <span class="catalog-stat-label">Sales Tip</span>
+          </div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="catalog-toolbar">
+          <div class="catalog-toolbar-left">
+            <div class="catalog-search">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" placeholder="Einträge durchsuchen..." id="ui-search">
+            </div>
+            <select class="catalog-filter" id="ui-filter-type">
+              <option value="">Alle Typen</option>
+              <option value="Info Icon">Info Icon</option>
+              <option value="Dependency Information">Dependency Information</option>
+              <option value="Chatbot Information">Chatbot Information</option>
+              <option value="Sales Tip">Sales Tip</option>
+            </select>
+            <select class="catalog-filter" id="ui-filter-status">
+              <option value="">Alle Status</option>
+              <option value="open">Offen</option>
+              <option value="chatbot">An Chatbot übergeben</option>
+              <option value="frontend">An Frontend übergeben</option>
+              <option value="verified">Verifiziert</option>
+            </select>
+            <button class="catalog-reset-btn" id="ui-btn-reset">&times; Filter zurücksetzen</button>
+          </div>
+          <div class="catalog-toolbar-right">
+            <button class="btn btn-outline" id="ui-btn-export" title="Als JSON exportieren">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export JSON
+            </button>
+          </div>
+        </div>
+
+        <!-- User-Info Table -->
+        <div class="catalog-table-wrap">
+          <table class="catalog-table ui-table" id="ui-table">
+            <thead>
+              <tr>
+                <th class="ui-col-type">Typ</th>
+                <th class="ui-col-page">Seite</th>
+                <th class="ui-col-element">Element</th>
+                <th class="ui-col-info">Information</th>
+                <th class="ui-col-author">Autor</th>
+                <th class="ui-col-date">Datum</th>
+                <th class="ui-col-status">Status</th>
+                <th class="ui-col-action">Aktion</th>
+              </tr>
+            </thead>
+            <tbody id="ui-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Empty State -->
+        <div class="doc-empty-state" id="ui-empty-state" style="display:none;">
+          <div class="doc-empty-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          </div>
+          <h3>Noch keine User-Info Einträge vorhanden</h3>
+          <p>Aktivieren Sie den AI Learn Mode über die Feature Flags und annotieren Sie Elemente im Frontend, um hier Einträge zu sehen.</p>
+        </div>
+
+        <!-- Info Panel -->
+        <div class="admin-info-panel doc-info-panel" style="margin-top:24px;">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            User-Info Workflow — Verifikation &amp; Zuweisung
+          </h3>
+          <p style="margin-top:8px;">
+            Hier sehen Sie alle Einträge, die Key-User über den <strong>Learn Mode</strong> auf den Frontend-Seiten hinterlassen haben.
+            Prüfen Sie jeden Eintrag und entscheiden Sie, ob die Information an den <strong>Chatbot</strong> (als RAG-Kontext) oder die <strong>Frontend-Implementierung</strong>
+            (als UI-Hinweis, Tooltip, Validierung) übergeben werden soll.
+          </p>
+        </div>
+
+      </div><!-- /tab-user -->
+
+    </main>
+  </div>
+
+  <!-- ===== DELETE CONFIRM MODAL (2-step) ===== -->
+  <div class="doc-modal-overlay" id="deleteModal" style="display:none;">
+    <div class="doc-modal">
+      <!-- Step 1: Initial confirmation -->
+      <div id="deleteStep1">
+        <div class="doc-modal-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>
+        </div>
+        <h3 id="deleteModalTitle">Dokument löschen?</h3>
+        <p id="deleteModalText">Das Dokument und alle zugehörigen Chunks werden unwiderruflich gelöscht.</p>
+        <div class="doc-modal-actions">
+          <button class="btn btn-outline" id="deleteCancel">Abbrechen</button>
+          <button class="btn btn-danger" id="deleteNext">Löschen</button>
+        </div>
+      </div>
+      <!-- Step 2: Are you really sure? -->
+      <div id="deleteStep2" style="display:none;">
+        <div class="doc-modal-icon doc-modal-icon--warn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <h3>Bist du wirklich sicher?</h3>
+        <p id="deleteStep2Text">Dieser Vorgang kann nicht rückgängig gemacht werden. Alle Daten und Vektor-Embeddings werden dauerhaft entfernt.</p>
+        <div class="doc-modal-actions">
+          <button class="btn btn-outline" id="deleteBack">Zurück</button>
+          <button class="btn btn-danger" id="deleteConfirm">Endgültig löschen</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PDF / DOCUMENT VIEWER MODAL ===== -->
+  <div class="doc-modal-overlay pdf-viewer-overlay" id="pdfViewerModal" style="display:none;">
+    <div class="pdf-viewer">
+      <div class="pdf-viewer-header">
+        <div class="pdf-viewer-title">
+          <div class="pdf-viewer-title-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="pdf-viewer-title-text">
+            <h3 id="pdfViewerName">Dokument</h3>
+            <span id="pdfViewerSub">—</span>
+          </div>
+        </div>
+        <div class="pdf-viewer-actions">
+          <a class="btn btn-outline" id="pdfViewerDownload" href="#" download title="Herunterladen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Herunterladen
+          </a>
+          <a class="btn btn-outline" id="pdfViewerNewTab" href="#" target="_blank" rel="noopener" title="In neuem Tab öffnen">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            Neuer Tab
+          </a>
+          <button class="dms-modal-close" id="pdfViewerClose" title="Schließen">&times;</button>
+        </div>
+      </div>
+      <div class="pdf-viewer-body" id="pdfViewerBody">
+        <iframe id="pdfViewerFrame" title="PDF Viewer" src="about:blank" loading="lazy"></iframe>
+        <div class="pdf-viewer-fallback" id="pdfViewerFallback" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <strong>Vorschau nicht verfügbar</strong>
+          <span id="pdfViewerFallbackText">Dieses Dateiformat kann nicht direkt im Browser angezeigt werden.</span>
+          <a class="btn btn-primary" id="pdfViewerFallbackDownload" href="#" download>Herunterladen</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== DMS FETCH MODAL ===== -->
+  <div class="doc-modal-overlay dms-modal-overlay" id="dmsModal" style="display:none;">
+    <div class="dms-modal">
+      <!-- Header -->
+      <div class="dms-modal-header">
+        <div class="dms-modal-title">
+          <div class="dms-modal-title-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/><path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3"/></svg>
+          </div>
+          <div>
+            <h3>DMS Information</h3>
+            <span>Wählen Sie Dokumente aus dem zentralen Dokumentenmanagement-System aus, um sie in die RAG-Wissensdatenbank zu übernehmen.</span>
+          </div>
+        </div>
+        <button class="dms-modal-close" id="dmsModalClose" title="Schließen">&times;</button>
+      </div>
+
+      <!-- Filters (5-level product taxonomy, cascading) -->
+      <div class="dms-modal-filters">
+        <div class="catalog-search dms-filter-search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="dmsSearch" placeholder="Nach Serie, Familie oder Gruppe suchen...">
+        </div>
+        <select class="catalog-filter" id="dmsFilterDocType" title="Document Type manuals">
+          <option value="">Alle Document Types</option>
+        </select>
+        <select class="catalog-filter" id="dmsFilterLanguage" title="Sprache des Dokuments">
+          <option value="">Alle Languages</option>
+        </select>
+        <select class="catalog-filter" id="dmsFilterCategory" title="Product Category">
+          <option value="">Alle Product Categories</option>
+        </select>
+        <select class="catalog-filter" id="dmsFilterLevel1" title="Product Level 1">
+          <option value="">Alle Product Levels</option>
+        </select>
+        <select class="catalog-filter" id="dmsFilterGroup" title="Product Group">
+          <option value="">Alle Product Groups</option>
+        </select>
+        <select class="catalog-filter" id="dmsFilterFamily" title="Product Family">
+          <option value="">Alle Product Families</option>
+        </select>
+        <select class="catalog-filter" id="dmsFilterSeries" title="Product Series">
+          <option value="">Alle Product Series</option>
+        </select>
+        <button class="catalog-reset-btn" id="dmsResetFilters">&times; Filter zurücksetzen</button>
+      </div>
+
+      <!-- Result list -->
+      <div class="dms-modal-body">
+        <div class="dms-result-meta">
+          <label class="dms-select-all">
+            <input type="checkbox" id="dmsCheckAll">
+            <span id="dmsResultCount">0 Dokumente</span>
+          </label>
+          <span class="dms-selected-info" id="dmsSelectedInfo">0 ausgewählt</span>
+        </div>
+        <div class="dms-result-list" id="dmsResultList">
+          <!-- Dynamically populated -->
+        </div>
+        <div class="dms-empty" id="dmsEmpty" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <strong>Keine Dokumente gefunden</strong>
+          <span>Passen Sie die Suche oder die Filter an, um andere Ergebnisse zu sehen.</span>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="dms-modal-footer">
+        <button class="btn btn-outline" id="dmsCancel">Abbrechen</button>
+        <button class="btn btn-primary" id="dmsAddToRag" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span id="dmsAddToRagLabel">Add to RAG</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    /* ============================================================
+       Admin — Document Management Controller
+       ============================================================ */
+    (function() {
+      var API_BASE = 'http://localhost:3001/api';
+      var PAGE_SIZE = 15;
+      var currentPage = 1;
+      var allDocuments = [];
+      var filtered = [];
+      var pendingDeleteId = null;
+      var pendingBulkDeleteIds = [];
+
+      /* DOM refs */
+      var uploadZone = document.getElementById('uploadZone');
+      var fileInput = document.getElementById('fileInput');
+      var uploadProgress = document.getElementById('uploadProgress');
+      var uploadCount = document.getElementById('uploadCount');
+      var uploadFill = document.getElementById('uploadFill');
+      var statusBar = document.getElementById('statusBar');
+      var statusMsg = document.getElementById('statusMsg');
+      var tbody = document.getElementById('doc-tbody');
+      var emptyState = document.getElementById('emptyState');
+      var searchInput = document.getElementById('doc-search');
+      var filterType = document.getElementById('filter-type');
+      var filterStatus = document.getElementById('filter-status');
+      var resetBtn = document.getElementById('btn-reset-filters');
+      var checkAll = document.getElementById('check-all');
+      var deleteModal = document.getElementById('deleteModal');
+      var deleteCancel = document.getElementById('deleteCancel');
+      var deleteNext = document.getElementById('deleteNext');
+      var deleteBack = document.getElementById('deleteBack');
+      var deleteConfirm = document.getElementById('deleteConfirm');
+      var deleteStep1 = document.getElementById('deleteStep1');
+      var deleteStep2 = document.getElementById('deleteStep2');
+      var btnDeleteSelected = document.getElementById('btn-delete-selected');
+      var deleteSelectedLabel = document.getElementById('delete-selected-label');
+      var btnReindexSelected = document.getElementById('btn-reindex-selected');
+      var reindexSelectedLabel = document.getElementById('reindex-selected-label');
+      var jobToastContainer = document.getElementById('jobToastContainer');
+      var hideTimer = null;
+      var pollTimer = null;
+      var isServerMode = false;
+      var POLL_INTERVAL = 3000;        // poll every 3 seconds while jobs are running
+      var demoTimers = {};             // track demo simulation timers
+
+      /* ---- Status Bar ---- */
+      function showStatus(msg, isError) {
+        statusMsg.textContent = msg;
+        statusBar.style.background = isError ? '#fef2f2' : '#f0fdf4';
+        statusBar.style.borderColor = isError ? '#fecaca' : '#bbf7d0';
+        statusBar.style.color = isError ? '#991b1b' : '#166534';
+        statusBar.classList.add('visible');
+        clearTimeout(hideTimer);
+        hideTimer = setTimeout(function() { statusBar.classList.remove('visible'); }, 3500);
+      }
+
+      /* ---- Drag & Drop ---- */
+      uploadZone.addEventListener('click', function() { fileInput.click(); });
+
+      uploadZone.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        uploadZone.classList.add('drag-over');
+      });
+
+      uploadZone.addEventListener('dragleave', function() {
+        uploadZone.classList.remove('drag-over');
+      });
+
+      uploadZone.addEventListener('drop', function(e) {
+        e.preventDefault();
+        uploadZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length) uploadFiles(e.dataTransfer.files);
+      });
+
+      fileInput.addEventListener('change', function() {
+        if (fileInput.files.length) uploadFiles(fileInput.files);
+        fileInput.value = '';
+      });
+
+      document.getElementById('btn-upload-trigger').addEventListener('click', function() {
+        fileInput.click();
+      });
+
+      /* ---- Upload Files ---- */
+      function uploadFiles(files) {
+        var total = files.length;
+        var done = 0;
+        uploadProgress.style.display = 'block';
+        uploadCount.textContent = '0 / ' + total;
+        uploadFill.style.width = '0%';
+
+        Array.from(files).forEach(function(file) {
+          var formData = new FormData();
+          formData.append('document', file);
+
+          fetch(API_BASE + '/documents/upload', { method: 'POST', body: formData })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+              done++;
+              uploadCount.textContent = done + ' / ' + total;
+              uploadFill.style.width = Math.round((done / total) * 100) + '%';
+              if (done === total) {
+                setTimeout(function() {
+                  uploadProgress.style.display = 'none';
+                  showStatus(total + ' Dokument(e) erfolgreich hochgeladen.');
+                  loadDocuments();
+                }, 600);
+              }
+            })
+            .catch(function(err) {
+              done++;
+              uploadCount.textContent = done + ' / ' + total;
+              uploadFill.style.width = Math.round((done / total) * 100) + '%';
+              showStatus('Fehler beim Upload: ' + (err.message || 'Unbekannter Fehler'), true);
+              if (done === total) {
+                setTimeout(function() { uploadProgress.style.display = 'none'; loadDocuments(); }, 600);
+              }
+            });
+        });
+      }
+
+      /* ---- Load Documents ---- */
+      function loadDocuments(silent) {
+        var prevProcessing = getProcessingIds();
+
+        // Loading-Overlay nur bei nicht-stillen Aufrufen (= User-initiierter Refresh)
+        // — stille Polls würden sonst alle 3 s den Overlay aufflackern lassen.
+        var overlay = document.getElementById('docLoadingOverlay');
+        if (overlay && !silent) overlay.style.display = 'flex';
+
+        function hideOverlay() {
+          if (overlay) overlay.style.display = 'none';
+        }
+
+        fetch(API_BASE + '/documents')
+          .then(function(r) { return r.json(); })
+          .then(function(data) {
+            isServerMode = true;
+            allDocuments = data.documents || [];
+            updateStats(data.stats || {});
+            if (!silent) applyFilters();
+            else renderInPlace();
+
+            /* Detect finished jobs */
+            detectFinishedJobs(prevProcessing);
+
+            /* Keep polling while there are processing docs */
+            managePoll();
+            hideOverlay();
+          })
+          .catch(function() {
+            /* Fallback: show demo data when server is not running */
+            isServerMode = false;
+            if (allDocuments.length === 0) {
+              allDocuments = getDemoDocuments();
+            }
+            updateStats(computeDemoStats(allDocuments));
+            if (!silent) applyFilters();
+            else renderInPlace();
+            detectFinishedJobs(prevProcessing);
+            managePoll();
+            hideOverlay();
+          });
+      }
+
+      /** Re-render only status cells without resetting selection/scroll */
+      function renderInPlace() {
+        allDocuments.forEach(function(doc) {
+          var cb = tbody.querySelector('input[data-id="' + doc.id + '"]');
+          if (!cb) return;
+          var tr = cb.closest('tr');
+          if (!tr) return;
+          var cells = tr.querySelectorAll('td');
+          /* Update status (col 5), chunks (col 4), processed date (col 7) */
+          if (cells[4]) cells[4].textContent = doc.chunks != null ? doc.chunks : '—';
+          if (cells[5]) {
+            cells[5].innerHTML = '<span class="doc-status doc-status--' + esc(doc.status) + '">' + getStatusLabel(doc.status) + '</span>';
+          }
+          if (cells[7]) cells[7].textContent = doc.processedAt ? formatDate(doc.processedAt) : '—';
+          tr.classList.toggle('doc-row-processing', doc.status === 'processing');
+        });
+      }
+
+      /** Get IDs of documents currently in 'processing' state */
+      function getProcessingIds() {
+        var ids = [];
+        allDocuments.forEach(function(d) { if (d.status === 'processing') ids.push(d.id); });
+        return ids;
+      }
+
+      /** Compare old vs new to find newly finished jobs */
+      function detectFinishedJobs(prevProcessingIds) {
+        if (prevProcessingIds.length === 0) return;
+        var finishedReady = [];
+        var finishedFailed = [];
+
+        prevProcessingIds.forEach(function(id) {
+          var doc = allDocuments.find(function(d) { return d.id === id; });
+          if (!doc) return;
+          if (doc.status === 'ready') finishedReady.push(doc);
+          else if (doc.status === 'failed') finishedFailed.push(doc);
+        });
+
+        if (finishedReady.length > 0) {
+          showJobToast('success', finishedReady.length === 1
+            ? '„' + finishedReady[0].name + '" erfolgreich indexiert — ' + (finishedReady[0].chunks || 0) + ' Chunks erstellt.'
+            : finishedReady.length + ' Dokumente erfolgreich indexiert.');
+        }
+        if (finishedFailed.length > 0) {
+          showJobToast('error', finishedFailed.length === 1
+            ? '„' + finishedFailed[0].name + '" — Indexierung fehlgeschlagen.'
+            : finishedFailed.length + ' Dokumente — Indexierung fehlgeschlagen.');
+        }
+      }
+
+      /** Start or stop the polling timer based on whether there are processing docs */
+      function managePoll() {
+        var processing = getProcessingIds();
+        if (processing.length > 0 && !pollTimer) {
+          pollTimer = setInterval(function() { loadDocuments(true); }, POLL_INTERVAL);
+        } else if (processing.length === 0 && pollTimer) {
+          clearInterval(pollTimer);
+          pollTimer = null;
+        }
+      }
+
+      /* ---- Stats ---- */
+      function updateStats(stats) {
+        document.getElementById('stat-total').textContent = stats.total || allDocuments.length;
+        document.getElementById('stat-ready').textContent = stats.ready || 0;
+        document.getElementById('stat-processing').textContent = stats.processing || 0;
+        document.getElementById('stat-failed').textContent = stats.failed || 0;
+        document.getElementById('stat-chunks').textContent = stats.totalChunks || 0;
+      }
+
+      function computeDemoStats(docs) {
+        var s = { total: docs.length, ready: 0, processing: 0, failed: 0, totalChunks: 0 };
+        docs.forEach(function(d) {
+          if (d.status === 'ready') { s.ready++; s.totalChunks += (d.chunks || 0); }
+          else if (d.status === 'processing') s.processing++;
+          else if (d.status === 'failed') s.failed++;
+        });
+        return s;
+      }
+
+      /* ---- Filtering ---- */
+      function applyFilters() {
+        var q = (searchInput.value || '').toLowerCase();
+        var vType = filterType.value;
+        var vStatus = filterStatus.value;
+
+        filtered = allDocuments.filter(function(d) {
+          if (vType && d.type !== vType) return false;
+          if (vStatus && d.status !== vStatus) return false;
+          if (q && d.name.toLowerCase().indexOf(q) === -1) return false;
+          return true;
+        });
+        currentPage = 1;
+        render();
+      }
+
+      searchInput.addEventListener('input', applyFilters);
+      filterType.addEventListener('change', function() { applyFilters(); updateResetBtn(); });
+      filterStatus.addEventListener('change', function() { applyFilters(); updateResetBtn(); });
+
+      function updateResetBtn() {
+        var hasFilter = filterType.value || filterStatus.value || searchInput.value;
+        resetBtn.classList.toggle('visible', !!hasFilter);
+      }
+
+      resetBtn.addEventListener('click', function() {
+        filterType.value = '';
+        filterStatus.value = '';
+        searchInput.value = '';
+        applyFilters();
+        updateResetBtn();
+      });
+
+      /* ---- Render Table ---- */
+      function render() {
+        var totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+        if (currentPage > totalPages) currentPage = totalPages;
+        var start = (currentPage - 1) * PAGE_SIZE;
+        var page = filtered.slice(start, start + PAGE_SIZE);
+
+        emptyState.style.display = allDocuments.length === 0 ? 'flex' : 'none';
+        document.getElementById('doc-table').style.display = allDocuments.length === 0 ? 'none' : '';
+
+        tbody.innerHTML = '';
+        page.forEach(function(doc) {
+          var tr = document.createElement('tr');
+          tr.innerHTML =
+            '<td><input type="checkbox" data-id="' + esc(doc.id) + '"></td>' +
+            '<td>' +
+              '<div class="doc-file-row">' +
+                '<div class="doc-file-icon doc-file-icon--' + esc(doc.type) + '">' + getFileIcon(doc.type) + '</div>' +
+                '<div class="doc-file-info">' +
+                  '<a href="' + API_BASE + '/documents/' + esc(doc.id) + '/view" class="catalog-product-link doc-name-link" target="_blank" rel="noopener" title="Im PDF-Viewer öffnen">' + esc(doc.name) + '</a>' +
+                  (doc.originalName ? '<span class="catalog-sku">' + esc(doc.originalName) + '</span>' : '') +
+                '</div>' +
+              '</div>' +
+            '</td>' +
+            '<td><span class="doc-type-badge doc-type-badge--' + esc(doc.type) + '">' + esc(doc.type.toUpperCase()) + '</span></td>' +
+            '<td>' + formatSize(doc.size) + '</td>' +
+            '<td>' + (doc.chunks != null ? doc.chunks : '—') + '</td>' +
+            '<td><span class="doc-status doc-status--' + esc(doc.status) + '">' + getStatusLabel(doc.status) + '</span></td>' +
+            '<td>' + formatDate(doc.uploadedAt) + '</td>' +
+            '<td>' + (doc.processedAt ? formatDate(doc.processedAt) : '—') + '</td>' +
+            '<td class="doc-actions-cell">' +
+              '<button class="catalog-action-btn doc-btn-process" data-id="' + esc(doc.id) + '" title="Neu verarbeiten"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg></button>' +
+              '<button class="catalog-action-btn doc-btn-download" data-id="' + esc(doc.id) + '" title="Herunterladen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>' +
+              '<button class="catalog-action-btn doc-btn-delete" data-id="' + esc(doc.id) + '" title="Löschen"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></button>' +
+            '</td>';
+
+          /* Bind action buttons */
+          tr.querySelector('.doc-btn-process').addEventListener('click', function() { processDocument(doc.id); });
+          tr.querySelector('.doc-btn-download').addEventListener('click', function() { downloadDocument(doc.id); });
+          tr.querySelector('.doc-btn-delete').addEventListener('click', function() { confirmDelete(doc.id, doc.name); });
+          // Blauer Doc-Link → eingebetteter PDF-Viewer statt Browser-Navigation
+          var nameLink = tr.querySelector('.doc-name-link');
+          if (nameLink) {
+            nameLink.addEventListener('click', function(e) {
+              // ctrl/cmd/middle-click → Default-Verhalten (neuer Tab) zulassen
+              if (e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
+              e.preventDefault();
+              openPdfViewer(doc);
+            });
+          }
+          tbody.appendChild(tr);
+        });
+
+        renderPagination(totalPages);
+      }
+
+      function esc(s) { var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+      function getFileIcon(type) {
+        var icons = {
+          pdf: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M9 15h2v2H9v-2z"/></svg>',
+          docx: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+          txt: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>',
+          md: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M8 13h2l2 4 2-4h2"/></svg>',
+          csv: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="12" y1="9" x2="12" y2="17"/></svg>',
+          xlsx: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><rect x="8" y="12" width="8" height="6" rx="1"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="8" y1="15" x2="16" y2="15"/></svg>'
+        };
+        return icons[type] || icons.txt;
+      }
+
+      function getStatusLabel(status) {
+        var labels = { ready: 'Indexiert', processing: 'Verarbeitung...', pending: 'Ausstehend', failed: 'Fehlgeschlagen' };
+        return labels[status] || status;
+      }
+
+      function formatSize(bytes) {
+        if (!bytes) return '—';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+      }
+
+      function formatDate(iso) {
+        if (!iso) return '—';
+        var d = new Date(iso);
+        return d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      /* ---- Pagination ---- */
+      function renderPagination(totalPages) {
+        var info = document.getElementById('pagination-info');
+        var btns = document.getElementById('pagination-btns');
+        var start = filtered.length === 0 ? 0 : (currentPage - 1) * PAGE_SIZE + 1;
+        var end = Math.min(currentPage * PAGE_SIZE, filtered.length);
+        info.textContent = filtered.length === 0 ? 'Keine Dokumente' : 'Zeige ' + start + '–' + end + ' von ' + filtered.length + ' Dokumenten';
+
+        btns.innerHTML = '';
+        if (totalPages <= 1) return;
+
+        var prev = document.createElement('button');
+        prev.className = 'catalog-page-btn';
+        prev.innerHTML = '&lsaquo;';
+        prev.disabled = currentPage <= 1;
+        prev.addEventListener('click', function() { if (currentPage > 1) { currentPage--; render(); } });
+        btns.appendChild(prev);
+
+        for (var i = 1; i <= totalPages; i++) {
+          var btn = document.createElement('button');
+          btn.className = 'catalog-page-btn' + (i === currentPage ? ' active' : '');
+          btn.textContent = i;
+          (function(pg) { btn.addEventListener('click', function() { currentPage = pg; render(); }); })(i);
+          btns.appendChild(btn);
+        }
+
+        var next = document.createElement('button');
+        next.className = 'catalog-page-btn';
+        next.innerHTML = '&rsaquo;';
+        next.disabled = currentPage >= totalPages;
+        next.addEventListener('click', function() { if (currentPage < totalPages) { currentPage++; render(); } });
+        btns.appendChild(next);
+      }
+
+      /* ---- Actions ---- */
+
+      /** Set a row's status cell to a spinning loader */
+      function setRowSpinner(docId) {
+        var row = tbody.querySelector('input[data-id="' + docId + '"]');
+        if (!row) return;
+        var tr = row.closest('tr');
+        if (!tr) return;
+        var statusCell = tr.querySelectorAll('td')[5]; // status column
+        if (statusCell) {
+          statusCell.innerHTML = '<span class="doc-status doc-status--processing"><span class="doc-spinner"></span>Indexierung...</span>';
+        }
+        tr.classList.add('doc-row-processing');
+      }
+
+      function processDocument(id) {
+        setRowSpinner(id);
+        allDocuments.forEach(function(d) { if (d.id === id) d.status = 'processing'; });
+
+        fetch(API_BASE + '/documents/' + id + '/process', { method: 'POST' })
+          .then(function(r) { return r.json(); })
+          .then(function() {
+            showStatus('Indexierung läuft im Hintergrund...');
+            managePoll(); // start polling for completion
+          })
+          .catch(function() {
+            /* Demo mode: simulate async completion */
+            showStatus('Indexierung läuft im Hintergrund...');
+            startDemoSimulation(id);
+            managePoll();
+          });
+      }
+
+      function processSelectedDocuments() {
+        var ids = getSelectedIds();
+        if (ids.length === 0) return;
+        ids.forEach(function(id) { setRowSpinner(id); });
+        allDocuments.forEach(function(d) { if (ids.indexOf(d.id) !== -1) d.status = 'processing'; });
+        showStatus(ids.length + ' Dokument(e) — Indexierung läuft im Hintergrund...');
+
+        var total = ids.length;
+        var done = 0;
+        ids.forEach(function(id) {
+          fetch(API_BASE + '/documents/' + id + '/process', { method: 'POST' })
+            .then(function(r) { return r.json(); })
+            .then(function() { done++; if (done === total) managePoll(); })
+            .catch(function() {
+              done++;
+              startDemoSimulation(id); // demo fallback per doc
+              if (done === total) managePoll();
+            });
+        });
+      }
+
+      function downloadDocument(id) {
+        window.open(API_BASE + '/documents/' + id + '/download', '_blank');
+      }
+
+      /* ---- PDF / Document Viewer Modal ----
+         Bettet das Original-File über GET /api/documents/:id/view ein
+         (Content-Disposition: inline). Der Browser-eigene PDF-Viewer übernimmt
+         die Darstellung; Nicht-Inline-Formate (DOCX, XLSX, …) fallen auf einen
+         Download-Hinweis zurück, weil der Browser sie sowieso nur als Download
+         anzeigen würde. */
+      var pdfViewerModal = document.getElementById('pdfViewerModal');
+      var pdfViewerFrame = document.getElementById('pdfViewerFrame');
+      var pdfViewerName = document.getElementById('pdfViewerName');
+      var pdfViewerSub = document.getElementById('pdfViewerSub');
+      var pdfViewerDownload = document.getElementById('pdfViewerDownload');
+      var pdfViewerNewTab = document.getElementById('pdfViewerNewTab');
+      var pdfViewerFallback = document.getElementById('pdfViewerFallback');
+      var pdfViewerFallbackDownload = document.getElementById('pdfViewerFallbackDownload');
+      var pdfViewerFallbackText = document.getElementById('pdfViewerFallbackText');
+      var pdfViewerClose = document.getElementById('pdfViewerClose');
+      var pdfViewerEmbeddable = { pdf: true, txt: true, md: true, csv: true, html: true, png: true, jpg: true, jpeg: true, gif: true, svg: true };
+
+      function openPdfViewer(doc) {
+        var viewUrl = API_BASE + '/documents/' + doc.id + '/view';
+        var downloadUrl = API_BASE + '/documents/' + doc.id + '/download';
+        pdfViewerName.textContent = doc.name || doc.originalName || 'Dokument';
+        pdfViewerSub.textContent = [
+          (doc.type || '').toUpperCase(),
+          formatSize(doc.size),
+          doc.chunks != null ? doc.chunks + ' Chunks' : null
+        ].filter(Boolean).join(' · ') || '—';
+        pdfViewerDownload.setAttribute('href', downloadUrl);
+        pdfViewerNewTab.setAttribute('href', viewUrl);
+        pdfViewerFallbackDownload.setAttribute('href', downloadUrl);
+
+        // Format eingebettet darstellen, sonst Hinweis + Download-CTA
+        var canEmbed = !!pdfViewerEmbeddable[(doc.type || '').toLowerCase()];
+        if (canEmbed) {
+          pdfViewerFrame.style.display = '';
+          pdfViewerFallback.style.display = 'none';
+          pdfViewerFrame.setAttribute('src', viewUrl);
+        } else {
+          pdfViewerFrame.style.display = 'none';
+          pdfViewerFrame.setAttribute('src', 'about:blank');
+          pdfViewerFallback.style.display = '';
+          pdfViewerFallbackText.textContent = 'Dieses Dateiformat (' + (doc.type || '?').toUpperCase()
+            + ') kann nicht direkt im Browser angezeigt werden. Bitte herunterladen.';
+        }
+        pdfViewerModal.style.display = 'flex';
+      }
+
+      function closePdfViewer() {
+        pdfViewerModal.style.display = 'none';
+        // Iframe leeren — sonst spielt z.B. ein PDF mit Audio im Hintergrund weiter
+        pdfViewerFrame.setAttribute('src', 'about:blank');
+      }
+
+      pdfViewerClose.addEventListener('click', closePdfViewer);
+      pdfViewerModal.addEventListener('click', function(e) {
+        if (e.target === pdfViewerModal) closePdfViewer();
+      });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && pdfViewerModal.style.display === 'flex') closePdfViewer();
+      });
+
+      /* ---- Delete Modal (2-Step) ---- */
+      function openDeleteModal(title, text, step2Text) {
+        document.getElementById('deleteModalTitle').textContent = title;
+        document.getElementById('deleteModalText').textContent = text;
+        document.getElementById('deleteStep2Text').textContent = step2Text || 'Dieser Vorgang kann nicht rückgängig gemacht werden. Alle Daten und Vektor-Embeddings werden dauerhaft entfernt.';
+        deleteStep1.style.display = '';
+        deleteStep2.style.display = 'none';
+        deleteModal.style.display = 'flex';
+      }
+
+      function confirmDelete(id, name) {
+        pendingDeleteId = id;
+        pendingBulkDeleteIds = [];
+        openDeleteModal(
+          'Dokument löschen?',
+          '„' + name + '" und alle zugehörigen Chunks werden unwiderruflich gelöscht.',
+          '„' + name + '" wird endgültig gelöscht. Dieser Vorgang kann nicht rückgängig gemacht werden.'
+        );
+      }
+
+      function closeDeleteModal() {
+        deleteModal.style.display = 'none';
+        deleteStep1.style.display = '';
+        deleteStep2.style.display = 'none';
+        pendingDeleteId = null;
+        pendingBulkDeleteIds = [];
+      }
+
+      deleteCancel.addEventListener('click', closeDeleteModal);
+      deleteModal.addEventListener('click', function(e) { if (e.target === deleteModal) closeDeleteModal(); });
+
+      /* Step 1 → Step 2 */
+      deleteNext.addEventListener('click', function() {
+        deleteStep1.style.display = 'none';
+        deleteStep2.style.display = '';
+      });
+
+      /* Step 2 → Back to Step 1 */
+      deleteBack.addEventListener('click', function() {
+        deleteStep2.style.display = 'none';
+        deleteStep1.style.display = '';
+      });
+
+      /* Step 2: Final confirm */
+      deleteConfirm.addEventListener('click', function() {
+        /* Bulk delete */
+        if (pendingBulkDeleteIds.length > 0) {
+          var ids = pendingBulkDeleteIds.slice();
+          var total = ids.length;
+          var done = 0;
+          var failed = 0;
+          closeDeleteModal();
+
+          ids.forEach(function(id) {
+            fetch(API_BASE + '/documents/' + id, { method: 'DELETE' })
+              .then(function(r) { return r.json(); })
+              .then(function() { done++; checkBulkDone(); })
+              .catch(function() { done++; failed++; checkBulkDone(); });
+          });
+
+          function checkBulkDone() {
+            if (done < total) return;
+            var deleted = total - failed;
+            if (failed === 0) {
+              showStatus(deleted + ' Dokument(e) gelöscht.');
+            } else {
+              showStatus(deleted + ' gelöscht, ' + failed + ' fehlgeschlagen.', true);
+            }
+            checkAll.checked = false;
+            checkAll.indeterminate = false;
+            updateSelectionUI();
+            loadDocuments();
+          }
+
+          /* Demo-Modus: Direkt aus lokaler Liste entfernen */
+          allDocuments = allDocuments.filter(function(d) { return ids.indexOf(d.id) === -1; });
+          updateStats(computeDemoStats(allDocuments));
+          applyFilters();
+          return;
+        }
+
+        /* Single delete */
+        if (!pendingDeleteId) return;
+        var delId = pendingDeleteId;
+        closeDeleteModal();
+        fetch(API_BASE + '/documents/' + delId, { method: 'DELETE' })
+          .then(function(r) { return r.json(); })
+          .then(function() {
+            showStatus('Dokument gelöscht.');
+            loadDocuments();
+          })
+          .catch(function() {
+            showStatus('Löschen fehlgeschlagen.', true);
+          });
+
+        /* Demo-Modus */
+        allDocuments = allDocuments.filter(function(d) { return d.id !== delId; });
+        updateStats(computeDemoStats(allDocuments));
+        applyFilters();
+      });
+
+      document.getElementById('btn-reprocess-all').addEventListener('click', function() {
+        /* Show spinners on all visible rows */
+        tbody.querySelectorAll('input[data-id]').forEach(function(cb) { setRowSpinner(cb.dataset.id); });
+        allDocuments.forEach(function(d) { d.status = 'processing'; });
+        showStatus('Alle Dokumente werden im Hintergrund neu indexiert...');
+
+        fetch(API_BASE + '/documents/reprocess-all', { method: 'POST' })
+          .then(function(r) { return r.json(); })
+          .then(function() { managePoll(); })
+          .catch(function() {
+            /* Demo mode: simulate staggered completion */
+            allDocuments.forEach(function(d, i) {
+              startDemoSimulation(d.id, 2000 + i * 1500); // stagger by 1.5s each
+            });
+            managePoll();
+          });
+      });
+
+      /* Reindex selected button */
+      btnReindexSelected.addEventListener('click', function() { processSelectedDocuments(); });
+
+      /* ---- Selection & Bulk Delete ---- */
+      function getSelectedIds() {
+        var ids = [];
+        tbody.querySelectorAll('input[type="checkbox"]:checked').forEach(function(cb) {
+          if (cb.dataset.id) ids.push(cb.dataset.id);
+        });
+        return ids;
+      }
+
+      function updateSelectionUI() {
+        var ids = getSelectedIds();
+        var count = ids.length;
+        if (count > 0) {
+          btnDeleteSelected.style.display = 'flex';
+          btnReindexSelected.style.display = 'flex';
+          deleteSelectedLabel.textContent = count === 1
+            ? '1 Dokument löschen'
+            : count + ' Dokumente löschen';
+          reindexSelectedLabel.textContent = count === 1
+            ? '1 Dokument indexieren'
+            : count + ' Dokumente indexieren';
+        } else {
+          btnDeleteSelected.style.display = 'none';
+          btnReindexSelected.style.display = 'none';
+        }
+        /* Sync check-all state */
+        var allBoxes = tbody.querySelectorAll('input[type="checkbox"]');
+        checkAll.checked = allBoxes.length > 0 && count === allBoxes.length;
+        checkAll.indeterminate = count > 0 && count < allBoxes.length;
+      }
+
+      checkAll.addEventListener('change', function() {
+        var checked = checkAll.checked;
+        tbody.querySelectorAll('input[type="checkbox"]').forEach(function(cb) { cb.checked = checked; });
+        updateSelectionUI();
+      });
+
+      /* Delegate checkbox change events from tbody */
+      tbody.addEventListener('change', function(e) {
+        if (e.target.type === 'checkbox') updateSelectionUI();
+      });
+
+      /* Bulk delete button */
+      btnDeleteSelected.addEventListener('click', function() {
+        var ids = getSelectedIds();
+        if (ids.length === 0) return;
+        pendingBulkDeleteIds = ids;
+        pendingDeleteId = null;
+        document.getElementById('deleteModalText').textContent =
+          ids.length === 1
+            ? '1 ausgewähltes Dokument und alle zugehörigen Chunks werden unwiderruflich gelöscht.'
+            : ids.length + ' ausgewählte Dokumente und alle zugehörigen Chunks werden unwiderruflich gelöscht.';
+        document.querySelector('#deleteModal h3').textContent =
+          ids.length === 1 ? 'Dokument löschen?' : ids.length + ' Dokumente löschen?';
+        deleteModal.style.display = 'flex';
+      });
+
+      /* ---- Job Toast Notifications ---- */
+      var toastCounter = 0;
+      function showJobToast(type, message) {
+        toastCounter++;
+        var id = 'toast-' + toastCounter;
+        var iconSvg = type === 'success'
+          ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'
+          : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+
+        var toast = document.createElement('div');
+        toast.className = 'doc-job-toast doc-job-toast--' + type;
+        toast.id = id;
+        toast.innerHTML =
+          '<div class="doc-job-toast-icon">' + iconSvg + '</div>' +
+          '<div class="doc-job-toast-body">' +
+            '<strong>' + (type === 'success' ? 'Indexierung abgeschlossen' : 'Indexierung fehlgeschlagen') + '</strong>' +
+            '<span>' + esc(message) + '</span>' +
+          '</div>' +
+          '<button class="doc-job-toast-close" title="Schließen">&times;</button>';
+
+        toast.querySelector('.doc-job-toast-close').addEventListener('click', function() {
+          toast.classList.add('doc-job-toast--exit');
+          setTimeout(function() { toast.remove(); }, 300);
+        });
+
+        jobToastContainer.appendChild(toast);
+        /* Trigger enter animation */
+        requestAnimationFrame(function() { toast.classList.add('doc-job-toast--visible'); });
+
+        /* Auto-dismiss after 8 seconds */
+        setTimeout(function() {
+          var el = document.getElementById(id);
+          if (el) {
+            el.classList.add('doc-job-toast--exit');
+            setTimeout(function() { el.remove(); }, 300);
+          }
+        }, 8000);
+      }
+
+      /* ---- Demo Mode: Simulate indexing completion ---- */
+      function startDemoSimulation(docId, delay) {
+        if (demoTimers[docId]) clearTimeout(demoTimers[docId]);
+        demoTimers[docId] = setTimeout(function() {
+          delete demoTimers[docId];
+          var doc = allDocuments.find(function(d) { return d.id === docId; });
+          if (!doc || doc.status !== 'processing') return;
+          /* Simulate completion */
+          var fakeChunks = Math.floor(Math.random() * 200) + 20;
+          doc.status = 'ready';
+          doc.chunks = fakeChunks;
+          doc.processedAt = new Date().toISOString();
+          showJobToast('success', '„' + doc.name + '" erfolgreich indexiert — ' + fakeChunks + ' Chunks erstellt.');
+          updateStats(computeDemoStats(allDocuments));
+          renderInPlace();
+          managePoll();
+        }, delay || (3000 + Math.random() * 4000)); // 3-7 seconds
+      }
+
+      /* ---- Demo Data (when server is offline) ---- */
+      function getDemoDocuments() {
+        return [
+          { id: '1', name: 'Güntner Produktkatalog 2026', originalName: 'guentner-katalog-2026.pdf', type: 'pdf', size: 15728640, chunks: 342, status: 'ready', uploadedAt: '2026-04-01T10:30:00Z', processedAt: '2026-04-01T10:35:22Z' },
+          { id: '2', name: 'GACC Technische Dokumentation', originalName: 'gacc-tech-doc.pdf', type: 'pdf', size: 8945664, chunks: 189, status: 'ready', uploadedAt: '2026-04-02T14:15:00Z', processedAt: '2026-04-02T14:18:45Z' },
+          { id: '3', name: 'Kältemittel Übersicht R-Serie', originalName: 'kaeltemittel-r-serie.docx', type: 'docx', size: 2097152, chunks: 67, status: 'ready', uploadedAt: '2026-04-03T09:00:00Z', processedAt: '2026-04-03T09:02:10Z' },
+          { id: '4', name: 'Installationsanleitung ADHN', originalName: 'install-adhn-050.pdf', type: 'pdf', size: 5242880, chunks: null, status: 'processing', uploadedAt: '2026-04-07T16:45:00Z', processedAt: null },
+          { id: '5', name: 'FAQ Verdampfer Auswahl', originalName: 'faq-verdampfer.md', type: 'md', size: 45056, chunks: 12, status: 'ready', uploadedAt: '2026-04-05T11:20:00Z', processedAt: '2026-04-05T11:20:30Z' },
+          { id: '6', name: 'Preisliste Export 2026-Q1', originalName: 'preisliste-q1-2026.xlsx', type: 'xlsx', size: 1048576, chunks: null, status: 'failed', uploadedAt: '2026-04-06T08:10:00Z', processedAt: null },
+          { id: '7', name: 'Energieeffizienz Richtlinien', originalName: 'effizienz-richtlinien.txt', type: 'txt', size: 98304, chunks: 28, status: 'ready', uploadedAt: '2026-03-28T13:00:00Z', processedAt: '2026-03-28T13:01:05Z' },
+          { id: '8', name: 'Service Handbuch GFH Serie', originalName: 'service-gfh.pdf', type: 'pdf', size: 12582912, chunks: 256, status: 'ready', uploadedAt: '2026-03-25T10:00:00Z', processedAt: '2026-03-25T10:08:30Z' },
+          { id: '9', name: 'Schallschutz Normen Übersicht', originalName: 'schallschutz-normen.csv', type: 'csv', size: 204800, chunks: 15, status: 'ready', uploadedAt: '2026-04-04T15:30:00Z', processedAt: '2026-04-04T15:30:45Z' },
+          { id: '10', name: 'F-Gas Verordnung Zusammenfassung', originalName: 'f-gas-verordnung.pdf', type: 'pdf', size: 3145728, chunks: null, status: 'pending', uploadedAt: '2026-04-08T08:00:00Z', processedAt: null },
+        ];
+      }
+
+      /* ============================================================
+         DMS Fetch Modal — Browse product taxonomy, select, add to RAG
+         Five cascading filter levels: Category → Level 1 → Group → Family → Series
+         ============================================================ */
+      var dmsModal = document.getElementById('dmsModal');
+      var dmsBtnOpen = document.getElementById('btn-fetch-dms');
+      var dmsBtnClose = document.getElementById('dmsModalClose');
+      var dmsBtnCancel = document.getElementById('dmsCancel');
+      var dmsBtnAdd = document.getElementById('dmsAddToRag');
+      var dmsBtnAddLabel = document.getElementById('dmsAddToRagLabel');
+      var dmsSearch = document.getElementById('dmsSearch');
+      var dmsFilterCategory = document.getElementById('dmsFilterCategory');
+      var dmsFilterLevel1   = document.getElementById('dmsFilterLevel1');
+      var dmsFilterGroup    = document.getElementById('dmsFilterGroup');
+      var dmsFilterFamily   = document.getElementById('dmsFilterFamily');
+      var dmsFilterSeries   = document.getElementById('dmsFilterSeries');
+      var dmsFilterDocType  = document.getElementById('dmsFilterDocType');
+      var dmsFilterLanguage = document.getElementById('dmsFilterLanguage');
+      var dmsResetFilters = document.getElementById('dmsResetFilters');
+      var dmsList = document.getElementById('dmsResultList');
+      var dmsEmpty = document.getElementById('dmsEmpty');
+      var dmsCheckAll = document.getElementById('dmsCheckAll');
+      var dmsResultCount = document.getElementById('dmsResultCount');
+      var dmsSelectedInfo = document.getElementById('dmsSelectedInfo');
+
+      var dmsFilteredDocs = [];        // Treffer aus /api/dms/search (echte DMS-Dokumente)
+      var dmsSelected = {};            // dmsId -> hit
+      var dmsSearchTimer = null;
+      var dmsCurrentRequest = 0;       // Race-Schutz für überlappende Requests
+      var dmsLastQuery = '';
+      var dmsLastQueryKey = '';        // q + Filter-Kombination — verhindert Reload-Loop bei reiner Dropdown-Änderung
+      var dmsLastCapHit = false;       // true wenn DMS noch mehr Treffer hat als wir geladen haben
+      var dmsLastRawCount = 0;         // Roh-Trefferzahl vor Dedup/Filter — für Cap-Indikator
+      var dmsBackgroundLoading = false; // true solange Pages 2..N im Hintergrund nachgeladen werden
+
+      /* ----- LEGACY: Hardcoded Produkt-Taxonomie -----
+         Bleibt als Datenquelle für die 5 Cascading-Filter im Modal-Header,
+         solange die DMS-Property-IDs für Produktserie/-familie noch nicht gemappt sind.
+         Sobald GET /api/dms/source ein Mapping liefert, kann dieser Block entfallen
+         und durch dynamische Server-seitige Facets ersetzt werden. */
+      var DMS_PRODUCTS = (function() {
+        var raw = [
+          ['Controls','COMPONENTS','CONTROLS COMMUNICATION MODULES','GCM Bacnet','GCM Bacnet'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV AG'],
+          ['Air Cooler','COLD','COMPACT MINI','GAMC','GAMC CX'],
+          ['Air Cooler','COLD','COMPACT MINI','GAMC','GAMC FP'],
+          ['Air Cooler','COLD','COMPACT MINI','GAMC','GAMC RX'],
+          ['Air Cooler','COLD','COMPACT MINI','GAMC','GAMC PX'],
+          ['Dry Cooler','WARM','VARIO V-SHAPE','G*DV','GFDV FD'],
+          ['Condenser','WARM','VARIO V-SHAPE','G*DV','GCDV RD'],
+          ['Condenser','WARM','VARIO V-SHAPE','G*DV','GCDV AD'],
+          ['Gas Cooler','WARM','VARIO V-SHAPE','G*DV','GGDV CD'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','AGHR'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','GGHR'],
+          ['','COMPONENTS','CONTROLS MOTOR MANAGEMENT','aicore\u2122 air (GMMnext)','GMMnext sincon lite'],
+          ['','COMPONENTS','CONTROLS MOTOR MANAGEMENT','aicore\u2122 air (GMMnext)','GMMnext phase-cut lite'],
+          ['','COMPONENTS','CONTROLS MOTOR MANAGEMENT','aicore\u2122 air (GMMnext)','GMMnext RD'],
+          ['','COLD','COMPACT CUBIC','GACC','GACC WP'],
+          ['','COLD','COMPACT CUBIC','GACC','GACC PX'],
+          ['','COLD','COMPACT SLIM','GASC','GASC WP'],
+          ['','COLD','COMPACT SLIM','GASC','GASC PX'],
+          ['','WARM','VARIO V-SHAPE','GCDV','GCDV PD'],
+          ['','WARM','VARIO V-SHAPE','GFDV','GFDV WP'],
+          ['','WARM','VARIO V-SHAPE','GFDV','GFDV FP'],
+          ['','COMPONENTS','CONTROLS SYSTEM CONTROLLER','aicore\u2122 fusion (GSCnext)','aicore\u2122 fusion (GSCnext EC)'],
+          ['','COMPONENTS','CONTROLS SYSTEM CONTROLLER','aicore\u2122 fusion (GSCnext)','aicore\u2122 fusion (GSCnext)'],
+          ['','COMPONENTS','CONTROLS HYDRO MANAGEMENT','aicore\u2122 hydro (GHMnext)','aicore\u2122 hydro (GHMnext PAD)'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','aicore\u2122 air (GMMnext)','aicore\u2122 air (GMMnext EC)'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','aicore\u2122 air (GMMnext)','aicore\u2122 air ec (GMMnext Rail)'],
+          ['','COLD','COMPACT SLIM','FAC','FAC'],
+          ['Air Cooler','COLD','APPLICATION AGRI','GACA','GACA FP'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCO MICROOX'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCO PUMP'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCOB'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCOF'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCOG'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCOH'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCOK'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCON'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCOR'],
+          ['Others','OTHER','OTHER','ALFA LAVAL','ALFA LAVAL'],
+          ['Air Cooler','OTHER','OTHER','GMH','GMH'],
+          ['Air Cooler','OTHER','OTHER','GWH','GWH'],
+          ['Plug-In Refrigeration Unit','OTHER','OTHER','ICS','ICS'],
+          ['Plate Heat Exchanger','PLATE','PLATE ECO','THERMOECO','THERMOLINEECO'],
+          ['Plate Heat Exchanger','PLATE','PLATE PLUS','THERMOPLUS','THERMOLINEPLUS'],
+          ['Plate Heat Exchanger','PLATE','PLATE PURE','THERMOPURE','THERMOLINEPURE'],
+          ['Plate Heat Exchanger','PLATE','PLATE VARIO','THERMOVARIO','THERMOLINEVARIO'],
+          ['Waste Heat Unit','SYSTEME','SYSTEME','COND_UNIT','BCUC'],
+          ['Waste Heat Unit','SYSTEME','SYSTEME','COND_UNIT','GCUC'],
+          ['Plug-In Refrigeration Unit','SYSTEME','SYSTEME','GEK','GEKN'],
+          ['Plug-In Refrigeration Unit','SYSTEME','SYSTEME','GEK','GEKT'],
+          ['Waste Heat Unit','SYSTEME','SYSTEME','WATERLOOP','GFWP'],
+          ['Waste Heat Unit','SYSTEME','SYSTEME','WATERLOOP','GGPS'],
+          ['Waste Heat Unit','SYSTEME','SYSTEME','WATERLOOP','WATERLOOP'],
+          ['Evaporative Condenser','WARM','APPLICATION ECOSS','ECOSS','ECOSS'],
+          ['Condenser','WARM','APPLICATION INDOOR-H','RVH','RVH'],
+          ['Condenser','WARM','APPLICATION INDOOR-H','RVH','URH'],
+          ['Condenser','WARM','APPLICATION INDOOR-H','RVH','URS'],
+          ['Condenser','WARM','APPLICATION INDOOR-V','RVV','RVV'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCO FLUIDCOOLER'],
+          ['Condenser','WARM','APPLICATION INDOOR-V','RVV','URV'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCO DX'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCO AIRCOOLER'],
+          ['Components','COMPONENTS','COMPONENTS','COMPONENTS','COMPONENTS'],
+          ['Components','COMPONENTS','COMPONENTS','FANS','FANS'],
+          ['Components','COMPONENTS','COMPONENTS','HEATERS','HEATERS'],
+          ['Components','COMPONENTS','COMPONENTS','HEATERS','HEATING KIT'],
+          ['Components','COMPONENTS','COMPONENTS','GLYCOL GUARD','GLYCOL GUARD'],
+          ['Components','COMPONENTS','COMPONENTS','ADIABATIC COOLING SYSTEM','ADIABATIC COOLING SYSTEM'],
+          ['Components','COMPONENTS','COMPONENTS','STREAMER','STREAMER'],
+          ['Components','COMPONENTS','COMPONENTS','DEFROST','DEFROST FLAP'],
+          ['Controls','COMPONENTS','CONTROLS','CONTROLS','CONTROLS'],
+          ['Controls','COMPONENTS','CONTROLS','CONTROLS','CONTROL PANEL'],
+          ['Controls','COMPONENTS','CONTROLS MONITORING','GMP','GMP'],
+          ['Controls','COMPONENTS','CONTROLS ACCESSORIES','Pressure Sensors','GSW'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','GMM EC','GMM EC'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','GMM sincon','GMM sincon'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','GMM PhaseCut','GMM PhaseCut'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','GMM PhaseCut','GMM PhaseCut Compact'],
+          ['Controls','COMPONENTS','CONTROLS MOTOR MANAGEMENT','GMM Step','GMM Step'],
+          ['Controls','COMPONENTS','CONTROLS HYDRO MANAGEMENT','GHM PAD','GHM PAD'],
+          ['Controls','COMPONENTS','CONTROLS HYDRO MANAGEMENT','GHM Spray','GHM Spray'],
+          ['Controls','COMPONENTS','CONTROLS COMMUNICATION MODULES','GCM Modbus','GCM Modbus'],
+          ['Controls','COMPONENTS','CONTROLS COMMUNICATION MODULES','GCM Profibus','GCM Profibus'],
+          ['Controls','COMPONENTS','CONTROLS COMMUNICATION MODULES','GCM Profinet','GCM Profinet'],
+          ['Controls','COMPONENTS','CONTROLS COMMUNICATION MODULES','GCM WLAN','GCM WLAN'],
+          ['Others','COMPONENTS','RECEIVER','GBH','AGBH'],
+          ['Others','COMPONENTS','RECEIVER','GBH','AGBV'],
+          ['Others','COMPONENTS','RECEIVER','GBH','GBH'],
+          ['Others','COMPONENTS','RECEIVER','GBH','GBV'],
+          ['Heat Exchanger / Coil','HEAT EXCHANGER','FINOOX GCO','GCO','GCO CONDENSER'],
+          ['Air Cooler','COLD','VARIO DUAL','MDN','MDN'],
+          ['Condenser','WARM','COMPACT FLAT','G*HC','GCHC'],
+          ['Gas Cooler','WARM','COMPACT FLAT','G*HC','GGHC'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','GFHE'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','GFHG'],
+          ['Subcooler','WARM','VARIO FLAT','GVH','GUH'],
+          ['Subcooler','WARM','VARIO FLAT','GVH','GUV'],
+          ['Condenser','WARM','VARIO FLAT','GVH','GVH'],
+          ['Condenser','WARM','VARIO FLAT','GVH','GVHC'],
+          ['Condenser','WARM','VARIO FLAT','GVH','GVHG'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','MFH'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','MFHC'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','MFV'],
+          ['Air Cooler','WARM','VARIO FLAT','GVH','WAH'],
+          ['Condenser','WARM','VARIO FLAT','GVH','MCH'],
+          ['Condenser','WARM','VARIO VERTICAL','G*VV','GCVV'],
+          ['Dry Cooler','WARM','VARIO VERTICAL','G*VV','GFVV'],
+          ['Gas Cooler','WARM','VARIO VERTICAL','G*VV','GGVV'],
+          ['Oil Cooler','WARM','VARIO VERTICAL','G*VV','GOVV'],
+          ['Condenser','WARM','VARIO VERTICAL','GVV','AGVV'],
+          ['Dry Cooler','WARM','VARIO VERTICAL','GVV','GFV'],
+          ['Condenser','WARM','VARIO VERTICAL','GVV','GVV'],
+          ['Air Cooler','WARM','VARIO VERTICAL','GVV','WAV'],
+          ['Condenser','WARM','VARIO VERTICAL','GVV','MCV'],
+          ['Gas Cooler','WARM','VARIO V-SHAPE','GGD','GGD'],
+          ['Condenser','WARM','VARIO V-SHAPE','GVD','AGVD'],
+          ['Dry Cooler','WARM','VARIO V-SHAPE','GVD','GFD'],
+          ['Dry Cooler','WARM','VARIO V-SHAPE','GVD','GFDX'],
+          ['Condenser','WARM','VARIO V-SHAPE','GVD','GVD'],
+          ['Condenser','WARM','VARIO V-SHAPE','GVD','GVDX'],
+          ['Dry Cooler','WARM','VARIO V-SHAPE','GVD','MFD'],
+          ['Condenser','WARM','VARIO V-SHAPE','GVD','MCD'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','GFHC (CONTAINER)'],
+          ['Dry Cooler','WARM','COMPACT FLAT','G*HC','GFHC'],
+          ['Dry Cooler','WARM','VARIO FLAT','GVH','GFH'],
+          ['Condenser','WARM','VARIO FLAT','GVH','BITZER ALT'],
+          ['Oil Cooler','WARM','COMPACT FLAT','G*HC','GOHC'],
+          ['Subcooler','WARM','COMPACT FLAT','G*HC','GSHC'],
+          ['Condenser','WARM','COMPACT FLAT','GVHX','GVHX'],
+          ['Condenser','WARM','COMPACT VERTICAL','G*VC','GCVC'],
+          ['Dry Cooler','WARM','COMPACT VERTICAL','G*VC','GFVC'],
+          ['Gas Cooler','WARM','COMPACT VERTICAL','G*VC','GGVC'],
+          ['Oil Cooler','WARM','COMPACT VERTICAL','G*VC','GOVC'],
+          ['Subcooler','WARM','COMPACT VERTICAL','G*VC','GSVC'],
+          ['Condenser','WARM','COMPACT VERTICAL','GVM','GVM'],
+          ['Condenser','WARM','COMPACT VERTICAL','GVVX','GVVX'],
+          ['Condenser','WARM','COMPACT VERTICAL','GVX','GVXH'],
+          ['Condenser','WARM','COMPACT VERTICAL','GVX','GVXV'],
+          ['Condenser','WARM','COMPACT V-SHAPE','G*DC','GCDC'],
+          ['Dry Cooler','WARM','COMPACT V-SHAPE','G*DC','GFDC'],
+          ['Gas Cooler','WARM','COMPACT V-SHAPE','G*DC','GGDC'],
+          ['Condenser','WARM','COMPACT V-SHAPE','GCDC NLA','GCDC NLA'],
+          ['Adiabatic Dry Cooler','WARM','HYBRID JAEGGI Hybrid Blue','ADC','ADC'],
+          ['Adiabatic Dry Cooler','WARM','HYBRID JAEGGI Hybrid Blue','ADC','GFD ADC'],
+          ['Dry Cooler','WARM','HYBRID JAEGGI Hybrid Blue','ADC','GPR ADC'],
+          ['Adiabatic Condenser','WARM','HYBRID JAEGGI Hybrid Blue','ADV','ADV'],
+          ['Hybrid Dry Cooler','WARM','HYBRID JAEGGI Hybrid High Performance','HTK','HTK'],
+          ['Hybrid Condenser','WARM','HYBRID JAEGGI Hybrid High Performance','HTK','HTV'],
+          ['Condenser','WARM','VARIO FLAT','G*HV','GCHV'],
+          ['Dry Cooler','WARM','VARIO FLAT','G*HV','GFHV'],
+          ['Gas Cooler','WARM','VARIO FLAT','G*HV','GGHV'],
+          ['Oil Cooler','WARM','VARIO FLAT','G*HV','GOHV'],
+          ['Condenser','WARM','VARIO FLAT','GVH','AGVH'],
+          ['Condenser','WARM','VARIO FLAT','GVH','BCH'],
+          ['Condenser','WARM','VARIO FLAT','GVH','BCV'],
+          ['Condenser','WARM','VARIO FLAT','GVH','G'],
+          ['Air Cooler','COLD','VARIO DUAL','MDN','MDGN'],
+          ['Air Cooler','COLD','VARIO DUAL','MDN','MDAN'],
+          ['Air Cooler','COLD','VARIO DUAL','MDN','CPMDN'],
+          ['Condenser','COLD','COMPACT CUBIC','C*H','MCAH'],
+          ['Condenser','COLD','COMPACT CUBIC','C*H','MCAV'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*L','CDL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*L','CEL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*L','CGL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*L','CKL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*L','CAGL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*M','CAGM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*M','CDM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*M','CEM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*M','CGM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*M','CKM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*L','GAL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*L','GDL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*L','GEL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*L','GGL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*L','GKL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','FAL','FAL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','FAM','FAM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*M','GAM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*M','GEM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','G*M','GKM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','FGM','FGM'],
+          ['Air Cooler','COLD','COMPACT CUBIC','FGL','FGL'],
+          ['Air Cooler','COLD','COMPACT CUBIC','GCCH','GCCH'],
+          ['Air Cooler','COLD','COMPACT DUAL','DHF','DHF'],
+          ['Air Cooler','COLD','COMPACT DUAL','GADC','GADC CX'],
+          ['Air Cooler','COLD','COMPACT DUAL','GADC','GADC FP'],
+          ['Air Cooler','COLD','COMPACT DUAL','GADC','GADC PX'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*H','CKH'],
+          ['Air Cooler','COLD','COMPACT DUAL','GADC','GADC RX'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*H','CEH'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*H','CAH'],
+          ['Air Cooler','COLD','APPLICATION AGRI','GACA','GACA RX'],
+          ['Air Cooler','COLD','APPLICATION BLAST','GFN','AGFN'],
+          ['Air Cooler','COLD','APPLICATION BLAST','GFN','GFK'],
+          ['Air Cooler','COLD','APPLICATION BLAST','GFN','GFN'],
+          ['Air Cooler','COLD','APPLICATION BLAST','GFN','MBN'],
+          ['Air Cooler','COLD','APPLICATION FLOOR','GSN','GSN'],
+          ['Air Cooler','COLD','APPLICATION FLOOR','GSN','GSSA'],
+          ['Air Cooler','COLD','APPLICATION FLOOR','GSN','GSTA'],
+          ['Air Cooler','COLD','APPLICATION PENTHOUSE','GANP','GANP'],
+          ['Air Cooler','COLD','APPLICATION PENTHOUSE','GHE','CPGHE'],
+          ['Air Cooler','COLD','APPLICATION PENTHOUSE','MANP','MANP'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GADP','GADP AP'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GADP','GADP CX'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GADP','GADP FP'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GADP','GADP PX'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GADP','GADP RX'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','AGBF'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','AGBK'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','AXGBK'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','GBK'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','GGBK'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','MBK'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GBK','MGBK'],
+          ['Air Cooler','COLD','APPLICATION PROCESS','GPN','GPN'],
+          ['Air Cooler','COLD','APPLICATION THERMOSTORE','GIK','GIKN'],
+          ['Air Cooler','COLD','APPLICATION THERMOSTORE','GIK','GIKS'],
+          ['Air Cooler','COLD','COMPACT CUBIC','GACC','GACC CX'],
+          ['Air Cooler','COLD','COMPACT CUBIC','GACC','GACC FP'],
+          ['Air Cooler','COLD','COMPACT CUBIC','GACC','GACC RX'],
+          ['Air Cooler','COLD','COMPACT CUBIC','C*H','CDH'],
+          ['Air Cooler','COLD','COMPACT DUAL','GADC','GADC WP'],
+          ['Air Cooler','COLD','COMPACT DUAL','C*D','CAD'],
+          ['Air Cooler','COLD','COMPACT DUAL','C*D','CAGD'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','GHFB'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','MGF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','MHF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','MGHF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHK','GHK'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','AGHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','AXGHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','CPGHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','CXGHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','GGHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','GGN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','GHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','GWN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','MAN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','MGN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHN','MHN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHS','GHS'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHT','GHT'],
+          ['Air Cooler','COLD','VARIO CUBIC','MAS','MAS'],
+          ['Air Cooler','COLD','VARIO CUBIC','MDAS','MDAS'],
+          ['Air Cooler','COLD','VARIO DUAL','DHN','ADHN'],
+          ['Air Cooler','COLD','VARIO DUAL','DHN','AXDHN'],
+          ['Air Cooler','COLD','VARIO DUAL','DHN','CPDHN'],
+          ['Air Cooler','COLD','VARIO DUAL','DHN','DGN'],
+          ['Air Cooler','COLD','VARIO DUAL','DHN','DHN'],
+          ['Air Cooler','COLD','VARIO DUAL','DHN','DHN-S'],
+          ['Air Cooler','COLD','VARIO DUAL','GDS','GDS'],
+          ['Air Cooler','COLD','VARIO DUAL','GDT','GDT'],
+          ['Air Cooler','COLD','VARIO DUAL','MDN','AXMDN'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','GHF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','GGHF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','CXGHF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','CPGHF'],
+          ['Air Cooler','COLD','COMPACT DUAL','C*D','CDD'],
+          ['Air Cooler','COLD','COMPACT DUAL','C*D','CED'],
+          ['Air Cooler','COLD','COMPACT DUAL','FAD','FAD'],
+          ['Air Cooler','COLD','COMPACT DUAL','FGD','FGD'],
+          ['Air Cooler','COLD','COMPACT SLIM','GASC','GASC CX'],
+          ['Air Cooler','COLD','COMPACT SLIM','GASC','GASC FP'],
+          ['Air Cooler','COLD','COMPACT SLIM','GASC','GASC RX'],
+          ['Air Cooler','COLD','COMPACT SLIM','GDE','CPGDE'],
+          ['Air Cooler','COLD','COMPACT SLIM','GDF','BDF'],
+          ['Air Cooler','COLD','COMPACT SLIM','GDF','CXGDF'],
+          ['Air Cooler','COLD','COMPACT SLIM','GDF','GDF'],
+          ['Air Cooler','COLD','COMPACT SLIM','GDF','GDM'],
+          ['Air Cooler','COLD','COMPACT SLIM','GDF','GGDF'],
+          ['Air Cooler','COLD','COMPACT SLIM','C*C','CAC'],
+          ['Dry Cooler','WARM','VARIO V-SHAPE','GVW','GFW'],
+          ['Air Cooler','COLD','COMPACT SLIM','C*C','CDC'],
+          ['Air Cooler','COLD','COMPACT SLIM','FGC','FGC'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV AP'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV CG'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV CP'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV CX'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV FP'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV PX'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV RX'],
+          ['Air Cooler','COLD','VARIO CUBIC','GACV','GACV WP'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','BASE-CUBE'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','BSF'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','CAL'],
+          ['Air Cooler','COLD','VARIO CUBIC','GHF','CAM'],
+          ['Air Cooler','COLD','COMPACT SLIM','C*C','CEC'],
+          ['Condenser','WARM','VARIO V-SHAPE','GVW','GVW'],
+          /* Taxonomy-only rows (no series — contribute to dropdown options only) */
+          ['','PLATE','PLATE','',''],
+          ['','WARM','APPLICATION HIGH DENSISTY','',''],
+          ['','COLD','APPLICATION HIGHSTORE','',''],
+          ['','WARM','HYBRID','',''],
+          ['','COMPONENTS','CONTROLS ACCESSORIES','Temperature Sensors',''],
+          ['','COMPONENTS','CONTROLS ACCESSORIES','Sinus Filters','']
+        ];
+        return raw.map(function(r, i) {
+          return {
+            id: 'p-' + (i + 1),
+            category: r[0],
+            level1:   r[1],
+            group:    r[2],
+            family:   r[3],
+            series:   r[4]
+          };
+        });
+      })();
+
+      /* ----- Dropdown cascade -----
+         For each level, only surface options that are still reachable given the
+         currently-selected higher levels. Clears a lower-level selection that
+         becomes invalid. */
+      function populateDmsDropdowns() {
+        var levels = [
+          { sel: dmsFilterCategory, key: 'category', label: 'Alle Product Categories' },
+          { sel: dmsFilterLevel1,   key: 'level1',   label: 'Alle Product Levels' },
+          { sel: dmsFilterGroup,    key: 'group',    label: 'Alle Product Groups' },
+          { sel: dmsFilterFamily,   key: 'family',   label: 'Alle Product Families' },
+          { sel: dmsFilterSeries,   key: 'series',   label: 'Alle Product Series' }
+        ];
+
+        for (var i = 0; i < levels.length; i++) {
+          /* Constraints = all non-empty selections from higher levels */
+          var constraints = {};
+          for (var j = 0; j < i; j++) {
+            if (levels[j].sel.value) constraints[levels[j].key] = levels[j].sel.value;
+          }
+
+          /* Collect unique non-empty values at this level that satisfy constraints */
+          var seen = {};
+          DMS_PRODUCTS.forEach(function(row) {
+            var ok = true;
+            for (var k in constraints) {
+              if (row[k] !== constraints[k]) { ok = false; break; }
+            }
+            if (ok && row[levels[i].key]) seen[row[levels[i].key]] = true;
+          });
+
+          var options = Object.keys(seen).sort(function(a, b) { return a.localeCompare(b); });
+          var current = levels[i].sel.value;
+          var html = '<option value="">' + levels[i].label + '</option>';
+          options.forEach(function(v) {
+            html += '<option value="' + esc(v) + '"' + (v === current ? ' selected' : '') + '>' + esc(v) + '</option>';
+          });
+          levels[i].sel.innerHTML = html;
+
+          /* If the previous selection is no longer valid, drop it */
+          if (current && !seen[current]) levels[i].sel.value = '';
+        }
+      }
+
+      /* ----- Open / Close ----- */
+      function openDmsModal() {
+        dmsSelected = {};
+        dmsLastQuery = '';
+        dmsSearch.value = '';
+        // Sofort initial laden (leere Suche → erste 25 Treffer der Default-Reihenfolge)
+        loadDmsResults('');
+        dmsModal.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+      }
+
+      function closeDmsModal() {
+        dmsModal.style.display = 'none';
+        document.body.style.overflow = '';
+      }
+
+      dmsBtnOpen.addEventListener('click', openDmsModal);
+      dmsBtnClose.addEventListener('click', closeDmsModal);
+      dmsBtnCancel.addEventListener('click', closeDmsModal);
+      dmsModal.addEventListener('click', function(e) { if (e.target === dmsModal) closeDmsModal(); });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && dmsModal.style.display === 'flex') closeDmsModal();
+      });
+
+      /* ----- Server-side DMS Search -----
+         Ersetzt das alte clientseitige Filtern auf hardcoded Produkten.
+         Ruft GET /api/dms/search?q=…&pageSize=… auf und rendert echte Dokumente.
+         Bei leerer Query: Multi-Query-Fanout über typische Doc-Stichworte, weil
+         das DMS ohne Volltext-Filter primär Container-Objekte ohne Content liefert. */
+      // Default-Fanout — die häufigsten DocTypes für schnellen Initial-Load.
+      // Seltenere Typen (Reference / Poster / Certificate / Application Brochure /
+      // Technical Paper) werden gezielt durch DocType-Auswahl im Dropdown nachgeladen
+      // (siehe effectiveQuery-Logik in loadDmsResults). 6 parallele Calls à pageSize=12.
+      var DEFAULT_QUERIES = ['manual', 'brochure', 'datasheet', 'flyer', 'newsletter', 'technical paper'];
+
+      function mapDmsItem(it) {
+        return {
+          id: it.dmsId,
+          dmsId: it.dmsId,
+          version: it.version || '—',
+          mainContentUrl: it.mainContentUrl || '',
+          previewUrl: it.previewUrl || '',
+          filename: it.filename || null,
+          displayName: it.filename || it.dmsId,  // Filename bevorzugt, dmsId als Fallback
+          docTypeLabel: it.docTypeLabel || null,
+          mimeType: it.mimeType || null,
+          creationDate: it.creationDate || null,
+          state: it.state || null,
+        };
+      }
+
+      /** Aktive Dropdown-Werte als lowercased Term-Liste — für Client-side Filename-Match. */
+      function dmsActiveFilterTerms() {
+        var vals = [
+          dmsFilterCategory.value,
+          dmsFilterLevel1.value,
+          dmsFilterGroup.value,
+          dmsFilterFamily.value,
+          dmsFilterSeries.value,
+        ];
+        return vals
+          .filter(function(v) { return v && v.trim(); })
+          .map(function(v) { return v.trim().toLowerCase(); });
+      }
+
+      /** Filter-Werte → URLSearchParams-Fragment (ohne führendes "&").
+          Leere Werte werden weggelassen; der Backend-Handler in rag-server.js
+          mappt category/level1/group/family/series → DMS-Property-UUIDs. */
+      function buildDmsFilterQuery() {
+        var qs = new URLSearchParams();
+        var pairs = [
+          ['category', dmsFilterCategory.value],
+          ['level1',   dmsFilterLevel1.value],
+          ['group',    dmsFilterGroup.value],
+          ['family',   dmsFilterFamily.value],
+          ['series',   dmsFilterSeries.value],
+        ];
+        pairs.forEach(function(p) { if (p[1]) qs.set(p[0], p[1]); });
+        return qs.toString();
+      }
+
+      /** Feste Werteliste für das Document-Type-Dropdown — entspricht der Property
+          "Document Type manuals" (UUID ac4c7c21-…) im Güntner-DMS. Reihenfolge alphabetisch.
+          Werte werden im Filename-Suffix (Konvention: "<…> - <DocType> (Pxxxxxxxxx).EXT")
+          per Equals-Match abgeglichen.
+          DMS UI meldet "14 available" — 11 aus User-Screenshot übernommen, "Technical Paper"
+          per Live-Korpus-Scan hinzugefügt. Verbleibende 2 unbekannt (Facet-Endpoint im
+          DMS gibt HTTP 500 zurück; manuell ergänzen wenn der DMS-Admin sie kennt). */
+      var DMS_DOC_TYPES = [
+        'Application Brochure',
+        'Brochure',
+        'Certificate',
+        'Datasheet',
+        'Flyer',
+        'Instructions, Specifications',
+        'Manual',
+        'Newsletter',
+        'Poster',
+        'Quick Installation Guide',
+        'Reference',
+        'Technical Paper',
+      ];
+
+      /** Extrahiert den "Document Type"-Suffix aus einem Filename.
+          Konvention im Güntner-DMS: "<Produktbeschreibung> - <DocType> (Pxxxxxxxxx).EXT"
+          Beispiele:
+            "Guntner Manual Cubic COMPACT DE 2026-03 - Manual (P002927140).PDF" → "Manual"
+            "Heating_kit - Quick Installation Guide (P002926756).PDF"           → "Quick Installation Guide"
+            "Specification_Modbus - Instructions, Specifications (P003167447).ZIP" → "Instructions, Specifications"
+          Split auf " - " (mit Leerzeichen) ist robust gegen Datums-Dashes wie "2026-04". */
+      function dmsExtractDocType(filename) {
+        if (!filename) return null;
+        var base = filename
+          .replace(/\.[A-Za-z0-9]+$/, '')
+          .replace(/\s*\(P\d+\)\s*$/, '')
+          .trim();
+        var parts = base.split(' - ');
+        return parts.length > 1 ? parts[parts.length - 1].trim() : null;
+      }
+
+      /** Bekannte Sprach-Codes im Güntner-DMS-Filename — als ISO-639-1 (2 Buchstaben).
+          Wird über alle Treffer per Token-Match gesucht (siehe dmsExtractLanguage).
+          Die Tabelle bestimmt zugleich das Anzeigelabel im Dropdown. */
+      var DMS_LANGUAGES = [
+        { code: 'EN', label: 'English' },
+        { code: 'DE', label: 'Deutsch' },
+        { code: 'FR', label: 'Français' },
+        { code: 'ES', label: 'Español' },
+        { code: 'IT', label: 'Italiano' },
+        { code: 'NL', label: 'Nederlands' },
+        { code: 'PL', label: 'Polski' },
+        { code: 'PT', label: 'Português' },
+        { code: 'RU', label: 'Русский' },
+        { code: 'CS', label: 'Čeština' },
+        { code: 'SK', label: 'Slovenčina' },
+        { code: 'HU', label: 'Magyar' },
+        { code: 'RO', label: 'Română' },
+        { code: 'TR', label: 'Türkçe' },
+        { code: 'SV', label: 'Svenska' },
+        { code: 'DA', label: 'Dansk' },
+        { code: 'FI', label: 'Suomi' },
+        { code: 'NO', label: 'Norsk' },
+        { code: 'ZH', label: '中文' },
+        { code: 'JA', label: '日本語' },
+        { code: 'KO', label: '한국어' },
+        { code: 'AR', label: 'العربية' },
+      ];
+      var DMS_LANGUAGE_CODES = DMS_LANGUAGES.map(function(l) { return l.code; });
+
+      /** Extrahiert den Sprach-Code aus einem Filename per Token-Match.
+          Konvention im Güntner-DMS: 2-Buchstaben-Code als eigenständiges Token, z.B.
+            "Guntner Manual Cubic COMPACT EN 2026-03 - Manual (Pxxx).PDF"  → "EN"
+            "GACC CX_IOM_001_EN_2026_04_KAT1001.2 - Manual (Pxxx).PDF"     → "EN"
+            "Guntner Manual GVH FR 2023-11 - Manual (Pxxx).PDF"            → "FR"
+          Split auf [_\s.-] liefert die Tokens; Großschreibung wird erzwungen.
+          Heuristik gegen false positives: Tokens wie "DE", "FR" sind sehr selten
+          legitime Produkt-Bestandteile — wenn doch, schaltet der User den Filter
+          einfach nicht ein. */
+      function dmsExtractLanguage(filename) {
+        if (!filename) return null;
+        // Endung und P-Suffix entfernen — damit ".DE" am Ende keinen Token bildet
+        var base = filename
+          .replace(/\.[A-Za-z0-9]+$/, '')
+          .replace(/\s*\(P\d+\)\s*$/, '');
+        var tokens = base.split(/[\s._\-]+/);
+        for (var i = 0; i < tokens.length; i++) {
+          var t = tokens[i].toUpperCase();
+          if (t.length === 2 && DMS_LANGUAGE_CODES.indexOf(t) !== -1) return t;
+        }
+        return null;
+      }
+
+      /** Befüllt das Language-Dropdown mit den Sprachen, die in der aktuellen
+          Trefferliste tatsächlich vorkommen. Reihenfolge: Vorkommens-Häufigkeit
+          absteigend, dann alphabetisch. Codes mit count = 0 werden weggelassen
+          (anders als bei DocType) — die Liste sonst wäre 22 Sprachen lang und unübersichtlich.
+          Vorherige Auswahl wird beibehalten, falls noch Treffer existieren. */
+      function populateDmsLanguageDropdown(items) {
+        var counts = {};
+        items.forEach(function(it) {
+          var lang = dmsExtractLanguage(it.filename);
+          if (lang) counts[lang] = (counts[lang] || 0) + 1;
+        });
+        var prev = dmsFilterLanguage.value;
+        var present = DMS_LANGUAGES
+          .filter(function(l) { return counts[l.code]; })
+          .sort(function(a, b) {
+            var diff = counts[b.code] - counts[a.code];
+            return diff !== 0 ? diff : a.label.localeCompare(b.label);
+          });
+        var totalKnown = present.reduce(function(s, l) { return s + counts[l.code]; }, 0);
+        dmsFilterLanguage.innerHTML = '<option value="">Alle Languages (' + totalKnown + ')</option>'
+          + present.map(function(l) {
+              return '<option value="' + esc(l.code) + '">' + esc(l.label) + ' (' + l.code + ') · ' + counts[l.code] + '</option>';
+            }).join('');
+        // Vorherige Auswahl beibehalten, wenn die Sprache noch in der Liste vorkommt
+        if (prev && DMS_LANGUAGE_CODES.indexOf(prev) !== -1) {
+          dmsFilterLanguage.value = prev;
+          // Falls der Wert in der aktuellen Liste gar nicht mehr vorhanden ist,
+          // aktiv erzwingen, indem wir ihn als Option appenden — sonst würde der
+          // <select> automatisch auf "" zurückspringen und der Filter unbemerkt deaktiviert.
+          if (dmsFilterLanguage.value !== prev) {
+            var lookup = DMS_LANGUAGES.find(function(l) { return l.code === prev; });
+            var label = lookup ? lookup.label : prev;
+            var opt = document.createElement('option');
+            opt.value = prev;
+            opt.textContent = label + ' (' + prev + ') · 0';
+            dmsFilterLanguage.appendChild(opt);
+            dmsFilterLanguage.value = prev;
+          }
+        }
+      }
+
+      /** Befüllt das Document-Type-Dropdown mit der festen Werteliste + Live-Counts
+          aus den aktuell geladenen Treffern. Werte ohne Treffer bleiben sichtbar,
+          aber mit "(0)" gekennzeichnet — damit der User sieht, was im Korpus
+          theoretisch möglich wäre. Wert vor dem Refresh wird beibehalten. */
+      function populateDmsDocTypeDropdown(items) {
+        var counts = {};
+        items.forEach(function(it) {
+          var t = dmsExtractDocType(it.filename);
+          if (t) counts[t] = (counts[t] || 0) + 1;
+        });
+        var prev = dmsFilterDocType.value;
+        var totalKnown = DMS_DOC_TYPES.reduce(function(s, k) { return s + (counts[k] || 0); }, 0);
+        dmsFilterDocType.innerHTML = '<option value="">Alle Document Types (' + totalKnown + ')</option>'
+          + DMS_DOC_TYPES.map(function(k) {
+              var c = counts[k] || 0;
+              return '<option value="' + esc(k) + '">' + esc(k) + ' (' + c + ')</option>';
+            }).join('');
+        // Vorherige Auswahl beibehalten, auch wenn count = 0 (User soll Filter nicht verlieren)
+        if (prev && DMS_DOC_TYPES.indexOf(prev) !== -1) dmsFilterDocType.value = prev;
+      }
+
+      /** Holt eine einzelne DMS-Page. Schmaler Helper, damit loadDmsResults
+          sowohl die initiale Page als auch das Hintergrund-Fetching der
+          Folge-Pages über denselben Code laufen lassen kann. */
+      function fetchDmsPage(query, filterQueryString, page, pageSize) {
+        var url = '/api/dms/search?pageSize=' + pageSize + '&page=' + page
+          + '&q=' + encodeURIComponent(query)
+          + (filterQueryString ? '&' + filterQueryString : '');
+        return fetch(url).then(function(r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        });
+      }
+
+      /** Verschmilzt Page-Items in eine bestehende Hit-Map (dmsId → hit). Erstes
+          Vorkommen einer dmsId gewinnt, weil frühere Seiten wahrscheinlich
+          relevantere Treffer liefern (DMS sortiert nach Score). */
+      function mergeDmsItems(existingMap, newItems) {
+        (newItems || []).forEach(function(it) {
+          if (!existingMap[it.dmsId]) existingMap[it.dmsId] = it;
+        });
+        return existingMap;
+      }
+
+      /** Nimmt ein Roh-Item-Array und applied dedup + alle Client-side-Filter
+          (DocType, Language, Produkt-Dropdowns) und rendert die Liste. Wird
+          mehrfach pro loadDmsResults aufgerufen — einmal für Page 1 (schneller
+          Initial-Render), danach für jede zusätzlich angekommene Page. */
+      function applyDmsFiltersAndRender(rawItems, capHit) {
+        // Document-Type- und Language-Dropdown anhand der GESAMTEN Trefferliste
+        // neu aufbauen (bevor wir dedupen oder filtern — sonst verschwinden
+        // Optionen vorzeitig).
+        populateDmsDocTypeDropdown(rawItems);
+        populateDmsLanguageDropdown(rawItems);
+
+        // Dedup auf "neueste Ausgabe pro Dokument" — fasst z.B. Cubic-COMPACT-DE 2023/2024/2026
+        // zu einer Zeile zusammen (die neueste). Sprachvarianten (DE/EN/FR/...) bleiben getrennt.
+        var deduped = dmsDedupLatest(rawItems);
+
+        // Document-Type-Filter (Equals-Match auf den extrahierten Suffix).
+        var pickedDocType = dmsFilterDocType.value || '';
+        if (pickedDocType) {
+          deduped = deduped.filter(function(it) {
+            return dmsExtractDocType(it.filename) === pickedDocType;
+          });
+        }
+
+        // Language-Filter (Equals-Match auf den extrahierten Sprach-Code).
+        var pickedLanguage = dmsFilterLanguage.value || '';
+        if (pickedLanguage) {
+          deduped = deduped.filter(function(it) {
+            return dmsExtractLanguage(it.filename) === pickedLanguage;
+          });
+        }
+
+        // Produkt-Dropdowns (Category/Level/Group/Family/Series) — Client-side Substring-Match
+        // auf den Filename. Hintergrund: DMS-`/srm/?` honoriert die Property-Filter nicht,
+        // und sourceProperties sind in Search-Responses leer. Bis ein echtes Property-Mapping
+        // definiert ist (vgl. CLAUDE.md), filtern wir die geladene Seite über den Filename —
+        // die Produktcodes (GACC, CX, RX, …) stehen verlässlich darin.
+        var picked = dmsActiveFilterTerms();
+        if (picked.length) {
+          deduped = deduped.filter(function(it) {
+            var hay = (it.filename || it.dmsId || '').toLowerCase();
+            return picked.every(function(t) { return hay.indexOf(t) !== -1; });
+          });
+        }
+
+        dmsLastCapHit = !!capHit;
+        dmsLastRawCount = rawItems.length;
+        dmsFilteredDocs = deduped.map(mapDmsItem);
+        renderDmsList();
+      }
+
+      async function loadDmsResults(query) {
+        var requestId = ++dmsCurrentRequest;
+        dmsLastQuery = query;
+        // State zurücksetzen — sonst flackert ein veralteter Spinner während eines neuen Requests
+        dmsBackgroundLoading = false;
+        populateDmsDropdowns();
+        renderDmsLoading();
+
+        // Wenn der User einen Document Type gewählt hat (z.B. "Brochure") und keine
+        // eigene Suche getippt hat, suchen wir gezielt danach im DMS-Volltext.
+        var effectiveQuery = query;
+        if ((!effectiveQuery || !effectiveQuery.trim()) && dmsFilterDocType.value) {
+          effectiveQuery = dmsFilterDocType.value;
+        }
+
+        try {
+          if (!effectiveQuery || !effectiveQuery.trim()) {
+            // Default: Multi-Query-Fanout über die häufigsten Doc-Stichworte —
+            // hier ist die Latenz schon hoch genug; kein progressives Rendern.
+            var data = await loadDefaultDmsResults();
+            if (requestId !== dmsCurrentRequest) return;
+            applyDmsFiltersAndRender(data.items || [], !!data.capHit);
+          } else {
+            // Progressive Pagination:
+            //   1) Page 1 sofort rendern (~8 s Wait, dann was zu sehen)
+            //   2) Pages 2-4 parallel im Hintergrund → re-render bei jeder Antwort
+            // So sieht der User schnell Resultate, und die Liste wächst sichtbar.
+            var MAX_PAGES = 4;
+            var PAGE_SIZE = 50;
+            var extra = buildDmsFilterQuery();
+            var itemMap = {};
+
+            var first = await fetchDmsPage(effectiveQuery, extra, 1, PAGE_SIZE);
+            if (requestId !== dmsCurrentRequest) return;
+            mergeDmsItems(itemMap, first.items || []);
+            // Wenn weitere Pages folgen, Background-Loading-Flag setzen — sonst leuchtet
+            // der Mini-Spinner permanent. Vor dem Initial-Render setzen, damit der erste
+            // Render den Spinner schon zeigt.
+            dmsBackgroundLoading = first.hasNext && (first.items || []).length > 0;
+            applyDmsFiltersAndRender(Object.values(itemMap), !!first.hasNext);
+
+            if (dmsBackgroundLoading) {
+              var pagePromises = [];
+              for (var p = 2; p <= MAX_PAGES; p++) {
+                pagePromises.push(fetchDmsPage(effectiveQuery, extra, p, PAGE_SIZE));
+              }
+              // Sobald eine zusätzliche Page eintrifft, sofort re-rendern —
+              // der User sieht die Liste live wachsen.
+              var lastHasNext = !!first.hasNext;
+              var completed = 0;
+              pagePromises.forEach(function(promise, idx) {
+                var pageNum = idx + 2;
+                promise.then(function(pageData) {
+                  if (requestId !== dmsCurrentRequest) return;
+                  mergeDmsItems(itemMap, pageData.items || []);
+                  if (pageNum === MAX_PAGES) lastHasNext = !!pageData.hasNext;
+                  completed++;
+                  // capHit + Background-Spinner: erst final, wenn alle Folge-Pages durch sind
+                  var isFinal = completed === pagePromises.length;
+                  if (isFinal) dmsBackgroundLoading = false;
+                  var capHit = isFinal ? lastHasNext : true;
+                  applyDmsFiltersAndRender(Object.values(itemMap), capHit);
+                }).catch(function() {
+                  // Einzelne Page-Fehler ignorieren — aber den Spinner trotzdem stoppen,
+                  // wenn alle Promises durch sind
+                  if (requestId !== dmsCurrentRequest) return;
+                  completed++;
+                  if (completed === pagePromises.length) {
+                    dmsBackgroundLoading = false;
+                    applyDmsFiltersAndRender(Object.values(itemMap), lastHasNext);
+                  }
+                });
+              });
+            }
+          }
+        } catch (err) {
+          if (requestId !== dmsCurrentRequest) return;
+          renderDmsError(err.message);
+        }
+        updateDmsResetBtn();
+        return;
+      }
+
+      /* ----- Dedup-Helfer: pro Filename-Stamm nur die neueste Ausgabe behalten ----- */
+
+      /** Reduziert einen Filename auf den editions-unabhängigen Stamm.
+          Entfernt Endung, "(P00xxxxxxxx)"-Suffix, Datum-Suffix (YYYY-MM[-DD]),
+          " - Manual"-Suffix und normalisiert die Schreibweise Güntner/Guentner/Guntner. */
+      function dmsFilenameStem(item) {
+        var f = (item && (item.filename || item.dmsId)) || '';
+        // Reihenfolge wichtig: erst Endung & dmsId-Suffix, dann " - Manual" (sonst
+        // bleibt's am Ende stehen und das Datum davor wird nicht als Suffix erkannt),
+        // dann Datum, dann Schreibweisen-Normalisierung.
+        return f
+          .replace(/\.[A-Za-z0-9]{2,4}$/, '')                    // Endung weg
+          .replace(/\s*\(P\d{6,}\)\s*$/, '')                     // " (P00xxxxxxxx)" weg
+          .replace(/\s*-\s*Manual\s*$/i, '')                     // " - Manual" weg
+          .replace(/[\s_-]+\d{4}[-_]\d{2}(?:[-_]\d{2})?\s*$/, '') // Datum-Suffix weg
+          .replace(/\b(Güntner|Guentner)\b/gi, 'Guntner')        // Schreibweisen vereinheitlichen
+          .trim()
+          .toLowerCase();
+      }
+
+      /** Strenger Vergleich "ist a neuer als b?" — bevorzugt creationDate,
+          fällt zurück auf parseInt der versionId (Major-Version). */
+      function dmsIsNewer(a, b) {
+        if (a.creationDate && b.creationDate) return a.creationDate > b.creationDate;
+        if (a.creationDate) return true;
+        if (b.creationDate) return false;
+        var va = parseInt((a.version || '0').split('_')[0], 10) || 0;
+        var vb = parseInt((b.version || '0').split('_')[0], 10) || 0;
+        return va > vb;
+      }
+
+      /** Gruppiert nach Filename-Stamm und behält pro Gruppe die neueste Ausgabe. */
+      function dmsDedupLatest(items) {
+        var best = {};
+        items.forEach(function(it) {
+          var stem = dmsFilenameStem(it);
+          if (!best[stem] || dmsIsNewer(it, best[stem])) best[stem] = it;
+        });
+        return Object.values(best);
+      }
+
+      /** Multi-Query-Fanout für den initialen Modal-Aufruf. Dedup happens
+          downstream in loadDmsResults via dmsDedupLatest. */
+      async function loadDefaultDmsResults() {
+        var extra = buildDmsFilterQuery();
+        var responses = await Promise.allSettled(DEFAULT_QUERIES.map(function(q) {
+          var url = '/api/dms/search?pageSize=12&q=' + encodeURIComponent(q) + (extra ? '&' + extra : '');
+          return fetch(url).then(function(r) { return r.ok ? r.json() : { items: [] }; });
+        }));
+        var merged = [];
+        responses.forEach(function(rsp) {
+          if (rsp.status !== 'fulfilled') return;
+          (rsp.value.items || []).forEach(function(it) { merged.push(it); });
+        });
+        // Sortierung: nach Version absteigend (häufig aktualisierte zuerst);
+        // die eigentliche "neueste Ausgabe"-Faltung passiert in loadDmsResults via dmsDedupLatest.
+        merged.sort(function(a, b) {
+          var va = parseInt((a.version || '0').split('_')[0], 10) || 0;
+          var vb = parseInt((b.version || '0').split('_')[0], 10) || 0;
+          return vb - va;
+        });
+        return { items: merged, count: merged.length };
+      }
+
+      function applyDmsFilters() {
+        // Debounced Server-Suche (200 ms) — verhindert Flood beim Tippen
+        if (dmsSearchTimer) clearTimeout(dmsSearchTimer);
+        var q = (dmsSearch.value || '').trim();
+        // Key kombiniert Suchtext + alle Filter-Werte, damit auch reine Dropdown-
+        // Änderungen einen Reload triggern. DocType und Language separat angehängt,
+        // weil sie rein client-side wirken und nicht in buildDmsFilterQuery (= URL) gehören.
+        var filterKey = q + '|' + buildDmsFilterQuery()
+          + '|dt=' + (dmsFilterDocType.value || '')
+          + '|lg=' + (dmsFilterLanguage.value || '');
+        dmsSearchTimer = setTimeout(function() {
+          if (filterKey !== dmsLastQueryKey) {
+            dmsLastQueryKey = filterKey;
+            loadDmsResults(q);
+          }
+        }, 200);
+      }
+
+      function updateDmsResetBtn() {
+        var has = dmsSearch.value
+          || dmsFilterCategory.value
+          || dmsFilterLevel1.value
+          || dmsFilterGroup.value
+          || dmsFilterFamily.value
+          || dmsFilterSeries.value
+          || dmsFilterDocType.value
+          || dmsFilterLanguage.value;
+        dmsResetFilters.classList.toggle('visible', !!has);
+      }
+
+      dmsSearch.addEventListener('input', applyDmsFilters);
+      dmsFilterCategory.addEventListener('change', applyDmsFilters);
+      dmsFilterLevel1.addEventListener('change', applyDmsFilters);
+      dmsFilterGroup.addEventListener('change', applyDmsFilters);
+      dmsFilterFamily.addEventListener('change', applyDmsFilters);
+      dmsFilterSeries.addEventListener('change', applyDmsFilters);
+      dmsFilterDocType.addEventListener('change', applyDmsFilters);
+      dmsFilterLanguage.addEventListener('change', applyDmsFilters);
+      dmsResetFilters.addEventListener('click', function() {
+        dmsSearch.value = '';
+        dmsFilterCategory.value = '';
+        dmsFilterLevel1.value = '';
+        dmsFilterGroup.value = '';
+        dmsFilterFamily.value = '';
+        dmsFilterSeries.value = '';
+        dmsFilterDocType.value = '';
+        dmsFilterLanguage.value = '';
+        applyDmsFilters();
+      });
+
+      /* ----- Render List (echte DMS-Dokumente) ----- */
+      function renderDmsLoading() {
+        dmsResultCount.innerHTML = '<span class="doc-spinner-sm"></span> Suche im DMS …';
+        dmsEmpty.style.display = 'none';
+        dmsList.style.display = 'flex';
+        // Großer Spinner — sonst denkt der User, die Anwendung hängt.
+        // Bei 4 Seiten × 50 Treffern braucht der DMS-Connector pro Seite ~8 s
+        // (100 Metadaten- + 100 Filename-Subrequests je Page).
+        dmsList.innerHTML = '<div class="doc-loading-block">'
+          + '<span class="doc-spinner-lg"></span>'
+          + '<div>Suche im DMS …</div>'
+          + '<div class="doc-loading-block-hint">Lade bis zu 200 Treffer — das kann ein paar Sekunden dauern.</div>'
+          + '</div>';
+      }
+
+      function renderDmsError(msg) {
+        // Bei transientem DMS-Fehler (häufig HTTP 500/400 "repository is unavailable"):
+        // vorherige Trefferliste behalten, oben einen klickbaren Retry-Banner einblenden.
+        // Wenn noch nichts geladen war, klassische Fehlermeldung mit Retry-Button.
+        var keepPrev = dmsFilteredDocs && dmsFilteredDocs.length > 0;
+        var explain = /500|400|503|repository is unavailable/i.test(msg)
+          ? 'DMS-Verbindung gerade instabil — Treffer können veraltet sein.'
+          : 'DMS-Fehler: ' + msg;
+        if (keepPrev) {
+          dmsResultCount.innerHTML = '<span style="color:#dc2626;">⚠ ' + esc(explain) +
+            '</span> <button class="catalog-reset-btn visible" id="dmsRetryInlineBtn" style="margin-left:8px;">↻ Erneut laden</button>';
+          var btn = document.getElementById('dmsRetryInlineBtn');
+          if (btn) btn.addEventListener('click', function() { loadDmsResults(dmsLastQuery || ''); });
+        } else {
+          dmsResultCount.textContent = '0 Dokumente';
+          dmsEmpty.style.display = 'none';
+          dmsList.style.display = 'flex';
+          dmsList.innerHTML =
+            '<div class="dms-result-item" style="flex-direction:column;align-items:center;color:#dc2626;padding:24px;gap:12px;">' +
+              '<div>⚠ ' + esc(explain) + '</div>' +
+              '<button class="catalog-reset-btn visible" id="dmsRetryBtn">↻ Erneut versuchen</button>' +
+            '</div>';
+          var bigBtn = document.getElementById('dmsRetryBtn');
+          if (bigBtn) bigBtn.addEventListener('click', function() { loadDmsResults(dmsLastQuery || ''); });
+        }
+      }
+
+      function renderDmsList() {
+        var label = dmsFilteredDocs.length + (dmsFilteredDocs.length === 1 ? ' Dokument' : ' Dokumente');
+        // Progressive Loading: solange noch Hintergrund-Pages laufen, inline Mini-Spinner
+        // — der User sieht, dass die Liste noch wachsen wird.
+        if (dmsBackgroundLoading) {
+          label = '<span class="doc-spinner-sm" style="margin-right:6px;"></span>' + label
+            + ' <span style="color:#64748b;font-weight:400;font-size:11.5px;margin-left:6px;">lade weitere Seiten …</span>';
+        }
+        // Wenn nach Dedup/Filter weniger gezeigt werden als geladen wurde,
+        // den Rohcount transparent anzeigen — sonst denkt der User, das wäre alles.
+        if (dmsLastRawCount && dmsLastRawCount > dmsFilteredDocs.length) {
+          label += ' <span style="color:#64748b;font-weight:400;font-size:11.5px;margin-left:6px;">(aus ' + dmsLastRawCount + ' Roh-Treffern)</span>';
+        }
+        // Cap-Indikator: DMS hat mehr Treffer als unser MAX_PAGES-Limit. Suche verfeinern.
+        if (dmsLastCapHit && !dmsBackgroundLoading) {
+          label += ' <span style="color:#dc6803;font-weight:500;font-size:11.5px;margin-left:6px;" title="Das DMS hat mehr Treffer als wir geladen haben — Suche verfeinern, um alles zu sehen.">⚠ DMS hat mehr Treffer — Suche verfeinern</span>';
+        }
+        dmsResultCount.innerHTML = label;
+        dmsEmpty.style.display = dmsFilteredDocs.length === 0 ? 'flex' : 'none';
+        dmsList.style.display = dmsFilteredDocs.length === 0 ? 'none' : 'flex';
+        dmsList.innerHTML = '';
+
+        dmsFilteredDocs.forEach(function(row) {
+          var isSel = !!dmsSelected[row.id];
+          var item = document.createElement('div');
+          item.className = 'dms-result-item' + (isSel ? ' selected' : '');
+
+          // Erstelldatum auf YYYY-MM-DD kürzen (DMS liefert ISO mit Zeit + Zone)
+          var dateShort = row.creationDate ? String(row.creationDate).slice(0, 10) : null;
+          // Doc-Typ-Badge bekommt eine MIME-spezifische Hintergrundfarbe
+          var typeColors = {
+            'PDF':  '#dc2626', 'DOCX': '#2563eb', 'DOC':  '#2563eb',
+            'XLSX': '#059669', 'XLS':  '#059669',
+            'PPTX': '#ea580c', 'PPT':  '#ea580c',
+            'TXT':  '#64748b', 'CSV':  '#64748b', 'MD':   '#64748b',
+            'PNG':  '#7c3aed', 'JPG':  '#7c3aed',
+          };
+          var typeColor = (row.docTypeLabel && typeColors[row.docTypeLabel]) || '#636362';
+
+          // Filename ist die aussagekräftigste Zeile, wenn vorhanden — dmsId nur als Sub-Info
+          var hasFilename = !!row.filename;
+          var primary = hasFilename ? row.filename : row.dmsId;
+
+          item.innerHTML =
+            '<input type="checkbox" data-id="' + esc(row.id) + '"' + (isSel ? ' checked' : '') + '>' +
+            '<div class="dms-result-icon dms-level-icon dms-level-icon--OTHER">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+            '</div>' +
+            '<div class="dms-result-info" style="min-width:0;">' +
+              '<div class="dms-result-name" title="' + esc(primary) + '" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' +
+                esc(primary) +
+                (row.docTypeLabel
+                  ? ' <span style="display:inline-block;margin-left:6px;padding:1px 7px;border-radius:4px;background:' + typeColor + ';color:#fff;font-size:10.5px;font-weight:600;letter-spacing:.5px;vertical-align:middle;">' + esc(row.docTypeLabel) + '</span>'
+                  : '') +
+              '</div>' +
+              '<div class="dms-result-meta-line">' +
+                (hasFilename ? '<span style="font-family:monospace;font-size:10.5px;color:#94a3b8;">' + esc(row.dmsId) + '</span>' : '') +
+                '<span>Version: ' + esc(row.version) + '</span>' +
+                (dateShort ? '<span>Erstellt: ' + esc(dateShort) + '</span>' : '') +
+                (row.state ? '<span>Status: ' + esc(row.state) + '</span>' : '') +
+              '</div>' +
+            '</div>' +
+            '<div class="dms-result-side">' +
+              '<span class="dms-level-badge dms-level-icon--OTHER">DMS</span>' +
+            '</div>';
+
+          item.addEventListener('click', function(e) {
+            if (e.target.tagName !== 'INPUT') {
+              var cb = item.querySelector('input[type="checkbox"]');
+              cb.checked = !cb.checked;
+              toggleDmsSelection(row, cb.checked);
+            }
+          });
+          item.querySelector('input[type="checkbox"]').addEventListener('change', function(e) {
+            toggleDmsSelection(row, e.target.checked);
+          });
+
+          dmsList.appendChild(item);
+        });
+
+        updateDmsSelectionUI();
+      }
+
+      function toggleDmsSelection(row, checked) {
+        if (checked) dmsSelected[row.id] = row;
+        else delete dmsSelected[row.id];
+        var item = dmsList.querySelector('input[data-id="' + row.id + '"]');
+        if (item) item.closest('.dms-result-item').classList.toggle('selected', checked);
+        updateDmsSelectionUI();
+      }
+
+      function updateDmsSelectionUI() {
+        var selectedIds = Object.keys(dmsSelected);
+        var visibleSelected = dmsFilteredDocs.filter(function(d) { return dmsSelected[d.id]; }).length;
+        var count = selectedIds.length;
+
+        dmsSelectedInfo.textContent = count === 0 ? '0 ausgewählt' : count + ' ausgewählt';
+        dmsBtnAddLabel.textContent = count > 0 ? 'Add ' + count + ' to RAG' : 'Add to RAG';
+        dmsBtnAdd.disabled = count === 0;
+
+        if (dmsFilteredDocs.length === 0) {
+          dmsCheckAll.checked = false;
+          dmsCheckAll.indeterminate = false;
+        } else {
+          dmsCheckAll.checked = visibleSelected === dmsFilteredDocs.length;
+          dmsCheckAll.indeterminate = visibleSelected > 0 && visibleSelected < dmsFilteredDocs.length;
+        }
+      }
+
+      dmsCheckAll.addEventListener('change', function() {
+        var checked = dmsCheckAll.checked;
+        dmsFilteredDocs.forEach(function(row) {
+          if (checked) dmsSelected[row.id] = row;
+          else delete dmsSelected[row.id];
+        });
+        renderDmsList();
+      });
+
+      /* ----- Add to RAG (echter API-Call) -----
+         POST /api/dms/import mit Liste der dmsIds → Job-ID zurück.
+         Anschließend pollen wir GET /api/dms/import/:jobId alle 1.5 s,
+         bis state ∈ {done, failed}. Pro erfolgreich importiertem Dokument
+         wird die normale Document-Liste neu geladen — die neuen Einträge
+         erscheinen automatisch in Tab 1. */
+      dmsBtnAdd.addEventListener('click', async function() {
+        var picks = Object.keys(dmsSelected).map(function(id) { return dmsSelected[id]; });
+        if (picks.length === 0) return;
+        var dmsIds = picks.map(function(p) { return p.dmsId; });
+
+        // Button während Import sperren
+        dmsBtnAdd.disabled = true;
+        dmsBtnAddLabel.textContent = 'Importiere ' + dmsIds.length + ' Dok.…';
+
+        try {
+          var startRes = await fetch('/api/dms/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dmsIds: dmsIds })
+          });
+          if (!startRes.ok) throw new Error('Import-Start: HTTP ' + startRes.status);
+          var startData = await startRes.json();
+          if (!startData.success) throw new Error(startData.error || 'Unbekannter Fehler');
+
+          showStatus('Import läuft (Job ' + startData.jobId.slice(0, 8) + ' · ' + dmsIds.length + ' Dok.)…');
+          closeDmsModal();
+
+          // Poll bis Job fertig
+          var jobId = startData.jobId;
+          var lastProcessed = -1;
+          var pollInterval = setInterval(async function() {
+            try {
+              var sRes = await fetch('/api/dms/import/' + jobId);
+              if (!sRes.ok) throw new Error('Poll: HTTP ' + sRes.status);
+              var sData = await sRes.json();
+              if (!sData.success) throw new Error(sData.error);
+              var job = sData.job;
+
+              // Bei jedem Fortschritt UI aktualisieren
+              if (job.processed !== lastProcessed) {
+                lastProcessed = job.processed;
+                showStatus('DMS-Import: ' + job.processed + '/' + job.total
+                  + ' verarbeitet · ' + job.succeeded + ' OK · ' + job.failed + ' fehlgeschlagen');
+                loadDocuments(); // bestehender Loader im Document Manager — zieht aus /api/documents
+              }
+
+              if (job.state !== 'running') {
+                clearInterval(pollInterval);
+                if (job.state === 'done') {
+                  showStatus('✓ DMS-Import abgeschlossen: ' + job.succeeded + ' Dokument(e) indexiert' +
+                    (job.failed ? ', ' + job.failed + ' Fehler' : ''));
+                } else {
+                  showStatus('⚠ Import fehlgeschlagen — siehe Konsole für Details');
+                  console.error('[DMS] Import-Errors:', job.errors);
+                }
+                loadDocuments();
+              }
+            } catch (err) {
+              clearInterval(pollInterval);
+              showStatus('Poll-Fehler: ' + err.message);
+              console.error('[DMS] Poll error:', err);
+            }
+          }, 1500);
+
+          // Safety timeout — nach 5 min spätestens stoppen
+          setTimeout(function() { clearInterval(pollInterval); }, 5 * 60 * 1000);
+
+        } catch (err) {
+          showStatus('DMS-Import fehlgeschlagen: ' + err.message);
+          console.error('[DMS] Import start failed:', err);
+        } finally {
+          dmsBtnAdd.disabled = false;
+          dmsBtnAddLabel.textContent = 'Add to RAG';
+        }
+      });
+
+      /* ---- Init ---- */
+      loadDocuments();
+
+    })();
+
+    /* ============================================================
+       Tab Navigation (Document Manager / User-Info Manager)
+       ============================================================ */
+    (function() {
+      var tabs = document.querySelectorAll('.rag-tab');
+      var panels = document.querySelectorAll('.rag-tab-panel');
+      var subtitle = document.getElementById('rag-subtitle');
+      var headerActions = document.getElementById('rag-header-actions');
+      var subtitles = {
+        doc: 'Dokumente hochladen und verwalten. Hochgeladene Dateien werden automatisch verarbeitet, in Chunks aufgeteilt und in der Vektor-Datenbank indexiert — bereit für den RAG-Chatbot.',
+        user: 'Key-User-Eingaben aus dem Learn Mode verifizieren und an Chatbot oder Frontend-Implementierung zuweisen.'
+      };
+
+      tabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+          var key = tab.getAttribute('data-tab');
+          tabs.forEach(function(t) {
+            t.classList.toggle('active', t === tab);
+            t.setAttribute('aria-selected', t === tab ? 'true' : 'false');
+          });
+          panels.forEach(function(p) {
+            var on = p.id === 'tab-' + key;
+            p.classList.toggle('active', on);
+            if (on) p.removeAttribute('hidden'); else p.setAttribute('hidden', '');
+          });
+          subtitle.textContent = subtitles[key] || '';
+          headerActions.style.display = (key === 'doc') ? '' : 'none';
+          if (key === 'user') renderUserInfo();
+        });
+      });
+    })();
+
+    /* ============================================================
+       User-Info Manager Controller
+       Reads annotations from localStorage (key: gpc_learn_annotations)
+       Allows status assignment (chatbot / frontend / verified) and export.
+       ============================================================ */
+    (function() {
+      var ANN_KEY = 'gpc_learn_annotations';
+      var STATUS_KEY = 'gpc_learn_annotation_status'; /* { '<page>::<path>': 'chatbot'|'frontend'|'verified' } */
+
+      var tbody = document.getElementById('ui-tbody');
+      var emptyState = document.getElementById('ui-empty-state');
+      var search = document.getElementById('ui-search');
+      var filterType = document.getElementById('ui-filter-type');
+      var filterStatus = document.getElementById('ui-filter-status');
+      var resetBtn = document.getElementById('ui-btn-reset');
+      var exportBtn = document.getElementById('ui-btn-export');
+      var badge = document.getElementById('ui-count-badge');
+
+      function loadAnnotations() {
+        try { return JSON.parse(localStorage.getItem(ANN_KEY)) || []; } catch(e) { return []; }
+      }
+      function loadStatus() {
+        try { return JSON.parse(localStorage.getItem(STATUS_KEY)) || {}; } catch(e) { return {}; }
+      }
+      function saveStatus(map) {
+        localStorage.setItem(STATUS_KEY, JSON.stringify(map));
+      }
+      function keyOf(a) { return (a.page || '') + '::' + (a.elementPath || ''); }
+
+      function escapeHtml(s) {
+        return String(s == null ? '' : s).replace(/[&<>"']/g, function(c) {
+          return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+        });
+      }
+      function formatDate(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        if (isNaN(d)) return iso;
+        return d.toLocaleDateString('de-DE') + ' ' + d.toLocaleTimeString('de-DE', { hour:'2-digit', minute:'2-digit' });
+      }
+      function shorten(s, n) {
+        s = String(s || '');
+        return s.length > n ? s.substring(0, n - 1) + '…' : s;
+      }
+
+      var TYPE_PILL = {
+        'Info Icon':              { cls: 'ui-pill-info',  short: 'Info' },
+        'Dependency Information': { cls: 'ui-pill-dep',   short: 'Dependency' },
+        'Chatbot Information':    { cls: 'ui-pill-chat',  short: 'Chatbot' },
+        'Sales Tip':              { cls: 'ui-pill-tip',   short: 'Sales Tip' }
+      };
+      var STATUS_PILL = {
+        'chatbot':  { cls: 'ui-status-chatbot',  label: 'An Chatbot' },
+        'frontend': { cls: 'ui-status-frontend', label: 'An Frontend' },
+        'verified': { cls: 'ui-status-verified', label: 'Verifiziert' },
+        'open':     { cls: 'ui-status-open',     label: 'Offen' }
+      };
+
+      function renderUserInfo() {
+        var all = loadAnnotations();
+        var status = loadStatus();
+
+        /* Update stats */
+        var counts = { total: all.length, info: 0, dep: 0, chat: 0, tip: 0 };
+        all.forEach(function(a) {
+          if (a.contextType === 'Info Icon') counts.info++;
+          else if (a.contextType === 'Dependency Information') counts.dep++;
+          else if (a.contextType === 'Chatbot Information') counts.chat++;
+          else if (a.contextType === 'Sales Tip') counts.tip++;
+        });
+        document.getElementById('ui-stat-total').textContent = counts.total;
+        document.getElementById('ui-stat-info').textContent = counts.info;
+        document.getElementById('ui-stat-dep').textContent = counts.dep;
+        document.getElementById('ui-stat-chat').textContent = counts.chat;
+        document.getElementById('ui-stat-tip').textContent = counts.tip;
+        badge.textContent = counts.total;
+        badge.style.display = counts.total > 0 ? '' : 'none';
+
+        /* Apply filters */
+        var q = (search.value || '').toLowerCase().trim();
+        var tf = filterType.value;
+        var sf = filterStatus.value;
+
+        var filtered = all.filter(function(a) {
+          var s = status[keyOf(a)] || 'open';
+          if (tf && a.contextType !== tf) return false;
+          if (sf && s !== sf) return false;
+          if (q) {
+            var hay = (a.contextType + ' ' + a.page + ' ' + a.elementPath + ' ' + (a.expertComment || '') + ' ' + (a.author || '')).toLowerCase();
+            if (hay.indexOf(q) === -1) return false;
+          }
+          return true;
+        });
+
+        /* Render rows */
+        if (filtered.length === 0) {
+          tbody.innerHTML = '';
+          emptyState.style.display = all.length === 0 ? '' : 'none';
+          if (all.length > 0) {
+            tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding:32px; color:var(--text-light)">Keine Einträge entsprechen den Filtern.</td></tr>';
+          }
+          return;
+        }
+        emptyState.style.display = 'none';
+
+        tbody.innerHTML = filtered.map(function(a) {
+          var k = keyOf(a);
+          var s = status[k] || 'open';
+          var pill = TYPE_PILL[a.contextType] || { cls: 'ui-pill-info', short: a.contextType || '—' };
+          var sp = STATUS_PILL[s];
+          var depCount = a.dependencies ? a.dependencies.length : 0;
+          return '' +
+            '<tr data-key="' + escapeHtml(k) + '">' +
+              '<td><span class="ui-pill ' + pill.cls + '">' + escapeHtml(pill.short) + '</span>' +
+                (depCount ? ' <span class="ui-dep-count">' + depCount + '</span>' : '') +
+              '</td>' +
+              '<td><code class="ui-code">' + escapeHtml(a.page || '') + '</code></td>' +
+              '<td title="' + escapeHtml(a.elementPath || '') + '"><code class="ui-code">' + escapeHtml(shorten(a.elementPath || '', 42)) + '</code></td>' +
+              '<td class="ui-comment" title="' + escapeHtml(a.expertComment || '') + '">' + escapeHtml(a.expertComment || '') + '</td>' +
+              '<td>' + escapeHtml(a.author || '—') + '</td>' +
+              '<td>' + escapeHtml(formatDate(a.timestamp)) + '</td>' +
+              '<td><span class="ui-status ' + sp.cls + '">' + escapeHtml(sp.label) + '</span></td>' +
+              '<td>' +
+                '<div class="ui-action-row">' +
+                  '<button class="ui-action-btn ui-action-chat" data-action="chatbot"  title="An Chatbot übergeben">→ Chatbot</button>' +
+                  '<button class="ui-action-btn ui-action-front" data-action="frontend" title="An Frontend übergeben">→ Frontend</button>' +
+                  '<button class="ui-action-btn ui-action-ver"   data-action="verified" title="Als verifiziert markieren">✓</button>' +
+                  '<button class="ui-action-btn ui-action-reset" data-action="open"     title="Zurücksetzen">↺</button>' +
+                  '<button class="ui-action-btn ui-action-del"   data-action="delete"   title="Eintrag löschen">✕</button>' +
+                '</div>' +
+              '</td>' +
+            '</tr>';
+        }).join('');
+      }
+
+      /* Row actions */
+      tbody.addEventListener('click', function(e) {
+        var btn = e.target.closest('button[data-action]');
+        if (!btn) return;
+        var tr = btn.closest('tr');
+        if (!tr) return;
+        var k = tr.getAttribute('data-key');
+        var action = btn.getAttribute('data-action');
+
+        if (action === 'delete') {
+          if (!confirm('Diesen Eintrag wirklich löschen?')) return;
+          var list = loadAnnotations().filter(function(a) { return keyOf(a) !== k; });
+          localStorage.setItem(ANN_KEY, JSON.stringify(list));
+          var st = loadStatus();
+          delete st[k];
+          saveStatus(st);
+        } else {
+          var st2 = loadStatus();
+          if (action === 'open') delete st2[k]; else st2[k] = action;
+          saveStatus(st2);
+        }
+        renderUserInfo();
+      });
+
+      /* Filters */
+      search.addEventListener('input', renderUserInfo);
+      filterType.addEventListener('change', renderUserInfo);
+      filterStatus.addEventListener('change', renderUserInfo);
+      resetBtn.addEventListener('click', function() {
+        search.value = '';
+        filterType.value = '';
+        filterStatus.value = '';
+        renderUserInfo();
+      });
+
+      /* Export */
+      exportBtn.addEventListener('click', function() {
+        var data = {
+          exportedAt: new Date().toISOString(),
+          annotations: loadAnnotations(),
+          status: loadStatus()
+        };
+        var blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'user-info-annotations-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+
+      /* Expose for tab switcher */
+      window.renderUserInfo = renderUserInfo;
+      /* Initial badge update */
+      renderUserInfo();
+    })();
+  </script>
+  <script src="main.js"></script>
+  <script src="learn-mode.js"></script>
+  <script src="site-header.js"></script>
+</body>
+</html>

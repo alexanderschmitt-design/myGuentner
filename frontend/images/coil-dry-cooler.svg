@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" fill="none">
+  <!-- Background grid -->
+  <rect width="400" height="300" fill="#e8e8e8"/>
+  <defs>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#d4d4d4" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="400" height="300" fill="url(#grid)"/>
+
+  <!-- Coil body (vertical fins) -->
+  <rect x="140" y="60" width="120" height="180" rx="4" fill="none" stroke="#3a3f50" stroke-width="2"/>
+  <line x1="155" y1="60" x2="155" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="170" y1="60" x2="170" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="185" y1="60" x2="185" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="200" y1="60" x2="200" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="215" y1="60" x2="215" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="230" y1="60" x2="230" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+  <line x1="245" y1="60" x2="245" y2="240" stroke="#3a3f50" stroke-width="1.5"/>
+
+  <!-- Horizontal tubes through coil -->
+  <line x1="130" y1="100" x2="270" y2="100" stroke="#3a3f50" stroke-width="4"/>
+  <line x1="130" y1="150" x2="270" y2="150" stroke="#3a3f50" stroke-width="4"/>
+  <line x1="130" y1="200" x2="270" y2="200" stroke="#3a3f50" stroke-width="4"/>
+
+  <!-- Inlet pipe (left) -->
+  <line x1="60" y1="95" x2="130" y2="95" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="105" x2="130" y2="105" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="60" y1="95" x2="60" y2="105" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Outlet pipe (right) -->
+  <line x1="270" y1="195" x2="340" y2="195" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="270" y1="205" x2="340" y2="205" stroke="#3a3f50" stroke-width="3"/>
+  <line x1="340" y1="195" x2="340" y2="205" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- U-bends on right -->
+  <path d="M270,100 Q290,100 290,125 Q290,150 270,150" fill="none" stroke="#3a3f50" stroke-width="3"/>
+  <!-- U-bend on left -->
+  <path d="M130,150 Q110,150 110,175 Q110,200 130,200" fill="none" stroke="#3a3f50" stroke-width="3"/>
+
+  <!-- Flow arrows -->
+  <polygon points="100,95 90,100 100,105" fill="#3a3f50"/>
+  <polygon points="315,195 325,200 315,205" fill="#3a3f50"/>
+</svg>

@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>myGPC — Category</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ===== API & MCP Services cards ===== */
+    .api-services-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .api-service-card {
+      background: var(--surface-white, #fff);
+      border: 1px solid var(--border-light, #e6e6e6);
+      border-radius: 6px;
+      padding: 24px 26px 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .api-service-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+    .api-service-icon--api  { background: #E5F5EC; color: #2BA84A; }
+    .api-service-icon--mcp  { background: #E6F2FB; color: #2666E0; }
+    .api-service-title {
+      font-size: 19px;
+      font-weight: 600;
+      color: var(--text-dark, #1a1a1a);
+      margin: 0;
+      line-height: 1.2;
+    }
+    .api-service-tag {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.4px;
+      text-transform: uppercase;
+      color: var(--primary, #2666E0);
+      margin-bottom: 4px;
+    }
+    .api-service-desc {
+      font-size: 14px;
+      line-height: 1.55;
+      color: var(--text-medium, #555);
+      margin: 0;
+      flex: 1;
+    }
+    .api-service-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 14px;
+    }
+    .api-service-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 11px 22px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      border-radius: 3px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: background var(--transition, .15s), color var(--transition, .15s), border-color var(--transition, .15s);
+    }
+    .api-service-btn--primary {
+      background: #1a2a44;
+      color: #fff;
+      border: 1px solid #1a2a44;
+    }
+    .api-service-btn--primary:hover { background: #243759; border-color: #243759; }
+    .api-service-btn--outline {
+      background: transparent;
+      color: #1a2a44;
+      border: 1px solid #cfd5de;
+    }
+    .api-service-btn--outline:hover { background: #f4f6fa; border-color: #1a2a44; }
+  </style>
+</head>
+<body>
+
+  <!-- ===== HEADER ===== -->
+  <header class="site-header" data-app-header data-active="mygpc"></header>
+
+  <!-- Step wizard intentionally omitted on the landing page —
+       it appears starting on the next page after a category card click. -->
+
+  <!-- ===== PAGE CONTENT ===== -->
+  <main class="page-content">
+    <div class="container">
+
+      <!-- Category Cards (default — hidden when region = NLA/EN) -->
+      <div class="index-accordion open" id="acc-category-block" data-region-hide="NLA/EN">
+        <div class="index-accordion-header" id="acc-category">
+          <h2 class="index-accordion-title">Units</h2>
+          <svg class="index-accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="index-accordion-body">
+      <div class="cat-grid">
+
+        <!-- Evaporator DX -->
+        <div class="cat-card" id="card-evaporator-dx">
+          <div class="cat-card-image"><img src="images/Evaporator-dx.png" alt="Evaporator DX"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-dx.svg" alt="" class="cat-card-icon">
+              <span>Evaporator</span>
+            </div>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="0"
+               data-gpc-product-category-name="Evaporator (dx)">DX</a>
+            <div class="cat-card-lastconfig">
+              <span class="cat-card-lastconfig-label">last configuration</span>
+              <a href="#" class="cat-card-lastconfig-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+                GACC CX 040.2/2WN/DJA4A.UNNN
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaporator Pump -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/Evaporator-pump.png" alt="Evaporator Pump"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-pump.svg" alt="" class="cat-card-icon">
+              <span>Evaporator</span>
+            </div>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="1"
+               data-gpc-product-category-name="Evaporator (pump)">Pump</a>
+          </div>
+        </div>
+
+        <!-- Air cooler -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/Aircooler.png" alt="Air cooler"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-coolant.svg" alt="" class="cat-card-icon">
+              <span>Air cooler</span>
+            </div>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="2"
+               data-gpc-product-category-name="Air cooler (coolant)">Coolant</a>
+            <div class="cat-card-lastconfig">
+              <span class="cat-card-lastconfig-label">last configuration</span>
+              <a href="#" class="cat-card-lastconfig-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+                GACC CX 040.2/2WN/DJA4A.UNNN
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dry cooler -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/Drycooler.png" alt="Dry cooler"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-pump.svg" alt="" class="cat-card-icon">
+              <span>Dry cooler</span>
+            </div>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="4"
+               data-gpc-product-category-name="Dry cooler (air heater)">Dry cooler</a>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="6"
+               data-gpc-product-category-name="Oil cooler">Oil Cooler</a>
+          </div>
+        </div>
+
+        <!-- Condenser -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/Condenser.png" alt="Condenser"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-condenser.svg" alt="" class="cat-card-icon">
+              <span>Condenser</span>
+            </div>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="3"
+               data-gpc-product-category-name="Condenser">Condenser</a>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="5"
+               data-gpc-product-category-name="Subcooler">Subcooler</a>
+            <div class="cat-card-lastconfig">
+              <span class="cat-card-lastconfig-label">last configuration</span>
+              <a href="#" class="cat-card-lastconfig-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+                GACC CX 040.2/2WN/DJA4A.UNNN
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gas cooler -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/Gas-cooler.png" alt="Gas cooler"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-gascooler.svg" alt="" class="cat-card-icon">
+              <span>Gas cooler</span>
+            </div>
+            <a href="thermodynamics.html" class="cat-card-btn"
+               data-gpc-product-section="1"
+               data-gpc-product-category="10"
+               data-gpc-product-category-name="CO2 gas cooler">CO<sub>2</sub></a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Upload Section (inside Units accordion) -->
+      <div class="upload-section">
+        <a href="#" class="btn btn-outline">
+          Upload Desktop GPC calculation
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </a>
+      </div>
+
+        </div>
+      </div>
+
+      <!-- ============================================================
+           myGPS — my Güntner Product Specificator
+           Visible only when region = NLA/EN (replaces "Units")
+           ============================================================ -->
+      <div class="index-accordion open" id="acc-mygps-block" data-region-only="NLA/EN">
+        <div class="index-accordion-header" id="acc-mygps">
+          <h2 class="index-accordion-title">By Category (GPS)</h2>
+          <svg class="index-accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="index-accordion-body">
+          <div class="cat-grid">
+
+            <!-- Evaporative Products -->
+            <div class="cat-card">
+              <div class="cat-card-image"><img src="images/Evaporator-Pump.png" alt="Evaporative Products"></div>
+              <div class="cat-card-body">
+                <div class="cat-card-title">
+                  <img src="images/icon-pump.svg" alt="" class="cat-card-icon">
+                  <span>Evaporative Products</span>
+                </div>
+                <a href="mygps-projects.html?cat=evaporative&sub=condenser" class="cat-card-btn">Evaporative Condenser</a>
+                <a href="mygps-projects.html?cat=evaporative&sub=fluid-cooler" class="cat-card-btn">Evaporative Fluid Coolers</a>
+              </div>
+            </div>
+
+            <!-- Adiabatic Products -->
+            <div class="cat-card">
+              <div class="cat-card-image"><img src="images/Condenser.png" alt="Adiabatic Products"></div>
+              <div class="cat-card-body">
+                <div class="cat-card-title">
+                  <img src="images/icon-condenser.svg" alt="" class="cat-card-icon">
+                  <span>Adiabatic Products</span>
+                </div>
+                <a href="mygps-projects.html?cat=adiabatic&sub=condenser" class="cat-card-btn">Adiabatic Condensers</a>
+                <a href="mygps-projects.html?cat=adiabatic&sub=fluid-cooler" class="cat-card-btn">Adiabatic Fluid Coolers</a>
+                <a href="mygps-projects.html?cat=adiabatic&sub=co2-gas-cooler" class="cat-card-btn">Adiabatic CO<sub>2</sub> Gas Coolers</a>
+              </div>
+            </div>
+
+            <!-- High-Density Products -->
+            <div class="cat-card">
+              <div class="cat-card-image"><img src="images/Gas-Cooler.png" alt="High-Density Products"></div>
+              <div class="cat-card-body">
+                <div class="cat-card-title">
+                  <img src="images/icon-gascooler.svg" alt="" class="cat-card-icon">
+                  <span>High-Density Products</span>
+                </div>
+                <a href="mygps-projects.html?cat=high-density&sub=fluid-cooler" class="cat-card-btn">Adiabatic Fluid Coolers</a>
+                <a href="mygps-projects.html?cat=high-density&sub=condenser" class="cat-card-btn">Adiabatic Condensers</a>
+              </div>
+            </div>
+
+            <!-- Dry Products -->
+            <div class="cat-card">
+              <div class="cat-card-image"><img src="images/Drycooler.png" alt="Dry Products"></div>
+              <div class="cat-card-body">
+                <div class="cat-card-title">
+                  <img src="images/icon-dry.svg" alt="" class="cat-card-icon">
+                  <span>Dry Products</span>
+                </div>
+                <a href="mygps-projects.html?cat=dry&sub=condenser" class="cat-card-btn">Dry Condensers</a>
+              </div>
+            </div>
+
+            <!-- Air Cooler Products (Data Center) — no sub-category -->
+            <div class="cat-card">
+              <div class="cat-card-image"><img src="images/Aircooler.png" alt="Air Cooler Products"></div>
+              <div class="cat-card-body">
+                <div class="cat-card-title">
+                  <img src="images/icon-aircooler.svg" alt="" class="cat-card-icon">
+                  <span>Air Cooler Products</span>
+                </div>
+                <a href="mygps-projects.html?cat=air-cooler" class="cat-card-btn">Air Cooler</a>
+              </div>
+            </div>
+
+            <!-- Data Center -->
+            <div class="cat-card">
+              <div class="cat-card-image"><img src="images/Datacenter.jpg" alt="Data Center"></div>
+              <div class="cat-card-body">
+                <div class="cat-card-title">
+                  <svg class="cat-card-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+                  <span>Data Center</span>
+                </div>
+                <a href="mygps-projects.html?cat=data-center" class="cat-card-btn">Data Center</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Industry Cards — Row 3 -->
+      <div class="index-accordion" id="acc-application-block">
+        <div class="index-accordion-header" id="acc-application">
+          <h2 class="index-accordion-title">By Application</h2>
+          <svg class="index-accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="index-accordion-body">
+      <div class="category-grid category-grid-industry">
+
+        <!-- Data Centers -->
+        <div class="industry-card">
+          <div class="industry-card-img">
+            <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=300&fit=crop" alt="Data Centers">
+          </div>
+          <div class="industry-card-body">
+            <h3 class="industry-card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+              Data Centers
+            </h3>
+            <a href="dc-guided-config.html" class="industry-card-btn">DC</a>
+            <div class="industry-card-config">
+              <span class="config-label">last configuration</span>
+              <span class="config-value">DCHD 213.1 1x5/08RA-1500L/02P.M</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Food Processing -->
+        <div class="industry-card">
+          <div class="industry-card-img">
+            <img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=300&fit=crop" alt="Food Processing">
+          </div>
+          <div class="industry-card-body">
+            <h3 class="industry-card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+              Food Processing
+            </h3>
+            <a href="thermodynamics.html" class="industry-card-btn">Pump</a>
+          </div>
+        </div>
+
+        <!-- Industrial Refrigeration -->
+        <div class="industry-card">
+          <div class="industry-card-img">
+            <img src="https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=300&fit=crop" alt="Industrial Refrigeration">
+          </div>
+          <div class="industry-card-body">
+            <h3 class="industry-card-title">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M2 12h20M12 2l4 4M12 2L8 4M12 22l4-4M12 22l-4-2M2 12l4-4M2 12l2 4M22 12l-4-4M22 12l-2 4"/></svg>
+              Industrial Refrigeration
+            </h3>
+            <a href="thermodynamics.html" class="industry-card-btn">Coolant</a>
+            <div class="industry-card-config">
+              <span class="config-label">last configuration</span>
+              <span class="config-value">GACC CX 040.2/2WN/DJA4A.UNNN</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+        </div>
+      </div>
+
+      <!-- Bare Coils Section -->
+      <div class="index-accordion" id="acc-coils-block">
+        <div class="index-accordion-header" id="acc-coils">
+          <h2 class="index-accordion-title">Bare Coils</h2>
+          <svg class="index-accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="index-accordion-body">
+      <div class="category-grid">
+
+        <!-- Evaporator DX -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/coil-evaporator-dx.png" alt="Evaporator DX"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-dx.svg" alt="" class="cat-card-icon">
+              <span>Evaporator</span>
+            </div>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">DX</a>
+            <div class="cat-card-lastconfig">
+              <span class="cat-card-lastconfig-label">last configuration</span>
+              <a href="#" class="cat-card-lastconfig-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+                GACC CX 040.2/2WN/DJA4A.UNNN
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evaporator Pump -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/coil-evaporator-pump.png" alt="Evaporator Pump"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-pump.svg" alt="" class="cat-card-icon">
+              <span>Evaporator</span>
+            </div>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">Pump</a>
+          </div>
+        </div>
+
+        <!-- Air cooler -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/coil-air-cooler.png" alt="Air cooler"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-coolant.svg" alt="" class="cat-card-icon">
+              <span>Air cooler</span>
+            </div>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">Coolant</a>
+            <div class="cat-card-lastconfig">
+              <span class="cat-card-lastconfig-label">last configuration</span>
+              <a href="#" class="cat-card-lastconfig-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+                GACC CX 040.2/2WN/DJA4A.UNNN
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dry cooler -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/coil-dry-cooler.png" alt="Dry cooler"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-pump.svg" alt="" class="cat-card-icon">
+              <span>Dry cooler</span>
+            </div>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">Dry cooler</a>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">Oil Cooler</a>
+          </div>
+        </div>
+
+        <!-- Condenser -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/coil-condenser.png" alt="Condenser"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-condenser.svg" alt="" class="cat-card-icon">
+              <span>Condenser</span>
+            </div>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">Condenser</a>
+            <div class="cat-card-lastconfig">
+              <span class="cat-card-lastconfig-label">last configuration</span>
+              <a href="#" class="cat-card-lastconfig-link">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+                GACC CX 040.2/2WN/DJA4A.UNNN
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sub Cooler -->
+        <div class="cat-card">
+          <div class="cat-card-image"><img src="images/coil-subcooler.png" alt="Sub Cooler"></div>
+          <div class="cat-card-body">
+            <div class="cat-card-title">
+              <img src="images/icon-condenser.svg" alt="" class="cat-card-icon">
+              <span>Sub Cooler</span>
+            </div>
+            <a href="coil-thermodynamics.html" class="cat-card-btn">Sub Cooler</a>
+          </div>
+        </div>
+
+      </div>
+        </div>
+      </div>
+
+      <!-- API & MCP Services Section -->
+      <div class="index-accordion" id="acc-api-services-block">
+        <div class="index-accordion-header" id="acc-api-services">
+          <h2 class="index-accordion-title">API &amp; MCP Services</h2>
+          <svg class="index-accordion-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="index-accordion-body">
+          <div class="api-services-grid">
+
+            <!-- myGPC API -->
+            <div class="api-service-card">
+              <div class="api-service-icon api-service-icon--api" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"/>
+                  <polyline points="8 6 2 12 8 18"/>
+                </svg>
+              </div>
+              <h3 class="api-service-title">myGPC API</h3>
+              <div class="api-service-tag">Enterprise Integration</div>
+              <p class="api-service-desc">Direct integration of Güntner's calculation logic into your ERP or CRM software. Automate your quotation processes and always work with up-to-date product data.</p>
+              <div class="api-service-actions">
+                <a href="#" class="api-service-btn api-service-btn--primary">Request Access</a>
+                <a href="#" class="api-service-btn api-service-btn--outline">Learn More</a>
+              </div>
+            </div>
+
+            <!-- MCP Server -->
+            <div class="api-service-card">
+              <div class="api-service-icon api-service-icon--mcp" aria-hidden="true">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="7" rx="1.5"/>
+                  <rect x="3" y="14" width="18" height="7" rx="1.5"/>
+                  <line x1="7" y1="6.5" x2="7.01" y2="6.5"/>
+                  <line x1="7" y1="17.5" x2="7.01" y2="17.5"/>
+                </svg>
+              </div>
+              <h3 class="api-service-title">MCP Server</h3>
+              <div class="api-service-tag">Future-Proof Data Management</div>
+              <p class="api-service-desc">Future-proof server solution for centralized configuration and data management. Scalable infrastructure for complex engineering workflows and teams.</p>
+              <div class="api-service-actions">
+                <a href="#" class="api-service-btn api-service-btn--primary">Request Access</a>
+                <a href="#" class="api-service-btn api-service-btn--outline">Learn More</a>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== CHATBOT WIDGET ===== -->
+  <div class="chatbot-dialog">
+    <div class="chatbot-dialog-header">
+      <h4>Güntner Configuration Assistant</h4>
+      <p>I will help you find the right product.</p>
+      <button class="chatbot-expand" aria-label="Expand chat">
+        <svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        <svg class="icon-shrink" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 14 10 14 10 20"/><polyline points="20 10 14 10 14 4"/><line x1="14" y1="10" x2="21" y2="3"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      </button>
+      <button class="chatbot-close" aria-label="Close chat">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="chatbot-dialog-body"></div>
+    <div class="chatbot-dialog-footer">
+      <input type="text" class="chatbot-input" placeholder="Type a message…">
+      <button class="chatbot-send">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+    <!-- Docked layout (visible only in docked mode) -->
+    <div class="chatbot-docked-layout">
+      <div class="chatbot-guidance">
+        <h2 class="chatbot-guidance-title">Configuration Assistant</h2>
+        <p class="chatbot-guidance-subtitle">Answer the following steps to find the right Güntner product.</p>
+        <div class="guidance-steps">
+          <div class="guidance-step-card" data-guidance-step="1">
+            <div class="guidance-step-number">Step 1</div>
+            <div class="guidance-step-label">Product category</div>
+            <div class="guidance-step-value" id="gv-category"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="2">
+            <div class="guidance-step-number">Step 2</div>
+            <div class="guidance-step-label">Application</div>
+            <div class="guidance-step-value" id="gv-application"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="3">
+            <div class="guidance-step-number">Step 3</div>
+            <div class="guidance-step-label">Cooling capacity</div>
+            <div class="guidance-step-value" id="gv-capacity"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="4">
+            <div class="guidance-step-number">Step 4</div>
+            <div class="guidance-step-label">Refrigerant</div>
+            <div class="guidance-step-value" id="gv-refrigerant"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="5">
+            <div class="guidance-step-number">Step 5</div>
+            <div class="guidance-step-label">Temperature</div>
+            <div class="guidance-step-value" id="gv-temperature"></div>
+          </div>
+          <div class="guidance-step-card" data-guidance-step="6">
+            <div class="guidance-step-number">Step 6</div>
+            <div class="guidance-step-label">Summary</div>
+            <div class="guidance-step-value" id="gv-summary"></div>
+          </div>
+        </div>
+        <div class="guidance-active-step" id="guidance-active-area"></div>
+      </div>
+      <div class="chatbot-docked-chat">
+        <div class="chatbot-docked-chat-body"></div>
+        <div class="chatbot-docked-chat-footer">
+          <input type="text" class="chatbot-docked-input" placeholder="Type a message…">
+          <button class="chatbot-docked-send">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button class="chatbot-trigger" aria-label="Open chat">
+    <svg class="icon-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <svg class="icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+  </button>
+
+  <!-- ===== FLOATING CATALOG BUTTON ===== -->
+  <a href="catalog.html" class="catalog-fab" id="catalog-fab" aria-label="Open Güntner Catalog">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>Güntner Catalog</span>
+  </a>
+  <script>
+    /* Hide catalog FAB when the feature flag has been explicitly disabled.
+       Flag is default-on: only the stored value '0' hides the button.
+       Uses inline style.display because the `hidden` attribute is overridden
+       by the `.catalog-fab { display: inline-flex }` rule (same specificity,
+       class wins the cascade order). */
+    (function() {
+      if (localStorage.getItem('gpc_feature_guentner_catalog') === '0') {
+        var el = document.getElementById('catalog-fab');
+        if (el) el.style.display = 'none';
+      }
+    })();
+  </script>
+  <style>
+    .catalog-fab {
+      position: fixed;
+      bottom: 24px;
+      right: 100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 20px;
+      background: var(--primary);
+      color: #fff;
+      font-family: inherit;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: 999px;
+      box-shadow: 0 6px 18px rgba(38, 102, 224, .35);
+      z-index: 1000;
+      transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+    }
+    .catalog-fab:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 24px rgba(38, 102, 224, .4);
+    }
+    .catalog-fab svg { flex-shrink: 0; }
+    @media (max-width: 768px) {
+      .catalog-fab {
+        right: 88px;
+        bottom: 16px;
+        padding: 10px 14px;
+        font-size: 11px;
+      }
+      .catalog-fab span { display: none; }
+    }
+  </style>
+
+  <script src="mygps-flows.js"></script>
+  <script src="main.js"></script>
+  <script src="learn-mode.js"></script>
+  <script src="mygps.js"></script>
+  <script src="site-header.js"></script>
+
+  <!-- ===== myGPC Foundation (Stage A) — Category-Picker ===== -->
+  <script src="mygpc-state.js"></script>
+  <script src="mygpc-api.js"></script>
+  <script src="mygpc-class-config.js"></script>
+  <script src="mygpc-bind.js"></script>
+  <script>
+    /* Click-Handler: setzt productCategory in den State, dann Navigation zu thermodynamics.html */
+    (function () {
+      var buttons = document.querySelectorAll('.cat-card-btn[data-gpc-product-category]');
+      buttons.forEach(function (btn) {
+        btn.addEventListener('click', function (ev) {
+          var section = parseInt(btn.getAttribute('data-gpc-product-section'), 10) || 1;
+          var category = parseInt(btn.getAttribute('data-gpc-product-category'), 10);
+          var name = btn.getAttribute('data-gpc-product-category-name') || '';
+          if (Number.isFinite(category)) {
+            MyGPC.state.setCategory(section, category, name);
+            console.log('[mygpc] Category selected:', section, category, name, '→ class:', MyGPC.classConfig.classOf(section, category));
+          }
+          // Standard-Navigation läuft danach normal weiter
+        });
+      });
+    })();
+  </script>
+  <script>
+    /* Admin-controlled accordion visibility on the home page.
+       Storage: localStorage['mygpc_home_accordions'] as JSON object keyed by
+       accordion element id. Defaults to all-visible. Admin toggle-cards in
+       admin.html write this key. This gate runs BEFORE region-gating so both
+       filters can independently hide an accordion. */
+    (function() {
+      var TOGGLE_KEY = 'mygpc_home_accordions';
+      var defaults = {
+        'acc-category-block':     true,
+        'acc-mygps-block':        true,
+        'acc-application-block':  true,
+        'acc-coils-block':        true,
+        'acc-api-services-block': true
+      };
+      var stored = {};
+      try { stored = JSON.parse(localStorage.getItem(TOGGLE_KEY) || '{}') || {}; }
+      catch(e) { stored = {}; }
+      Object.keys(defaults).forEach(function(id) {
+        var visible = (id in stored) ? !!stored[id] : defaults[id];
+        var el = document.getElementById(id);
+        if (el && !visible) el.hidden = true;
+      });
+    })();
+  </script>
+  <script>
+    /* Region-gated accordions:
+       - data-region-only="NLA/EN" → only shown when current region equals that value
+       - data-region-hide="NLA/EN" → hidden when current region equals that value
+       Default region falls back to EMEA/DE if nothing was persisted yet.
+       Note: this filter is additive to the admin accordion-toggle filter above —
+       an element hidden by either filter stays hidden. Region-change re-applies
+       only region gating and won't restore accordions the admin has switched off. */
+    (function() {
+      function isAdminHidden(el) {
+        var id = el.id;
+        if (!id) return false;
+        try {
+          var stored = JSON.parse(localStorage.getItem('mygpc_home_accordions') || '{}') || {};
+          return (id in stored) && !stored[id];
+        } catch(e) { return false; }
+      }
+      function applyRegion(region) {
+        var r = region || 'EMEA/DE';
+        document.querySelectorAll('[data-region-only]').forEach(function(el) {
+          var regionMatch = el.getAttribute('data-region-only') === r;
+          el.hidden = !regionMatch || isAdminHidden(el);
+        });
+        document.querySelectorAll('[data-region-hide]').forEach(function(el) {
+          var regionHidden = el.getAttribute('data-region-hide') === r;
+          el.hidden = regionHidden || isAdminHidden(el);
+        });
+      }
+      var initial = (window.localStorage && localStorage.getItem('mygpc_region')) || 'EMEA/DE';
+      applyRegion(initial);
+      window.addEventListener('mygpc:region-change', function(e) {
+        applyRegion(e.detail && e.detail.region);
+      });
+    })();
+  </script>
+</body>
+</html>

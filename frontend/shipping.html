@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shipping — myGüntner</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ============================================================
+       Shipping page — checkout step 2
+       ============================================================ */
+    .ship-page-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 24px 0 24px;
+    }
+    .ship-page-title {
+      font-size: 28px;
+      font-weight: 400;
+      color: var(--text-dark);
+      margin: 0;
+      letter-spacing: -.2px;
+    }
+
+    /* Shared checkout-step pill (also used on cart.html) */
+    .checkout-steps {
+      display: inline-flex;
+      gap: 4px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-light);
+    }
+    .checkout-step {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 16px;
+      background: var(--surface-canvas);
+    }
+    .checkout-step.active {
+      background: rgba(38, 102, 224, .1);
+      color: var(--primary);
+      font-weight: 600;
+    }
+    .checkout-step.done {
+      color: var(--text-medium);
+    }
+    .checkout-step .step-num {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(0,0,0,.08);
+      color: var(--text-medium);
+      font-size: 10px;
+      font-weight: 700;
+    }
+    .checkout-step.active .step-num { background: var(--primary); color: #fff; }
+    .checkout-step.done .step-num { background: var(--text-medium); color: #fff; }
+    .checkout-step-arrow { color: var(--text-light); }
+
+    /* Two-column layout */
+    .ship-layout {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 24px;
+      align-items: start;
+      margin-bottom: 32px;
+    }
+
+    /* ===== Address block ===== */
+    .ship-card {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 22px 24px;
+      margin-bottom: 18px;
+    }
+    .ship-section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .ship-section-title {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0;
+    }
+    .ship-section-check {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(38, 102, 224, .12);
+      color: var(--primary);
+    }
+    .ship-section-check svg { width: 11px; height: 11px; }
+    .ship-edit {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .ship-edit:hover { color: var(--primary-dark); text-decoration: underline; }
+    .ship-edit svg { width: 14px; height: 14px; }
+
+    .ship-addresses {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+    }
+    .ship-addr-block {
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text-medium);
+    }
+    .ship-addr-label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .8px;
+      text-transform: uppercase;
+      color: var(--text-light);
+      margin-bottom: 6px;
+    }
+    .ship-addr-name { color: var(--text-dark); font-weight: 500; }
+
+    /* ===== Freight options ===== */
+    .ship-options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .ship-option {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 16px 18px;
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color .15s, background .15s;
+    }
+    .ship-option:hover { border-color: var(--primary-light); }
+    .ship-option.selected {
+      border-color: var(--primary);
+      background: rgba(38, 102, 224, .04);
+    }
+    .ship-option input[type="radio"] {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      margin: 0;
+      cursor: pointer;
+    }
+    .ship-option-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .ship-option-title {
+      font-size: 14px;
+      color: var(--text-dark);
+      font-weight: 500;
+    }
+    .ship-option-title a { color: var(--primary); text-decoration: none; }
+    .ship-option-title a:hover { text-decoration: underline; }
+    .ship-option-desc {
+      font-size: 12.5px;
+      color: var(--text-light);
+    }
+    .ship-option-price {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+      flex-shrink: 0;
+    }
+
+    /* ===== Continue button ===== */
+    .ship-continue {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 22px;
+      margin-top: 24px;
+      background: var(--primary);
+      color: #fff;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: .2px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: background .15s;
+    }
+    .ship-continue:hover { background: var(--primary-dark); }
+    .ship-continue svg { width: 14px; height: 14px; }
+
+    /* ===== Order summary panel ===== */
+    .ship-summary {
+      background: #fff;
+      border: 1px solid var(--border-light);
+      border-radius: 6px;
+      padding: 22px 22px 24px;
+      position: sticky;
+      top: 84px;
+    }
+    .ship-summary-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 0 0 18px;
+    }
+    .ship-summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 13.5px;
+      color: var(--text-medium);
+      margin-bottom: 12px;
+    }
+    .ship-summary-row .value { color: var(--text-dark); font-weight: 500; }
+    .ship-summary-row .value--muted { color: var(--text-light); font-size: 12.5px; font-weight: 400; }
+    .ship-summary-divider {
+      height: 1px;
+      background: var(--border-light);
+      margin: 14px 0 16px;
+    }
+    .ship-summary-total {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .ship-summary-total .label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    .ship-summary-total .value {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-dark);
+    }
+
+    /* ---- Item rows in summary ---- */
+    .ship-summary-items {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-light);
+    }
+    .ship-summary-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .ship-summary-item-img {
+      width: 44px;
+      height: 44px;
+      flex-shrink: 0;
+      background: var(--surface-canvas);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+    .ship-summary-item-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 4px;
+    }
+    .ship-summary-item-text {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      min-width: 0;
+    }
+    .ship-summary-item-meta {
+      font-size: 10.5px;
+      color: var(--text-light);
+      letter-spacing: .3px;
+      font-family: ui-monospace, "DM Mono", "SF Mono", Consolas, monospace;
+    }
+    .ship-summary-item-name {
+      font-size: 13px;
+      color: var(--text-dark);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .ship-summary-item-price {
+      font-size: 12.5px;
+      color: var(--text-medium);
+      margin-top: 2px;
+    }
+    .ship-summary-item-qty {
+      flex-shrink: 0;
+      font-size: 12.5px;
+      color: var(--text-medium);
+      font-weight: 600;
+    }
+
+    @media (max-width: 1024px) {
+      .ship-layout { grid-template-columns: 1fr; }
+      .ship-summary { position: static; }
+    }
+    @media (max-width: 768px) {
+      .ship-addresses { grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    }
+    @media (max-width: 480px) {
+      .ship-addresses { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="site-header" data-app-header data-active=""></header>
+
+  <main class="page-content">
+    <div class="container">
+
+      <div class="ship-page-header">
+        <h1 class="ship-page-title">Checkout</h1>
+        <div class="checkout-steps">
+          <span class="checkout-step done"><span class="step-num">1</span> <a href="cart.html" style="color:inherit;text-decoration:none">Cart</a></span>
+          <span class="checkout-step-arrow">›</span>
+          <span class="checkout-step active"><span class="step-num">2</span> Shipping</span>
+          <span class="checkout-step-arrow">›</span>
+          <span class="checkout-step"><span class="step-num">3</span> Payment</span>
+        </div>
+      </div>
+
+      <div class="ship-layout">
+
+        <!-- ============ MAIN ============ -->
+        <div>
+
+          <!-- Address card -->
+          <section class="ship-card">
+            <div class="ship-section-head">
+              <h2 class="ship-section-title">
+                Shipping Address
+                <span class="ship-section-check" aria-label="Confirmed">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </span>
+              </h2>
+              <a href="#" class="ship-edit">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Edit
+              </a>
+            </div>
+
+            <div class="ship-addresses">
+              <div class="ship-addr-block">
+                <span class="ship-addr-label">Shipping Address</span>
+                <span class="ship-addr-name">Swen Zimmermann</span><br>
+                ACME Inc.<br>
+                3601 West Algonquin Road<br>
+                Rolling Meadows 600008<br>
+                IL, United States
+              </div>
+              <div class="ship-addr-block">
+                <span class="ship-addr-label">Contact</span>
+                +49 6359227 1690<br>
+                seitz.marcel@weber.com
+              </div>
+              <div class="ship-addr-block">
+                <span class="ship-addr-label">Accounting</span>
+                accounting@company.com
+              </div>
+              <div class="ship-addr-block">
+                <span class="ship-addr-label">Billing Address</span>
+                Billing- and delivery address are the same.
+              </div>
+            </div>
+          </section>
+
+          <!-- Freight options card -->
+          <section class="ship-card">
+            <h2 class="ship-section-title" style="margin-bottom:16px">Freight Options</h2>
+            <div class="ship-options" id="ship-options">
+              <label class="ship-option" data-price="326.71">
+                <input type="radio" name="freight" value="economy">
+                <div class="ship-option-body">
+                  <span class="ship-option-title">Freight Economy 4 day(s) (FedEx)</span>
+                </div>
+                <span class="ship-option-price">326,71 €</span>
+              </label>
+
+              <label class="ship-option selected" data-price="342.41">
+                <input type="radio" name="freight" value="priority" checked>
+                <div class="ship-option-body">
+                  <span class="ship-option-title">Freight Priority 2 day(s) (FedEx)</span>
+                </div>
+                <span class="ship-option-price">342,41 €</span>
+              </label>
+
+              <label class="ship-option" data-price="89.54">
+                <input type="radio" name="freight" value="pickup">
+                <div class="ship-option-body">
+                  <span class="ship-option-title">Pickup at warehouse: <a href="#">Berlin, Friedrichstraße</a></span>
+                  <span class="ship-option-desc">We have selected the closest warehouse based on your location.</span>
+                </div>
+                <span class="ship-option-price">89,54 €</span>
+              </label>
+            </div>
+
+            <a href="payment.html" class="ship-continue" id="ship-continue">
+              Continue to payment
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </a>
+          </section>
+
+        </div>
+
+        <!-- ============ ORDER SUMMARY ============ -->
+        <aside class="ship-summary">
+          <h2 class="ship-summary-title">Order Summary</h2>
+
+          <div class="ship-summary-row">
+            <span class="label">Subtotal</span>
+            <span class="value" id="ship-subtotal">—</span>
+          </div>
+          <div class="ship-summary-row">
+            <span class="label">Shipping</span>
+            <span class="value" id="ship-shipping">—</span>
+          </div>
+          <div class="ship-summary-row">
+            <span class="label">Taxes</span>
+            <span class="value value--muted">Calculated at next step</span>
+          </div>
+          <div class="ship-summary-divider"></div>
+          <div class="ship-summary-total">
+            <span class="label">Order total</span>
+            <span class="value" id="ship-total">—</span>
+          </div>
+
+          <div class="ship-summary-items" id="ship-summary-items"></div>
+        </aside>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-left">
+        <a href="admin.html" class="footer-logo">
+          <svg class="footer-logo-bars" width="24" height="15" viewBox="0 0 32 20"><rect x="0" y="6" width="3" height="8" rx="1" fill="#39EDB5"/><rect x="5" y="2" width="3" height="16" rx="1" fill="#39EDB5"/><rect x="10" y="4" width="3" height="12" rx="1" fill="#2DC8A0"/><rect x="15" y="0" width="3" height="20" rx="1" fill="#2AAE8C"/><rect x="20" y="6" width="3" height="8" rx="1" fill="#2896E0"/><rect x="25" y="3" width="3" height="14" rx="1" fill="#2666E0"/></svg>
+          <span class="footer-logo-text"><span class="logo-my">my</span><span class="logo-name">Güntner</span></span>
+        </a>
+      </div>
+      <div class="footer-right">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Legal Notice</a>
+        <a href="#">Terms &amp; Conditions</a>
+        <span class="footer-copyright">Copyright &copy; 2026 G&uuml;ntner GmbH &amp; Co. KG</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="cart.js"></script>
+  <script>
+  (function() {
+    const escHtml = v => { const d = document.createElement('div'); d.textContent = (v == null ? '' : String(v)); return d.innerHTML; };
+    const fmt     = n => n.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+    const subtotalEl = document.getElementById('ship-subtotal');
+    const shippingEl = document.getElementById('ship-shipping');
+    const totalEl    = document.getElementById('ship-total');
+    const itemsEl    = document.getElementById('ship-summary-items');
+    const continueBtn= document.getElementById('ship-continue');
+
+    let selectedFreight = 342.41;
+
+    function renderItems(items) {
+      if (!items.length) {
+        itemsEl.innerHTML = '<p style="color:var(--text-light);font-size:13px;margin:0">Your cart is empty.</p>';
+        return;
+      }
+      itemsEl.innerHTML = items.map(it => {
+        const lineDisc = it.unitPrice != null ? it.unitPrice * (it.discount || 0) / 100 : 0;
+        const lineTotal = it.unitPrice != null && !it.priceOnRequest
+          ? (it.unitPrice - lineDisc) * it.quantity
+          : null;
+        return `
+          <div class="ship-summary-item">
+            <div class="ship-summary-item-img"><img src="${escHtml(it.imageSrc)}" alt=""></div>
+            <div class="ship-summary-item-text">
+              <span class="ship-summary-item-meta">${escHtml(it.partNumber || it.id || '')}</span>
+              <span class="ship-summary-item-name">${escHtml(it.title || it.id || '')}</span>
+              <span class="ship-summary-item-price">${lineTotal != null ? fmt(lineTotal) + ' €' : 'Price on request'}</span>
+            </div>
+            <span class="ship-summary-item-qty">×${it.quantity}</span>
+          </div>`;
+      }).join('');
+    }
+
+    function recompute() {
+      if (!window.Cart) return;
+      const items = window.Cart.get();
+
+      // Subtotal (after discount, before shipping)
+      const subtotal = items.reduce((sum, x) => {
+        if (x.priceOnRequest || x.unitPrice == null) return sum;
+        return sum + x.unitPrice * x.quantity * (1 - (x.discount || 0) / 100);
+      }, 0);
+      const hasRequest = items.some(x => x.priceOnRequest || x.unitPrice == null);
+
+      subtotalEl.textContent = subtotal > 0 ? fmt(subtotal) + ' €' + (hasRequest ? ' *' : '') : (hasRequest ? 'Price on request' : fmt(0) + ' €');
+      shippingEl.textContent = fmt(selectedFreight) + ' €';
+
+      const total = subtotal + selectedFreight;
+      totalEl.textContent = total > 0 ? fmt(total) + ' €' + (hasRequest ? ' *' : '') : (hasRequest ? 'Price on request' : fmt(0) + ' €');
+
+      renderItems(items);
+    }
+
+    // ---- Wire freight option selection ----
+    document.querySelectorAll('.ship-option').forEach(opt => {
+      const radio = opt.querySelector('input[type="radio"]');
+      const sync  = () => {
+        document.querySelectorAll('.ship-option').forEach(o => o.classList.remove('selected'));
+        opt.classList.add('selected');
+        selectedFreight = parseFloat(opt.dataset.price) || 0;
+        recompute();
+      };
+      opt.addEventListener('click', e => {
+        // Prevent label-handler from running twice (label click + radio click)
+        if (e.target !== radio) { radio.checked = true; }
+        sync();
+      });
+      radio.addEventListener('change', sync);
+    });
+
+    // Persist the selected freight choice so payment.html can read it
+    function saveFreight() {
+      try {
+        localStorage.setItem('mygpc_freight', JSON.stringify({
+          option: document.querySelector('.ship-option.selected input').value,
+          price:  selectedFreight
+        }));
+      } catch (e) {}
+    }
+    document.querySelectorAll('.ship-option').forEach(o => o.addEventListener('click', saveFreight));
+    saveFreight();
+
+    // Initial render — wait for Cart to be available
+    function ready() {
+      recompute();
+      if (window.Cart && window.Cart.onChange) window.Cart.onChange(recompute);
+    }
+    if (window.Cart) ready();
+    else {
+      const s = document.createElement('script');
+      s.src = 'cart.js';
+      s.onload = ready;
+      document.head.appendChild(s);
+    }
+  })();
+  </script>
+
+  <script src="site-header.js"></script>
+  <script src="main.js"></script>
+</body>
+</html>
