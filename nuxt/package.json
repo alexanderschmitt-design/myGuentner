@@ -5,8 +5,8 @@
   "description": "myGPC — Vue/Nuxt-Frontend (Phase 3). SSR-Mode, läuft als Nitro-Server hinter Express auf /app/*.",
   "type": "module",
   "scripts": {
-    "dev": "nuxt dev --port 3002",
-    "build": "nuxt build",
+    "dev": "nuxt dev --port 3002 --dotenv ../.env",
+    "build": "nuxt build --dotenv ../.env",
     "preview": "node .output/server/index.mjs",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",
@@ -14,13 +14,18 @@
     "gen:gpceu-types": "openapi-typescript ../rag/gpceu_swagger.json -o types/gpceu.d.ts"
   },
   "dependencies": {
-    "@pinia/nuxt": "^0.5.5",
+    "@anthropic-ai/sdk": "^0.95.2",
     "@nuxtjs/i18n": "^9.0.0",
+    "@pinia/nuxt": "^0.5.5",
+    "@supabase/supabase-js": "^2.110.2",
+    "adm-zip": "^0.5.18",
     "nuxt": "^3.13.0",
+    "pdf-parse": "^1.1.1",
     "pinia": "^2.2.0",
     "pinia-plugin-persistedstate": "^3.2.3",
     "vue": "^3.5.0",
-    "vue-router": "^4.4.0"
+    "vue-router": "^4.4.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "openapi-typescript": "^7.4.0",
