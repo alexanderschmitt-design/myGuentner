@@ -16,6 +16,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.95.2",
     "@nuxtjs/i18n": "^9.0.0",
+    "@nuxtjs/supabase": "^2.0.9",
     "@pinia/nuxt": "^0.5.5",
     "@supabase/supabase-js": "^2.110.2",
     "adm-zip": "^0.5.18",

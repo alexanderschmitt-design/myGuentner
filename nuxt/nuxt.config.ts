@@ -20,8 +20,27 @@ export default defineNuxtConfig({
 
   modules: [
     '@pinia/nuxt',
-    '@nuxtjs/i18n'
+    '@nuxtjs/i18n',
+    '@nuxtjs/supabase'
   ],
+
+  supabase: {
+    // @nuxtjs/supabase reads these from env by default (SUPABASE_URL / SUPABASE_KEY /
+    // SUPABASE_SERVICE_KEY). We use the new-format names, so map explicitly.
+    url: process.env.SUPABASE_URL,
+    key: process.env.SUPABASE_PUBLISHABLE_KEY,
+    serviceKey: process.env.SUPABASE_SECRET_KEY,
+    redirectOptions: {
+      login: '/login',
+      callback: '/confirm',
+      exclude: ['/login', '/confirm']
+    },
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production'
+    }
+  },
 
   i18n: {
     // EN-only als MVP (Phase-3-Entscheidung F6). DE/FR kommen als reine
