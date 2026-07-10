@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "nuxt dev --port 3002 --dotenv ../.env",
-    "build": "nuxt build --dotenv ../.env",
+    "build": "nuxt build",
     "preview": "node .output/server/index.mjs",
     "generate": "nuxt generate",
     "postinstall": "nuxt prepare",

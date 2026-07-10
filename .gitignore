@@ -29,6 +29,9 @@ nuxt/dist/
 # Git safety backup (created during Vercel migration)
 .git.backup/
 
+# Vercel CLI local state
+.vercel/
+
 # OS
 .DS_Store
 Thumbs.db
