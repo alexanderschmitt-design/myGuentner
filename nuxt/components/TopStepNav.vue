@@ -1,6 +1,12 @@
 <script setup lang="ts">
 /**
- * 5-step marketing wizard nav — matches all 5 myGPC layout PNGs (2026-07-01).
+ * 5-step wizard stepper — 1:1 with Figma node 1913:1713 (stepper).
+ *
+ * Layout (verbatim from Figma):
+ *   - Flex row, gap 5px (spacing/3xs)
+ *   - Each step: 12×12px icon + text (font/2xs 14.17px, leading 16px, tracking 0.1417)
+ *   - Text color: --c-text-medium (#636362) for pending/done, --c-text (#50504f) for current
+ *   - Divider between steps: 1px height, min-width 12px, flex-1
  *
  * URL scheme (from reference screenshots myguntner.com/#/mygpc/<catId>/*):
  *   /                          → Category (accordions on Home)
@@ -9,8 +15,6 @@
  *   /mygpc/<catId>/search
  *   /gpc-details               → Datasheet
  */
-
-import { getCategoryById } from '~/composables/useCategory'
 
 interface Step { id: string; label: string; route: (catId: number) => string }
 
@@ -24,15 +28,12 @@ const STEPS: Step[] = [
 
 const route = useRoute()
 
-// Extract catId from URL: /mygpc/<N>/... → N. Else 0 (default Evaporator DX).
 const catId = computed<number>(() => {
   const m = route.path.match(/^\/mygpc\/(\d+)\//)
   return m ? parseInt(m[1], 10) : 0
 })
 
-// Determine current step from route path
 const currentStep = computed<string>(() => {
-  if (route.path === '/' || route.path.startsWith('/mygpc') && route.path.split('/').length <= 3) return 'category'
   if (route.path.endsWith('/thermodynamics')) return 'thermo'
   if (route.path.endsWith('/unit-selection')) return 'unit'
   if (route.path.endsWith('/search')) return 'results'
@@ -46,80 +47,76 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
   if (i === currentIndex.value) return 'current'
   return 'pending'
 }
-function lineDone(i: number): boolean { return i < currentIndex.value }
 </script>
 
 <template>
-  <nav class="top-step-nav" aria-label="Wizard steps">
-    <ol>
-      <template v-for="(s, i) in STEPS" :key="s.id">
-        <li :class="statusFor(i)">
-          <NuxtLink :to="s.route(catId)" class="step">
-            <span class="dot" aria-hidden="true">
-              <svg v-if="statusFor(i) === 'done'" viewBox="0 0 16 16" width="10" height="10">
-                <path d="M3.5 8.5l3 3 6-7" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-            <span class="label">{{ s.label }}</span>
-          </NuxtLink>
-        </li>
-        <span v-if="i < STEPS.length - 1" class="line" :class="{ done: lineDone(i) }" aria-hidden="true"></span>
-      </template>
-    </ol>
+  <nav class="stepper" aria-label="Wizard steps">
+    <template v-for="(s, i) in STEPS" :key="s.id">
+      <div v-if="i > 0" class="divider" aria-hidden="true"></div>
+      <NuxtLink :to="s.route(catId)" class="step" :class="statusFor(i)">
+        <!-- 12×12 stepper icon per Figma spec -->
+        <span class="icon" aria-hidden="true">
+          <svg viewBox="0 0 12 12" width="12" height="12">
+            <template v-if="statusFor(i) === 'done'">
+              <circle cx="6" cy="6" r="5.5" fill="var(--c-brand-blue)" stroke="var(--c-brand-blue)" />
+              <path d="M3.5 6.2l1.7 1.7L8.5 4.5" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </template>
+            <template v-else-if="statusFor(i) === 'current'">
+              <circle cx="6" cy="6" r="5.5" fill="white" stroke="var(--c-brand-blue)" stroke-width="1.5"/>
+              <circle cx="6" cy="6" r="2.5" fill="var(--c-brand-blue)"/>
+            </template>
+            <template v-else>
+              <circle cx="6" cy="6" r="5.5" fill="white" stroke="var(--c-text-medium)" stroke-width="1"/>
+            </template>
+          </svg>
+        </span>
+        <span class="label">{{ s.label }}</span>
+      </NuxtLink>
+    </template>
   </nav>
 </template>
 
 <style scoped>
-.top-step-nav {
-  padding: 20px 32px 16px;
-  background: var(--c-surface-muted);
+.stepper {
+  display: flex;
+  gap: var(--space-xs3);   /* 5px */
+  align-items: center;
+  padding: var(--space-xs) var(--space-lg);   /* 14px vert, 38px horiz */
+  background: var(--c-surface);
   border-bottom: 1px solid var(--c-border);
 }
-ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
-li { display: flex; align-items: center; flex: 0 0 auto; }
-li .step {
+
+.step {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  color: var(--c-text-muted);
+  gap: var(--space-xs3);   /* 5px */
   text-decoration: none;
-  font-size: 0.9rem;
-  padding: 4px 0;
-}
-.dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1.5px solid var(--c-border);
-  background: white;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  padding: 0;
+  color: var(--c-text-medium);
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);
+  line-height: var(--lh-2xs);
+  letter-spacing: 0.1px;
   flex-shrink: 0;
-  transition: background 0.15s, border-color 0.15s;
 }
-li.done .step { color: var(--c-text); }
-li.done .dot { background: var(--c-brand-blue); border-color: var(--c-brand-blue); }
-li.current .step { color: var(--c-brand-blue); font-weight: 600; }
-li.current .dot {
-  background: var(--c-brand-blue);
-  border-color: var(--c-brand-blue);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 20%, transparent);
-}
-li.pending .step { color: var(--c-text-muted); }
-.line {
-  flex: 1;
+.step.done    { color: var(--c-text-medium); }
+.step.current { color: var(--c-text); font-weight: 400; }
+.step.pending { color: var(--c-text-medium); }
+
+.icon { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+
+.divider {
+  flex: 1 0 0;
   height: 1px;
-  background: var(--c-border);
-  margin: 0 16px;
-  min-width: 40px;
-  transition: background 0.15s;
+  min-width: 12px;
+  background: var(--c-text-medium);
+  opacity: 0.4;
 }
-.line.done { background: var(--c-brand-blue); }
+
 @media (max-width: 900px) {
-  .top-step-nav { padding: 12px 16px; overflow-x: auto; }
-  .line { min-width: 24px; margin: 0 8px; }
-  .label { display: none; }
-  li.current .label { display: inline; }
+  .stepper { padding: var(--space-xs) var(--space-xs); overflow-x: auto; }
+  .divider { min-width: 12px; }
+  .step .label { display: none; }
+  .step.current .label { display: inline; }
 }
 </style>

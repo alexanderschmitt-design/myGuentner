@@ -14,10 +14,12 @@ export default defineNuxtConfig({
       htmlAttrs: { lang: 'en' },
       meta: [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
       link: [
-        // DM Sans + DM Mono für UI + technische Werte (aus tokens.css referenziert).
+        // Geist (UI) + DM Mono (numeric values) — Simplon BP is the Guentner
+        // corporate headline typeface; falls back to Geist on machines without
+        // the licensed font (self-hosting comes with the Corp-CI package later).
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap' }
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap' }
       ]
     }
   },

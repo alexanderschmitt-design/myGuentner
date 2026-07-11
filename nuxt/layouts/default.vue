@@ -1,4 +1,14 @@
 <script setup lang="ts">
+/**
+ * Application shell — 1:1 with the Figma headerNavigation
+ * (file WHGL55cJW0T7FwpmczbwB0, node 1913:1709) + wizard stepper (1913:1713).
+ *
+ * Layout:
+ *   [ Logo | Search bar (flex-grow, max 400) ] [ Nav items | Divider | Avatar ]
+ *
+ * Spacing/colors/typography all reference the token variables in tokens.css
+ * — every number below is either a token or a Figma-verified fallback.
+ */
 import GuentnerLogo from '~/components/GuentnerLogo.vue'
 import TopStepNav from '~/components/TopStepNav.vue'
 import SyncPanel from '~/components/SyncPanel.vue'
@@ -6,11 +16,11 @@ import SyncPanel from '~/components/SyncPanel.vue'
 const route = useRoute()
 const user = useSupabaseUser()
 
-// Show step-nav only on /mygps/* routes
-const showStepNav = computed(() => route.path.startsWith('/mygps'))
+// Step-nav under /mygpc/* + on the Datasheet page (both are wizard steps).
+const showStepNav = computed(
+  () => route.path.startsWith('/mygpc') || route.path === '/gpc-details'
+)
 
-// SyncPanel is opt-in via query flag ?panels=1. Layout PNGs don't show it,
-// but CLAUDE.md §6 says it must exist — so we keep it as a toggle-able drawer.
 const panelsOpen = ref(false)
 const search = ref('')
 
@@ -26,21 +36,47 @@ function initials(email: string | null | undefined): string {
 
 <template>
   <div class="app-shell" :data-perspective="useConfigStore().activePerspective">
-    <!-- Top header (matches layout PNGs) -->
+    <!-- =============================================
+         Header — Figma node 1913:1709 (headerNavigation)
+         ============================================= -->
     <header class="site-header">
-      <GuentnerLogo />
+      <div class="left-nav">
+        <div class="logo-wrap">
+          <GuentnerLogo />
+        </div>
 
-      <div class="search">
-        <span class="icon" aria-hidden="true">🔍</span>
-        <input v-model="search" type="search" placeholder="Search anything" aria-label="Search" />
+        <label class="search-field">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="20" height="20">
+              <circle cx="9" cy="9" r="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="13.5" y1="13.5" x2="17" y2="17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <input v-model="search" type="search" placeholder="Search anything" aria-label="Search" />
+          <span class="camera-icon" aria-hidden="true">
+            <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 4.5a1.5 1.5 0 0 1 1.5-1.5h1L5.5 2h5l1 1h1a1.5 1.5 0 0 1 1.5 1.5v7a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 2 11.5v-7z"/>
+              <circle cx="8" cy="8.5" r="2.5"/>
+            </svg>
+          </span>
+        </label>
       </div>
 
-      <nav class="site-nav">
-        <a href="#" class="nav-link">Overview</a>
-        <NuxtLink to="/" class="nav-link active">myGPC</NuxtLink>
-        <a href="#" class="nav-link">mySpareParts</a>
-        <a href="#" class="nav-link">myTools ▾</a>
-        <a href="#" class="nav-link">Documents</a>
+      <nav class="right-nav">
+        <div class="nav-items">
+          <a href="#" class="nav-link">Overview</a>
+          <NuxtLink to="/" class="nav-link" :class="{ active: route.path === '/' }">myGPC</NuxtLink>
+          <a href="#" class="nav-link">mySpareParts</a>
+          <a href="#" class="nav-link nav-link-caret">
+            myTools
+            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+              <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a href="#" class="nav-link">Documents</a>
+        </div>
+
+        <span class="menu-divider" aria-hidden="true"></span>
 
         <button
           v-if="user"
@@ -50,28 +86,24 @@ function initials(email: string | null | undefined): string {
           :aria-pressed="panelsOpen"
           aria-label="Toggle side panel"
         >
-          <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-            <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <svg class="avatar-chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
-          <span class="avatar">{{ initials(user.email) }}</span>
+          <span class="avatar-badge">{{ initials(user.email) }}</span>
         </button>
       </nav>
     </header>
 
-    <!-- Step-navigation bar (only on /mygps/*) -->
     <TopStepNav v-if="showStepNav" />
 
-    <!-- Main content -->
     <main class="site-main" :class="{ 'with-panel': panelsOpen }">
       <slot />
     </main>
 
-    <!-- Right-side drawer for the cross-perspective mirror -->
     <aside v-if="panelsOpen" class="side-panel">
       <SyncPanel />
     </aside>
 
-    <!-- Footer -->
     <footer class="site-footer">
       <GuentnerLogo />
       <div class="footer-links">
@@ -89,98 +121,140 @@ function initials(email: string | null | undefined): string {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: var(--c-surface-muted);
+  background: var(--c-bg);
 }
 
-/* ---- Header ---- */
+/* ================== HEADER ================== */
 .site-header {
-  background: white;
-  border-bottom: 1px solid var(--c-border);
-  padding: 12px 32px;
+  background: var(--c-nav-background);
+  border-bottom: 1px solid var(--c-nav-divider);
+  padding: var(--space-xs);                    /* 14px */
   display: flex;
   align-items: center;
-  gap: 24px;
+  gap: var(--space-xs2);                       /* 9px */
 }
-.search {
-  flex: 1;
-  max-width: 520px;
-  position: relative;
+.left-nav {
+  flex: 1 0 0;
   display: flex;
   align-items: center;
-  background: var(--c-surface-muted);
-  border: 1px solid transparent;
-  border-radius: var(--radius-pill);
-  padding: 9px 16px;
-  gap: 10px;
-  transition: border-color 0.15s, background 0.15s;
+  gap: var(--space-xs2);                       /* 9px */
+  min-width: 0;
 }
-.search:focus-within {
-  background: white;
-  border-color: var(--c-brand-blue);
+.logo-wrap {
+  padding: var(--space-xs2);                   /* 9px */
+  border-radius: var(--radius-md);             /* 8px */
+  display: inline-flex;
 }
-.search .icon { opacity: 0.6; }
-.search input {
+.right-nav {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs2);                       /* 9px */
+  flex-shrink: 0;
+}
+
+/* Search field — Figma _navItem/search */
+.search-field {
+  flex: 1 0 0;
+  max-width: 400px;
+  min-width: 130px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs2);                       /* 9px */
+  padding: var(--space-xs2) var(--space-xs2) var(--space-xs2) var(--space-xs);
+  background: var(--c-nav-search-bg);
+  border-radius: var(--radius-md);             /* 8px */
+  color: var(--c-nav-search-text);
+  transition: box-shadow 0.15s;
+}
+.search-field:focus-within { box-shadow: var(--shadow-focus); }
+.search-icon { color: var(--c-nav-search-trailing); display: inline-flex; flex-shrink: 0; }
+.camera-icon { color: var(--c-nav-search-trailing); display: inline-flex; flex-shrink: 0; }
+.search-field input {
+  flex: 1 0 0;
+  min-width: 0;
   border: none;
   background: transparent;
   outline: none;
-  width: 100%;
-  font-size: 0.9rem;
-  color: var(--c-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-xs);                   /* 15.69px */
+  line-height: var(--lh-xs);
+  color: var(--c-nav-search-text);
 }
-.site-nav {
+.search-field input::placeholder { color: var(--c-nav-search-text); }
+
+/* Nav items — Figma _navItem/button */
+.nav-items {
   display: flex;
+  gap: var(--space-xs4);                       /* 3px */
   align-items: center;
-  gap: 20px;
-  margin-left: auto;
 }
 .nav-link {
-  color: var(--c-text-muted);
-  text-decoration: none;
-  font-size: 0.9rem;
-  padding: 6px 4px;
-  transition: color 0.15s;
-}
-.nav-link:hover { color: var(--c-text); }
-.nav-link.active { color: var(--c-primary); font-weight: 600; }
-.avatar-group {
-  margin-left: 8px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 4px 8px 4px 6px;
-  border: 1px solid var(--c-border);
-  border-radius: 8px;
-  background: white;
-  cursor: pointer;
-  transition: border-color 0.15s;
+  gap: var(--space-xs2);                       /* 9px */
+  padding: var(--space-xs2);                   /* 9px */
+  border-radius: var(--radius-xs2);            /* 2px */
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);                  /* 14.17px */
+  line-height: var(--lh-2xs);                  /* 16px */
+  letter-spacing: 0.1px;
+  color: var(--c-nav-button-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s, background 0.15s;
 }
-.avatar-group:hover { border-color: var(--c-brand-blue); }
-.avatar-group .chev { color: var(--c-text-muted); }
-.avatar {
-  width: 28px;
-  height: 28px;
+.nav-link:hover { color: var(--c-text); }
+.nav-link.active { color: var(--c-brand-blue); font-weight: 500; }
+.nav-link-caret svg { color: currentColor; }
+
+/* Divider between nav items and avatar */
+.menu-divider {
+  display: inline-block;
+  width: 1px;
+  height: 20px;
+  background: var(--c-border);
+}
+
+/* Avatar group — Figma _avatar */
+.avatar-group {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs3);                       /* 5px */
+  padding: var(--space-xs4);                   /* 3px */
+  background: var(--c-nav-search-bg);
+  border-radius: var(--radius-xs);             /* 4px */
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.avatar-group:hover { background: var(--c-border); }
+.avatar-chev { color: var(--c-nav-search-trailing); }
+.avatar-badge {
+  width: 26px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  background: var(--c-primary);
-  color: white;
-  font-weight: 600;
-  font-size: 0.75rem;
+  background: var(--c-nav-accent);
+  color: var(--c-nav-accent-text);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-weight: 500;
+  font-size: var(--font-4xs);                  /* 11.58px */
+  line-height: var(--lh-4xs);                  /* 14px */
+  letter-spacing: 0.1px;
 }
 
-/* ---- Main ---- */
+/* ================== MAIN + FOOTER ================== */
 .site-main {
   flex: 1;
-  padding: 24px 32px;
-  max-width: 100%;
-  background: var(--c-surface-muted);
+  padding: var(--space-5) var(--space-6);      /* 24 / 32 */
+  background: var(--c-bg);
 }
-.site-main.with-panel {
-  padding-right: 340px;
-}
+.site-main.with-panel { padding-right: 340px; }
 
-/* ---- Side drawer ---- */
 .side-panel {
   position: fixed;
   right: 0;
@@ -189,40 +263,41 @@ function initials(email: string | null | undefined): string {
   width: 320px;
   background: white;
   border-left: 1px solid var(--c-border);
-  padding: 20px;
+  padding: var(--space-4);
   overflow-y: auto;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.04);
   z-index: 10;
 }
 
-/* ---- Footer ---- */
 .site-footer {
-  background: white;
-  border-top: 1px solid var(--c-border);
-  padding: 16px 32px;
+  background: var(--c-surface);
+  border-top: 1px solid var(--c-nav-divider);
+  padding: var(--space-4) var(--space-6);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  font-size: 0.8rem;
+  gap: var(--space-4);
+  font-size: var(--font-3xs);                  /* 12.81px */
+  color: var(--c-text-medium);
 }
 .footer-links {
   display: flex;
   align-items: center;
-  gap: 20px;
-  color: var(--c-text-muted);
+  gap: var(--space-5);
 }
-.footer-links a { color: var(--c-text-muted); text-decoration: none; }
+.footer-links a { color: var(--c-text-medium); text-decoration: none; }
 .footer-links a:hover { color: var(--c-text); }
-.copy { color: var(--c-text-muted); }
+.copy { color: var(--c-text-medium); }
 
+/* ---------- Responsive ---------- */
 @media (max-width: 900px) {
-  .site-header { flex-wrap: wrap; padding: 10px 16px; gap: 12px; }
-  .search { order: 3; flex-basis: 100%; max-width: 100%; }
-  .site-nav { gap: 12px; margin-left: 0; overflow-x: auto; flex-wrap: nowrap; }
-  .site-main { padding: 16px; }
-  .site-main.with-panel { padding-right: 16px; }
+  .site-header { flex-wrap: wrap; padding: 10px var(--space-4); gap: var(--space-3); }
+  .left-nav { order: 2; flex-basis: 100%; }
+  .right-nav { order: 1; margin-left: auto; }
+  .nav-items { display: none; }
+  .site-main { padding: var(--space-4); }
+  .site-main.with-panel { padding-right: var(--space-4); }
   .side-panel { width: 100vw; }
-  .site-footer { flex-direction: column; align-items: flex-start; padding: 12px 16px; }
+  .site-footer { flex-direction: column; align-items: flex-start; padding: 12px var(--space-4); }
 }
 </style>

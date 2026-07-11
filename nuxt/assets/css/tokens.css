@@ -1,41 +1,75 @@
 /*
- * Design-Tokens — Güntner CI aligned with the myGPC layout PNGs (2026-07-01).
+ * Design tokens — mirrors the Figma variables from the myGPC / myGPS-Ready
+ * screendesign (file WHGL55cJW0T7FwpmczbwB0, canvas 1753:22314).
  *
- * Two blues are used across the app:
- *   --c-primary   Navy (#003865)  — brand text, logos, headings
- *   --c-brand-blue (#2666E0)      — interactive elements: buttons, active
- *                                    step indicators, outlines, info badges
- *
- * Perspective-driven accent is kept for the SyncPanel color-coding, but the
- * main UI (buttons/step-nav) stays fixed on --c-brand-blue for consistency
- * with the reference layouts.
+ * Every value below traces back to a Figma variable so a change in one place
+ * propagates through every wizard step (Coil variants included).
  */
 
 :root {
-  /* Brand */
-  --c-primary:    #003865;   /* Güntner Navy — text/headings/logo */
-  --c-brand-blue: #2666E0;   /* Interactive Blue — buttons/outlines/step-nav */
-  --c-process:    #0078BE;   /* Process Blue — perspective: application */
-  --c-site:       #5B8C5A;   /* Site Green   — perspective: location    */
-  --c-leaf:       #2BA84A;   /* Natural-refrigerant leaf accent          */
+  /* ---- Brand blues ---- */
+  --c-brand-blue:  #2666e0;   /* guntner/color/brand/rich blue — primary buttons/nav */
+  --c-primary:     #2666e0;   /* alias for headings/interactive borders */
+  --c-brand-primary: #2666e0; /* color/text/brand-primary */
+  --c-accent-tertiary: #268ff3;
+  --c-accent-primary:  #39edb5;   /* color/accent/primary — mint green */
+  --c-accent-secondary: #00e2ff;
+  --c-background-primary-light:  #a8c2f3;
+  --c-background-primary-medium: #5185e6;
+  --c-brand-dark-grey: #3c3c3b;
 
-  /* Perspective accent (SyncPanel etc.) */
+  /* ---- Perspective accents (SyncPanel etc.) ---- */
+  --c-process: #268ff3;      /* application  */
+  --c-site:    #39edb5;      /* location     */
+  --c-leaf:    #39edb5;      /* natural refrigerant */
   --c-accent: var(--c-brand-blue);
 
-  /* Neutrals */
-  --c-bg:            #ffffff;
-  --c-surface:       #ffffff;
-  --c-surface-muted: #F5F5F7;   /* neutral gray for page bg (matches layout) */
-  --c-surface-alt:   #FAFAFB;   /* very subtle section bg */
-  --c-text:          #1A1F2A;
-  --c-text-muted:    #6B7280;   /* slightly lighter than before, matches layout labels */
-  --c-border:        #E5E7EB;   /* thinner + more subtle */
-  --c-input-border:  #D4D8DE;
-  --c-error:         #B33A3A;
-  --c-warning:       #C57B00;
-  --c-success:       #2E7D4F;
+  /* ---- Text ---- */
+  --c-text:            #50504f;   /* color/text/dark      */
+  --c-text-medium:     #636362;   /* color/text/medium    — labels, nav */
+  --c-text-light:      #888887;   /* color/text/light     */
+  --c-text-extra-light:#8a8a89;
+  --c-text-inverted:   #ffffff;
+  --c-text-muted:      var(--c-text-medium);   /* alias */
 
-  /* Spacing */
+  /* ---- Surface ---- */
+  --c-bg:            #fafafa;   /* color/surface/canvas  — page bg */
+  --c-surface:       #ffffff;   /* color/surface/white   */
+  --c-surface-muted: #fafafa;
+  --c-surface-alt:   #ececec;
+
+  /* ---- Borders ---- */
+  --c-border:        #d8d8d8;   /* color/border/medium   */
+  --c-border-dark:   #c5c5c5;
+  --c-border-extra-dark: #9d9d9c;
+  --c-input-border:  #d8d8d8;
+  --c-border-primary: #2666e0;
+
+  /* ---- Navigation ---- */
+  --c-nav-background:     #ffffff;   /* color/navigation/background     */
+  --c-nav-button-text:    #636362;   /* color/navigation/button-text    */
+  --c-nav-search-bg:      #ececec;   /* color/navigation/search-bar-background */
+  --c-nav-search-text:    #636362;   /* color/navigation/search-bar-text */
+  --c-nav-search-trailing:#888887;
+  --c-nav-accent:         #2666e0;   /* color/navigation/accent — avatar */
+  --c-nav-accent-text:    #ffffff;
+  --c-nav-divider:        #ececec;
+
+  /* ---- Feedback ---- */
+  --c-error:   #B33A3A;
+  --c-warning: #C57B00;
+  --c-success: #2E7D4F;
+  --c-focus:   #7da3ec;      /* color/functional/focus */
+
+  /* ---- Spacing (Figma spacing/* scale) ---- */
+  --space-xs4:  3px;   /* spacing/4xs */
+  --space-xs3:  5px;   /* spacing/3xs */
+  --space-xs2:  9px;   /* spacing/2xs */
+  --space-xs:  14px;   /* spacing/xs  */
+  --space-sm:  19px;   /* spacing/sm-base */
+  --space-lg:  38px;   /* spacing/lg  */
+  --space-2xl: 75px;   /* spacing/2xl */
+  /* Legacy aliases used by existing scoped styles */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
@@ -44,25 +78,50 @@
   --space-6: 32px;
   --space-7: 48px;
 
-  /* Sonstiges */
-  --radius:    6px;
-  --radius-lg: 10px;
+  /* ---- Radius (Figma roundness/*) ---- */
+  --radius-xs2:  2px;    /* roundness/roundness-xs */
+  --radius-xs:   4px;    /* roundness/roundness-sm */
+  --radius-sm:   4px;    /* alias */
+  --radius:      4px;    /* default */
+  --radius-md:   8px;    /* roundness/md */
+  --radius-lg:  10px;
   --radius-pill: 999px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
 
-  /* Typografie */
-  --font-ui:   'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-  --font-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  /* ---- Typography (Figma font/*) ---- */
+  --font-4xs: 11.58px; /* font/4xs */
+  --font-3xs: 12.81px; /* font/3xs */
+  --font-2xs: 14.17px; /* font/2xs — nav, stepper, body labels */
+  --font-xs:  15.69px; /* font/xs  — inputs */
+  --font-sm:  16px;
+  --font-md:  18px;
+  --font-lg:  20px;
+  --font-xl:  23.7px;  /* font/xl  — headline */
+
+  /* Line-heights and letter-spacing per Figma text styles */
+  --lh-4xs: 14px;
+  --lh-3xs: 15px;
+  --lh-2xs: 16px;
+  --lh-xs:  18px;
+  --lh-xl: 100%;
+  --tracking-1: 0.1px;
+
+  /* Font families */
+  --font-ui:       'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-headline: 'Simplon BP', 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono:     'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  /* ---- Shadows ---- */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+  --shadow-focus: 0 0 0 4px var(--c-focus);
 
   --transition-accent: color 200ms ease, border-color 200ms ease, background-color 200ms ease;
 }
 
-/* Perspective accents change the SyncPanel dots + a small handful of scoped
-   elements — buttons intentionally stay on --c-brand-blue for consistency. */
-[data-perspective='technical']   { --c-accent: var(--c-primary); }
-[data-perspective='application'] { --c-accent: var(--c-process); }
-[data-perspective='location']    { --c-accent: var(--c-site); }
+/* Perspective accents — kept for SyncPanel color coding */
+[data-perspective='technical']   { --c-accent: var(--c-brand-blue); }
+[data-perspective='application'] { --c-accent: var(--c-accent-tertiary); }
+[data-perspective='location']    { --c-accent: var(--c-accent-primary); }
 
 * { box-sizing: border-box; }
 
@@ -70,12 +129,16 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: var(--font-ui);
-  font-size: 15px;                /* one notch down — matches layout scale */
-  line-height: 1.5;
+  font-size: var(--font-2xs);
+  line-height: var(--lh-2xs);
   color: var(--c-text);
   background: var(--c-bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body { transition: var(--transition-accent); }
 
 code, pre, .mono { font-family: var(--font-mono); }
+
+h1, h2, h3, h4, h5, h6 { font-family: var(--font-headline); font-weight: 400; }
