@@ -320,7 +320,7 @@ const COILS = [
 .cat-card-btn {
   display: block;
   padding: 10px 16px;
-  background: var(--c-primary);
+  background: var(--c-brand-blue);
   color: white;
   border: none;
   border-radius: var(--radius);
@@ -330,7 +330,7 @@ const COILS = [
   text-align: center;
   transition: filter 0.15s;
 }
-.cat-card-btn:hover { filter: brightness(1.1); }
+.cat-card-btn:hover { filter: brightness(1.08); }
 
 .upload-section { margin-top: 24px; }
 

@@ -145,6 +145,7 @@ function goBack() { router.push('/mygps') }
       <button class="btn btn-outline" type="button">Templates</button>
       <span class="spacer"></span>
       <span class="step-count">1.7</span>
+      <LeafScore :score="2" :total="5" />
       <button class="btn btn-primary" :disabled="!canProceed" @click="goNext">Next →</button>
     </div>
 
@@ -184,7 +185,7 @@ function goBack() { router.push('/mygps') }
           </div>
         </div>
         <div class="field">
-          <label>Frost thickness <span class="info" title="Frost buildup on the coil surface">ℹ</span></label>
+          <label>Frost thickness <InfoIcon title="Frost buildup on the coil surface" /></label>
           <div class="input-with-suffix">
             <input type="number" v-model.number="frostThicknessMm" />
             <span class="suffix">mm</span>
@@ -296,7 +297,7 @@ function goBack() { router.push('/mygps') }
         <label class="checkbox">
           <input type="checkbox" v-model="capacityWithHumidityFactor" />
           Capacity including humidity factor
-          <span class="info" title="Multiply capacity by humidity factor for wet-air conditions">ℹ</span>
+          <InfoIcon title="Multiply capacity by humidity factor for wet-air conditions" />
         </label>
       </section>
     </div>
@@ -422,14 +423,14 @@ function goBack() { router.push('/mygps') }
 .btn-inline {
   padding: 8px 12px;
   background: white;
-  border: 1px solid var(--c-primary);
-  color: var(--c-primary);
+  border: 1px solid var(--c-brand-blue);
+  color: var(--c-brand-blue);
   border-radius: var(--radius);
   cursor: pointer;
   font-size: 0.85rem;
   white-space: nowrap;
 }
-.btn-inline:hover { background: var(--c-primary); color: white; }
+.btn-inline:hover { background: var(--c-brand-blue); color: white; }
 
 /* Radios + Checkboxes */
 .radio-row {

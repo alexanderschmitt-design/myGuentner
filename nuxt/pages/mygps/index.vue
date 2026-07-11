@@ -208,16 +208,16 @@ function pickCategory(c: Category) {
   gap: 12px;
 }
 .cta {
-  background: var(--c-primary);
+  background: var(--c-brand-blue);
   color: white;
   padding: 10px 16px;
   border-radius: var(--radius);
   font-weight: 500;
   text-align: center;
   font-size: 0.95rem;
-  transition: background 0.15s;
+  transition: filter 0.15s;
 }
-.cat-card:hover .cta { background: color-mix(in srgb, var(--c-primary) 90%, black); }
+.cat-card:hover .cta { filter: brightness(1.08); }
 
 .model-codes {
   margin: 0;

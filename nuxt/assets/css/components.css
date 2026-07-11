@@ -1,51 +1,206 @@
-/* Globale Komponenten-Klassen — bleiben minimal, das Meiste wird scoped in SFCs */
+/*
+ * Global component classes derived from the myGPC layout PNGs.
+ *
+ * These are the shared primitives used across every wizard step and the
+ * home/admin pages. Coil-variants (Coil-Category, Coil-Thermodynamics,
+ * Coil-Geometry) inherit the same visual language via these classes, so a
+ * change here propagates everywhere.
+ */
 
+/* ============================================================
+   Buttons
+   ============================================================ */
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: var(--space-2);
-  padding: 0.55rem 1.1rem;
+  padding: 10px 18px;
   border-radius: var(--radius);
   border: 1px solid transparent;
   font: inherit;
+  font-size: 0.9rem;
+  font-weight: 500;
   cursor: pointer;
   text-decoration: none;
-  transition: var(--transition-accent);
+  transition: background 0.15s, color 0.15s, border-color 0.15s, filter 0.15s;
+  white-space: nowrap;
 }
-.btn-primary  { background: var(--c-accent); color: #fff; border-color: var(--c-accent); }
-.btn-primary:hover { filter: brightness(1.08); }
-.btn-outline  { background: transparent; color: var(--c-accent); border-color: var(--c-accent); }
-.btn-outline:hover { background: color-mix(in srgb, var(--c-accent) 8%, transparent); }
-.btn-text     { background: transparent; color: var(--c-accent); padding: 0.55rem 0.4rem; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
+.btn-primary  { background: var(--c-brand-blue); color: #fff; border-color: var(--c-brand-blue); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-outline  { background: transparent; color: var(--c-brand-blue); border-color: var(--c-brand-blue); }
+.btn-outline:hover:not(:disabled) { background: color-mix(in srgb, var(--c-brand-blue) 8%, transparent); }
+
+.btn-text     { background: transparent; color: var(--c-brand-blue); border-color: transparent; padding: 10px 8px; }
+.btn-text:hover:not(:disabled) { color: color-mix(in srgb, var(--c-brand-blue) 80%, black); }
+
+.btn-sm { padding: 6px 12px; font-size: 0.8rem; }
+
+/* ============================================================
+   Cards
+   ============================================================ */
+.card {
+  background: white;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+}
+.card + .card { margin-top: 20px; }
+.card-title {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: var(--c-text-muted);
+  font-weight: 500;
+}
+
+/* ============================================================
+   Fields — label above, input below, optional suffix inside
+   ============================================================ */
 .field {
   display: flex;
   flex-direction: column;
-  gap: var(--space-2);
-  margin-bottom: var(--space-4);
+  gap: 4px;
 }
-.field > label { font-weight: 600; color: var(--c-text); }
-.field > .hint { color: var(--c-text-muted); font-size: 0.875rem; }
+.field > label,
+.field-label {
+  font-size: 0.8rem;
+  color: var(--c-text-muted);
+}
 .field input,
 .field select,
 .field textarea {
-  padding: 0.55rem 0.75rem;
-  border: 1px solid var(--c-border);
+  padding: 10px 12px;
+  border: 1px solid var(--c-input-border);
   border-radius: var(--radius);
   font: inherit;
-  background: var(--c-surface);
+  font-size: 0.9rem;
+  background: white;
+  color: var(--c-text);
+  outline: none;
+  transition: border-color 0.15s;
 }
 .field input:focus,
 .field select:focus,
-.field textarea:focus { outline: 2px solid var(--c-accent); outline-offset: 1px; }
-
-.alert {
-  padding: var(--space-3) var(--space-4);
-  border-radius: var(--radius);
-  border-left: 4px solid var(--c-warning);
-  background: color-mix(in srgb, var(--c-warning) 8%, var(--c-surface));
-  color: var(--c-text);
-  margin-bottom: var(--space-4);
+.field textarea:focus {
+  border-color: var(--c-brand-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 15%, transparent);
 }
-.alert-error { border-left-color: var(--c-error); background: color-mix(in srgb, var(--c-error) 8%, var(--c-surface)); }
-.alert-info  { border-left-color: var(--c-accent); background: color-mix(in srgb, var(--c-accent) 8%, var(--c-surface)); }
+.field input:disabled,
+.field select:disabled { background: var(--c-surface-muted); color: var(--c-text-muted); }
+
+/* Input with a trailing unit/suffix (e.g. "kW", "°C"). Suffix sits inside
+   on the right, non-interactive. Add class .with-caret if a select follows
+   (native dropdown arrow is styled by the browser). */
+.input-with-suffix {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.input-with-suffix input,
+.input-with-suffix select { flex: 1; padding-right: 44px; }
+.input-with-suffix .suffix {
+  position: absolute;
+  right: 12px;
+  color: var(--c-text-muted);
+  font-size: 0.85rem;
+  pointer-events: none;
+}
+
+/* Field row with an Auto toggle pill button next to the input */
+.input-with-auto {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.input-with-auto .input-with-suffix { flex: 1; }
+.auto-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--c-surface-muted);
+  border: 1px solid var(--c-input-border);
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--c-text);
+  transition: background 0.15s, border-color 0.15s;
+}
+.auto-toggle:has(input:checked) {
+  background: color-mix(in srgb, var(--c-brand-blue) 8%, white);
+  border-color: var(--c-brand-blue);
+}
+.auto-toggle input[type='checkbox'] { accent-color: var(--c-brand-blue); margin: 0; }
+
+/* ============================================================
+   Native checkboxes/radios — brand-tinted
+   ============================================================ */
+input[type='checkbox'],
+input[type='radio'] { accent-color: var(--c-brand-blue); }
+
+/* ============================================================
+   Info badge — small blue circle with i (used next to labels)
+   ============================================================ */
+.info-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-brand-blue);
+  color: white;
+  font-size: 0.65rem;
+  font-weight: 700;
+  font-family: 'DM Sans', sans-serif;
+  cursor: help;
+  vertical-align: middle;
+  font-style: italic;
+}
+
+/* ============================================================
+   Alerts
+   ============================================================ */
+.alert {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  border-left: 3px solid var(--c-warning);
+  background: color-mix(in srgb, var(--c-warning) 10%, white);
+  color: var(--c-text);
+  margin-bottom: 12px;
+  font-size: 0.9rem;
+}
+.alert-error { border-left-color: var(--c-error); background: color-mix(in srgb, var(--c-error) 8%, white); }
+.alert-info  { border-left-color: var(--c-brand-blue); background: color-mix(in srgb, var(--c-brand-blue) 6%, white); }
+
+/* ============================================================
+   Wizard-page layout primitives — used on every /mygps/* page.
+   Coil-variants reuse these identically.
+   ============================================================ */
+.wizard-page { max-width: 1200px; margin: 0 auto; }
+
+.sub-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  padding: 8px 0;
+}
+.sub-toolbar .spacer { flex: 1; }
+.sub-toolbar .step-count {
+  font-family: 'DM Mono', monospace;
+  color: var(--c-text-muted);
+  font-size: 0.9rem;
+}
+
+.bottom-nav {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

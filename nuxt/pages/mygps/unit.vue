@@ -94,6 +94,7 @@ function resetConfig() {
       <button class="btn btn-outline" type="button">Configuration templates</button>
       <span class="spacer"></span>
       <span class="step-count">1.7</span>
+      <LeafScore :score="2" :total="5" />
       <button class="btn btn-primary" :disabled="!canProceed" @click="goNext">Next →</button>
     </div>
 
@@ -229,7 +230,7 @@ function resetConfig() {
               </div>
 
               <div class="field">
-                <label>Delivery time <span class="info" title="Filter by delivery availability">ℹ</span></label>
+                <label>Delivery time <InfoIcon title="Filter by delivery availability" /></label>
                 <select v-model="deliveryFilter">
                   <option value="only-available">Only available units</option>
                   <option value="all">All (including on request)</option>

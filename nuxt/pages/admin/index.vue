@@ -117,7 +117,7 @@ h1 { margin: 0 0 4px; color: var(--c-primary); font-size: 1.4rem; }
   transition: transform 0.15s;
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
-.switch input:checked + .slider { background: var(--c-primary); }
+.switch input:checked + .slider { background: var(--c-brand-blue); }
 .switch input:checked + .slider::before { transform: translateX(20px); }
 
 .actions { margin-top: 20px; display: flex; gap: 10px; }

@@ -44,12 +44,17 @@ function initials(email: string | null | undefined): string {
 
         <button
           v-if="user"
-          class="avatar"
+          class="avatar-group"
           :title="user.email || ''"
           @click="panelsOpen = !panelsOpen"
           :aria-pressed="panelsOpen"
           aria-label="Toggle side panel"
-        >{{ initials(user.email) }}</button>
+        >
+          <svg class="chev" viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+            <path d="M1 1l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="avatar">{{ initials(user.email) }}</span>
+        </button>
       </nav>
     </header>
 
@@ -98,14 +103,20 @@ function initials(email: string | null | undefined): string {
 }
 .search {
   flex: 1;
-  max-width: 480px;
+  max-width: 520px;
   position: relative;
   display: flex;
   align-items: center;
   background: var(--c-surface-muted);
-  border-radius: var(--radius);
-  padding: 8px 12px;
-  gap: 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 9px 16px;
+  gap: 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.search:focus-within {
+  background: white;
+  border-color: var(--c-brand-blue);
 }
 .search .icon { opacity: 0.6; }
 .search input {
@@ -131,20 +142,32 @@ function initials(email: string | null | undefined): string {
 }
 .nav-link:hover { color: var(--c-text); }
 .nav-link.active { color: var(--c-primary); font-weight: 600; }
-.avatar {
+.avatar-group {
   margin-left: 8px;
-  width: 34px;
-  height: 34px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 6px;
+  border: 1px solid var(--c-border);
   border-radius: 8px;
+  background: white;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.avatar-group:hover { border-color: var(--c-brand-blue); }
+.avatar-group .chev { color: var(--c-text-muted); }
+.avatar {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
   background: var(--c-primary);
   color: white;
   font-weight: 600;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: filter 0.15s;
+  font-size: 0.75rem;
 }
-.avatar:hover { filter: brightness(1.1); }
 
 /* ---- Main ---- */
 .site-main {

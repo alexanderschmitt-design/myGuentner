@@ -1,28 +1,36 @@
 /*
- * Design-Tokens — Güntner CI gemäß CLAUDE.md §"Visual Identity"
+ * Design-Tokens — Güntner CI aligned with the myGPC layout PNGs (2026-07-01).
  *
- * Drei Perspektiven (Technischer Weg / Anwendersicht / Standort) bekommen je
- * eine Akzentfarbe. Der aktive Wert wird per [data-perspective="..."] auf der
- * Wurzel gesetzt (siehe layouts/default.vue), sodass eine globale CSS-Transition
- * den Mode-Wechsel app-weit animiert.
+ * Two blues are used across the app:
+ *   --c-primary   Navy (#003865)  — brand text, logos, headings
+ *   --c-brand-blue (#2666E0)      — interactive elements: buttons, active
+ *                                    step indicators, outlines, info badges
+ *
+ * Perspective-driven accent is kept for the SyncPanel color-coding, but the
+ * main UI (buttons/step-nav) stays fixed on --c-brand-blue for consistency
+ * with the reference layouts.
  */
 
 :root {
   /* Brand */
-  --c-primary: #003865;            /* Güntner Navy */
-  --c-process: #0078BE;            /* Process Blue */
-  --c-site:    #5B8C5A;            /* Site Green */
+  --c-primary:    #003865;   /* Güntner Navy — text/headings/logo */
+  --c-brand-blue: #2666E0;   /* Interactive Blue — buttons/outlines/step-nav */
+  --c-process:    #0078BE;   /* Process Blue — perspective: application */
+  --c-site:       #5B8C5A;   /* Site Green   — perspective: location    */
+  --c-leaf:       #2BA84A;   /* Natural-refrigerant leaf accent          */
 
-  /* Aktive Akzentfarbe — wird je Perspektive überschrieben */
-  --c-accent: var(--c-process);
+  /* Perspective accent (SyncPanel etc.) */
+  --c-accent: var(--c-brand-blue);
 
   /* Neutrals */
   --c-bg:            #ffffff;
   --c-surface:       #ffffff;
-  --c-surface-muted: #F5F4F0;      /* warm grey */
+  --c-surface-muted: #F5F5F7;   /* neutral gray for page bg (matches layout) */
+  --c-surface-alt:   #FAFAFB;   /* very subtle section bg */
   --c-text:          #1A1F2A;
-  --c-text-muted:    #5B6470;
-  --c-border:        #E2E5EA;
+  --c-text-muted:    #6B7280;   /* slightly lighter than before, matches layout labels */
+  --c-border:        #E5E7EB;   /* thinner + more subtle */
+  --c-input-border:  #D4D8DE;
   --c-error:         #B33A3A;
   --c-warning:       #C57B00;
   --c-success:       #2E7D4F;
@@ -37,20 +45,21 @@
   --space-7: 48px;
 
   /* Sonstiges */
-  --radius: 6px;
-  --radius-lg: 12px;
-  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.05);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --radius:    6px;
+  --radius-lg: 10px;
+  --radius-pill: 999px;
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.06);
 
-  /* Typografie — DM Sans / DM Mono laut CLAUDE.md.
-     Stack auf System-Fonts, bis WebFonts eingebunden sind. */
+  /* Typografie */
   --font-ui:   'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   --font-mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
 
-  /* App-weite Transition für Perspective-Wechsel */
-  --transition-accent: color 240ms ease, border-color 240ms ease, background-color 240ms ease;
+  --transition-accent: color 200ms ease, border-color 200ms ease, background-color 200ms ease;
 }
 
+/* Perspective accents change the SyncPanel dots + a small handful of scoped
+   elements — buttons intentionally stay on --c-brand-blue for consistency. */
 [data-perspective='technical']   { --c-accent: var(--c-primary); }
 [data-perspective='application'] { --c-accent: var(--c-process); }
 [data-perspective='location']    { --c-accent: var(--c-site); }
@@ -61,7 +70,7 @@ html, body {
   margin: 0;
   padding: 0;
   font-family: var(--font-ui);
-  font-size: 16px;
+  font-size: 15px;                /* one notch down — matches layout scale */
   line-height: 1.5;
   color: var(--c-text);
   background: var(--c-bg);
