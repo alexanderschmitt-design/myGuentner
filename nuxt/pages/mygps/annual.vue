@@ -41,7 +41,6 @@ async function runAnalysis() {
 
 <template>
   <section>
-    <StepWizard current="annual" />
 
     <h1>Annual analysis</h1>
     <p class="lede">Energy and water cost projection over a typical year.</p>

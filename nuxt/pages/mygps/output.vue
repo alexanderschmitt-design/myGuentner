@@ -48,7 +48,6 @@ function pick(u: any) {
 
 <template>
   <section>
-    <StepWizard current="output" />
 
     <h1>Selector output</h1>
     <p class="lede">

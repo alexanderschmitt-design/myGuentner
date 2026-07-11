@@ -53,7 +53,6 @@ const canProceed = computed(() =>
 
 <template>
   <section>
-    <StepWizard current="inputs" />
 
     <h1>Selector inputs</h1>
     <p class="lede">Design conditions for the unit selection. {{ formatCapacity(store.parameters.coolingCapacityKw) }}</p>

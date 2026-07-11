@@ -16,7 +16,6 @@ const canProceed = computed(() =>
 
 <template>
   <section>
-    <StepWizard current="projects" />
 
     <h1>Project information</h1>
     <p class="lede">These fields appear on the generated datasheet and quote.</p>

@@ -53,7 +53,6 @@ function setOn(id: string, on: boolean) {
 
 <template>
   <section>
-    <StepWizard current="accessories" />
 
     <h1>Options & accessories</h1>
     <p class="lede">Pick the options that apply to this configuration. These map to GPC option codes.</p>

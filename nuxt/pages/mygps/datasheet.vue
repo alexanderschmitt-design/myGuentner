@@ -34,7 +34,6 @@ const { data: bidText, error: bidTextError } = await useAsyncData(
 
 <template>
   <section>
-    <StepWizard current="datasheet" />
 
     <h1>Datasheet</h1>
     <p class="lede">Final summary for {{ store.project.name || 'this project' }}.</p>

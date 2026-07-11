@@ -24,7 +24,6 @@ const notes = computed<string>({
 
 <template>
   <section>
-    <StepWizard current="service" />
 
     <h1>Service & pricing</h1>
     <p class="lede">Optional commissioning support and commercial settings.</p>
