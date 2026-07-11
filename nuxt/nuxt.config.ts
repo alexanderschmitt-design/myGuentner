@@ -12,7 +12,13 @@ export default defineNuxtConfig({
     head: {
       title: 'myGPC — Güntner Product Configurator',
       htmlAttrs: { lang: 'en' },
-      meta: [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }]
+      meta: [{ charset: 'utf-8' }, { name: 'viewport', content: 'width=device-width, initial-scale=1' }],
+      link: [
+        // DM Sans + DM Mono für UI + technische Werte (aus tokens.css referenziert).
+        { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
+        { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700&display=swap' }
+      ]
     }
   },
 

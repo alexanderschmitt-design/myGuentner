@@ -71,6 +71,22 @@ export interface ProjectMeta {
   country: string;
 }
 
+export interface ServiceConfig {
+  quantity: number;
+  discountPercent: number;
+  startupSupport: boolean;
+  notes: string;
+}
+
+function emptyService(): ServiceConfig {
+  return {
+    quantity: 1,
+    discountPercent: 0,
+    startupSupport: false,
+    notes: ''
+  };
+}
+
 function emptyParameters(): ConfigurationParameters {
   return {
     coolingCapacityKw: null,
@@ -101,6 +117,9 @@ export const useConfigStore = defineStore('configuration', {
     parameters: emptyParameters() as ConfigurationParameters,
     validationWarnings: [] as ValidationWarning[],
     selectedProducts: [] as ProductSelection[],
+    selectedAccessories: [] as string[],
+    service: emptyService() as ServiceConfig,
+    selectedUnitKey: null as string | null,
     currentCategory: null as string | null,
     currentSubcategory: null as string | null
   }),
@@ -136,10 +155,24 @@ export const useConfigStore = defineStore('configuration', {
     removeProduct(productId: string) {
       this.selectedProducts = this.selectedProducts.filter(p => p.productId !== productId);
     },
+    toggleAccessory(id: string) {
+      const i = this.selectedAccessories.indexOf(id);
+      if (i >= 0) this.selectedAccessories.splice(i, 1);
+      else this.selectedAccessories.push(id);
+    },
+    updateService(patch: Partial<ServiceConfig>) {
+      Object.assign(this.service, patch);
+    },
+    selectUnit(key: string | null) {
+      this.selectedUnitKey = key;
+    },
     resetWizard() {
       this.parameters = emptyParameters();
       this.validationWarnings = [];
       this.selectedProducts = [];
+      this.selectedAccessories = [];
+      this.service = emptyService();
+      this.selectedUnitKey = null;
       this.currentCategory = null;
       this.currentSubcategory = null;
     }
@@ -151,7 +184,8 @@ export const useConfigStore = defineStore('configuration', {
     storage: import.meta.client ? localStorage : undefined,
     pick: [
       'activePerspective', 'unitSystem', 'project', 'parameters',
-      'selectedProducts', 'currentCategory', 'currentSubcategory'
+      'selectedProducts', 'selectedAccessories', 'service', 'selectedUnitKey',
+      'currentCategory', 'currentSubcategory'
     ]
   } as any  // pinia-plugin-persistedstate-Optionen sind aus Sicht von vanilla Pinia "extra"
 });

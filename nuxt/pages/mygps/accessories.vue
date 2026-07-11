@@ -29,9 +29,26 @@ const groups: AccessoryGroup[] = [
   ] }
 ];
 
-const selected = ref<Record<string, boolean>>(
-  Object.fromEntries(groups.flatMap(g => g.options.map(o => [o.id, !!o.defaultOn])))
-);
+const store = useConfigStore();
+
+// Seed defaultOn entries on first mount if the store is still empty.
+onMounted(() => {
+  if (store.selectedAccessories.length === 0) {
+    for (const g of groups) {
+      for (const o of g.options) {
+        if (o.defaultOn) store.toggleAccessory(o.id);
+      }
+    }
+  }
+});
+
+function isOn(id: string): boolean {
+  return store.selectedAccessories.includes(id);
+}
+function setOn(id: string, on: boolean) {
+  const currently = isOn(id);
+  if (on !== currently) store.toggleAccessory(id);
+}
 </script>
 
 <template>
@@ -46,7 +63,11 @@ const selected = ref<Record<string, boolean>>(
       <ul>
         <li v-for="o in g.options" :key="o.id">
           <label>
-            <input type="checkbox" v-model="selected[o.id]" />
+            <input
+              type="checkbox"
+              :checked="isOn(o.id)"
+              @change="(e) => setOn(o.id, (e.target as HTMLInputElement).checked)"
+            />
             {{ o.label }}
           </label>
         </li>
