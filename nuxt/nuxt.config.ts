@@ -128,6 +128,10 @@ export default defineNuxtConfig({
   },
 
   nitro: {
+    // On Vercel we want the Build Output API v3 format (.vercel/output/).
+    // Nitro auto-detects VERCEL=1 env, but pin explicitly so the output path
+    // matches what vercel.json#outputDirectory expects.
+    preset: process.env.VERCEL ? 'vercel' : undefined,
     // Externalize native/complex Node modules — Rollup bundling of these breaks
     // on Windows (pdf-parse) and Vercel (native canvas bindings). Keeping them
     // as runtime CommonJS deps is safer and closer to how Vercel resolves.
