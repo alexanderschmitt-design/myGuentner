@@ -131,7 +131,7 @@ function resetToDefaults() {
 }
 
 function goNext() {
-  if (canProceed.value) router.push('/mygps/output')
+  if (canProceed.value) router.push('/mygps/unit')
 }
 function goBack() { router.push('/mygps') }
 </script>

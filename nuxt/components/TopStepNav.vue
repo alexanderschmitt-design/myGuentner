@@ -11,8 +11,8 @@ interface Step { id: string; label: string; route: string }
 const STEPS: Step[] = [
   { id: 'category',    label: 'Category',       route: '/mygps' },
   { id: 'thermo',      label: 'Thermodynamics', route: '/mygps/inputs' },
-  { id: 'unit',        label: 'Unit Selection', route: '/mygps/output' },
-  { id: 'results',     label: 'Results',        route: '/mygps/annual' },
+  { id: 'unit',        label: 'Unit Selection', route: '/mygps/unit' },
+  { id: 'results',     label: 'Results',        route: '/mygps/output' },
   { id: 'datasheet',   label: 'Datasheet',      route: '/mygps/datasheet' }
 ]
 
@@ -21,9 +21,10 @@ const ROUTE_TO_STEP: Record<string, string> = {
   '/mygps':              'category',
   '/mygps/projects':     'category',
   '/mygps/inputs':       'thermo',
-  '/mygps/accessories':  'thermo',
+  '/mygps/unit':         'unit',
+  '/mygps/accessories':  'unit',
   '/mygps/service':      'unit',
-  '/mygps/output':       'unit',
+  '/mygps/output':       'results',
   '/mygps/annual':       'results',
   '/mygps/datasheet':    'datasheet'
 }
