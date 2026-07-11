@@ -25,10 +25,16 @@ the backend. Written after Phases A–E were completed autonomously on
 
 - Vercel Dashboard → **Add New… → Project**
 - Select repo `alexanderschmitt-design/myGuentner`
-- **Framework Preset**: Nuxt.js (auto-detected)
-- **Root Directory**: leave as `/` — `vercel.json` in the root wires the build
-  command to run inside `nuxt/`
+- **Root Directory**: set to **`nuxt`** — this is a nested Nuxt project.
+  Everything else (framework detection, build command, output directory) is
+  auto-detected once Root Directory points at the Nuxt folder.
+- **Framework Preset**: Nuxt.js (auto-selected after Root Directory is set)
 - Do **not** click Deploy yet — env vars first.
+
+> If you already imported the project with Root Directory = `/` and got an
+> "No Output Directory named .output" error: go to **Settings → General →
+> Root Directory** and change it to `nuxt`, then hit **Redeploy** on the
+> failed deployment. That's the fix.
 
 ### 2. Environment variables
 
@@ -95,23 +101,23 @@ Once the Vercel deployment is live, hit these URLs (replace host):
 
 ```bash
 # 1. Login page
-curl -I https://<host>/app/login
+curl -I https://<host>/login
 # → 200 OK
 
 # 2. Any /api/* without auth returns 401
 curl https://<host>/api/dms/health
 # → 401 { "code": "UNAUTHENTICATED" }
 
-# 3. Log in via browser at https://<host>/app/login
+# 3. Log in via browser at https://<host>/login
 #    then in DevTools copy the Supabase auth cookie and:
 curl -H "Cookie: sb-<hash>-auth-token=…" https://<host>/api/system/status
 # → 200 with everything green
 ```
 
 Browser walkthrough:
-1. Visit `https://<host>/` → redirects to `/app/login`
-2. Log in → redirects to `/app/`
-3. Open the Wizard at `/app/mygps` → should work
+1. Visit `https://<host>/` → redirects to `/login`
+2. Log in → redirects to `/`
+3. Open the Wizard at `/mygps` → should work
 4. Chat should stream (once ANTHROPIC or GEMINI key is set)
 
 ---
@@ -142,8 +148,8 @@ Vercel — that's cleaner but requires OPENAI_API_KEY to be set on Vercel first.
   Supabase session cookies (which browsers send automatically). If you want to
   call the API from a script or curl, you'll need to add Bearer token support
   in `nuxt/server/middleware/auth.ts`.
-- **The `baseURL: '/app/'`** in `nuxt.config.ts` means the app is served under
-  `/app/` — not root. Vercel URL will be `https://…/app/login`, not
+- **The `baseURL: '/'`** in `nuxt.config.ts` means the app is served under
+  `/` — not root. Vercel URL will be `https://…/login`, not
   `https://…/login`. To move to root, remove `baseURL` in `nuxt.config.ts` and
   redeploy.
 - **DMS bulk-import**: synchronous only. Batches >~20 docs may time out on

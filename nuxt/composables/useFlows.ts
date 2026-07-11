@@ -32,7 +32,7 @@ export const MYGPS_FLOWS: Record<string, Category> = {
   evaporative: {
     slug: 'evaporative',
     label: 'Evaporative Products',
-    image: '/app/images/mygps/cat-evaporative.jpg',
+    image: '/images/mygps/cat-evaporative.jpg',
     subcategories: {
       condenser:    { label: 'Evaporative Condenser',     steps: FULL_STEPS },
       'fluid-cooler': { label: 'Evaporative Fluid Coolers', steps: FULL_STEPS }
@@ -41,7 +41,7 @@ export const MYGPS_FLOWS: Record<string, Category> = {
   adiabatic: {
     slug: 'adiabatic',
     label: 'Adiabatic Products',
-    image: '/app/images/mygps/cat-adiabatic.jpg',
+    image: '/images/mygps/cat-adiabatic.jpg',
     subcategories: {
       condenser:       { label: 'Adiabatic Condensers',       steps: FULL_STEPS },
       'fluid-cooler':  { label: 'Adiabatic Fluid Coolers',    steps: FULL_STEPS },
@@ -51,7 +51,7 @@ export const MYGPS_FLOWS: Record<string, Category> = {
   'high-density': {
     slug: 'high-density',
     label: 'High-Density Products',
-    image: '/app/images/mygps/cat-high-density.jpg',
+    image: '/images/mygps/cat-high-density.jpg',
     subcategories: {
       'fluid-cooler': { label: 'Adiabatic Fluid Coolers', steps: FULL_STEPS },
       condenser:      { label: 'Adiabatic Condensers',    steps: FULL_STEPS }
@@ -60,7 +60,7 @@ export const MYGPS_FLOWS: Record<string, Category> = {
   dry: {
     slug: 'dry',
     label: 'Dry Products',
-    image: '/app/images/mygps/cat-dry.jpg',
+    image: '/images/mygps/cat-dry.jpg',
     subcategories: {
       condenser: { label: 'DryCondensers', steps: FULL_STEPS }
     }
@@ -68,7 +68,7 @@ export const MYGPS_FLOWS: Record<string, Category> = {
   'air-cooler': {
     slug: 'air-cooler',
     label: 'Air Cooler Products',
-    image: '/app/images/mygps/cat-air-cooler.jpg',
+    image: '/images/mygps/cat-air-cooler.jpg',
     subcategories: null,
     steps: FULL_STEPS
   }

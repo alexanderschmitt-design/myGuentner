@@ -21,10 +21,7 @@ const PUBLIC_ROUTES = new Set<string>([
 const PUBLIC_PREFIXES = ['/api/auth/', '/api/_supabase']
 
 export default defineEventHandler(async (event) => {
-  const rawUrl = getRequestURL(event).pathname
-  // Nuxt's app.baseURL ('/app/') is prepended to what the middleware sees. Strip
-  // both variants so the check works whether we run behind a proxy or standalone.
-  const url = rawUrl.replace(/^\/app/, '')
+  const url = getRequestURL(event).pathname
 
   if (!url.startsWith('/api/')) return
   if (PUBLIC_ROUTES.has(url)) return

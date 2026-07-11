@@ -7,10 +7,8 @@ export default defineNuxtConfig({
   // und ins Hydration-Payload geschrieben. Hydration übernimmt der Client.
   ssr: true,
 
-  // Express auf :3001 proxied alle /app/*-Requests zu Nitro (:3002).
-  // baseURL muss deshalb /app/ sein, damit Asset-Pfade in den Bundles stimmen.
+  // App-Meta. Kein baseURL mehr — läuft direkt unter Root auf Vercel.
   app: {
-    baseURL: '/app/',
     head: {
       title: 'myGPC — Güntner Product Configurator',
       htmlAttrs: { lang: 'en' },
@@ -58,10 +56,6 @@ export default defineNuxtConfig({
   },
 
   runtimeConfig: {
-    // Server-only — interner Loopback zum Express (für SSR-Calls auf /api/gpc-eu/*)
-    // Bleibt bis Phase C (Express → Nitro Migration) abgeschlossen ist.
-    apiBase: process.env.NUXT_API_BASE_INTERNAL || 'http://localhost:3001/api',
-
     // Supabase — server-side only. Secret key darf NIE in den Client.
     // Vercel setzt beide über die Environment-Variables-UI.
     supabaseUrl: process.env.SUPABASE_URL || '',
@@ -106,10 +100,9 @@ export default defineNuxtConfig({
     openaiEmbeddingModel: process.env.RAG_EMBEDDING_MODEL || 'text-embedding-3-small',
 
     public: {
-      // Im Browser sichtbar — relativ, läuft über Express auf gleicher Origin
+      // Im Browser sichtbar — relativ, gleiches Origin wie die Nuxt-App.
       apiBase: '/api',
-      // Supabase publishable key ist per Definition browser-safe (Row Level
-      // Security schützt die Daten). Wird von @nuxtjs/supabase (Phase D) genutzt.
+      // Supabase publishable key ist per Definition browser-safe (RLS schützt die Daten).
       supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || ''
     }
   },

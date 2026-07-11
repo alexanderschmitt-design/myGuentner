@@ -2,7 +2,7 @@
   "name": "mygpc-nuxt",
   "version": "0.1.0",
   "private": true,
-  "description": "myGPC — Vue/Nuxt-Frontend (Phase 3). SSR-Mode, läuft als Nitro-Server hinter Express auf /app/*.",
+  "description": "myGPC — Vue/Nuxt-Frontend + Nitro-API. SSR on Vercel + Supabase.",
   "type": "module",
   "scripts": {
     "dev": "nuxt dev --port 3002 --dotenv ../.env",
