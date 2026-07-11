@@ -68,10 +68,13 @@ const isOpen = (s: string) => openSections.value.has(s)
 
 const canProceed = computed(() => selectedSeries.value.size > 0)
 
+const { current, thermoUrl, searchUrl } = useCategory()
+useHead({ title: `myGPC — Unit Selection (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
+
 function goNext() {
-  if (canProceed.value) router.push('/mygps/output')
+  if (canProceed.value) router.push(searchUrl())
 }
-function goBack() { router.push('/mygps/inputs') }
+function goBack() { router.push(thermoUrl()) }
 function resetConfig() {
   selectedSeries.value = new Set(['gacc-cx', 'gacv-cx'])
   maxLengthM.value = 12

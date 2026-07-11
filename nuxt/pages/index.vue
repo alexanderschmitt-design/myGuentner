@@ -30,20 +30,25 @@ function toggleOpen(id: string) {
 const router = useRouter()
 const store = useConfigStore()
 
-function goToWizard(productSection: 1 | 2, categorySlug: string) {
+// Direct navigation into Step 2 (Thermodynamics) with the numeric category ID
+// in the URL. Matches the pattern from reference screenshots:
+//   /mygpc/0/thermodynamics  → Evaporator DX
+//   /mygpc/1/thermodynamics  → Evaporator Pump
+//   … see composables/useCategory.ts for full ID map.
+function goToWizard(catId: number, categorySlug: string) {
   store.currentCategory = categorySlug
   store.currentSubcategory = null
-  router.push('/mygps')
+  router.push(`/mygpc/${catId}/thermodynamics`)
 }
 
-// UNITS (productSection=1)
+// UNITS (productSection=1) — id maps to GPC.EU productCategory
 const UNITS = [
-  { slug: 'evaporator-dx',    title: 'Evaporator', sublabel: 'DX',     image: '/images/Evaporator-dx.png',    icon: '/icons/icon-dx.svg' },
-  { slug: 'evaporator-pump',  title: 'Evaporator', sublabel: 'Pump',   image: '/images/Evaporator-Pump.png',  icon: '/icons/icon-pump.svg' },
-  { slug: 'air-cooler',       title: 'Air cooler', sublabel: 'Coolant', image: '/images/Aircooler.png',       icon: '/icons/icon-coolant.svg' },
-  { slug: 'dry-cooler',       title: 'Dry cooler', sublabel: '',       image: '/images/Drycooler.png',        icon: '/icons/icon-dry.svg', extra: [{ label: 'Oil Cooler', slug: 'oil-cooler' }] },
-  { slug: 'condenser',        title: 'Condenser',  sublabel: '',       image: '/images/Condenser.png',        icon: '/icons/icon-condenser.svg', extra: [{ label: 'Subcooler', slug: 'subcooler' }] },
-  { slug: 'gas-cooler',       title: 'Gas cooler', sublabel: 'CO₂',    image: '/images/Gas-Cooler.png',       icon: '/icons/icon-gascooler.svg' }
+  { catId: 0,  title: 'Evaporator', sublabel: 'DX',      image: '/images/Evaporator-dx.png',   icon: '/icons/icon-dx.svg',        slug: 'evaporator-dx' },
+  { catId: 1,  title: 'Evaporator', sublabel: 'Pump',    image: '/images/Evaporator-Pump.png', icon: '/icons/icon-pump.svg',      slug: 'evaporator-pump' },
+  { catId: 2,  title: 'Air cooler', sublabel: 'Coolant', image: '/images/Aircooler.png',       icon: '/icons/icon-coolant.svg',   slug: 'air-cooler' },
+  { catId: 4,  title: 'Dry cooler', sublabel: '',        image: '/images/Drycooler.png',       icon: '/icons/icon-dry.svg',       slug: 'dry-cooler', extra: [{ label: 'Oil Cooler', catId: 6,  slug: 'oil-cooler' }] },
+  { catId: 3,  title: 'Condenser',  sublabel: '',        image: '/images/Condenser.png',       icon: '/icons/icon-condenser.svg', slug: 'condenser',  extra: [{ label: 'Subcooler',  catId: 5,  slug: 'subcooler'  }] },
+  { catId: 10, title: 'Gas cooler', sublabel: 'CO₂',     image: '/images/Gas-Cooler.png',      icon: '/icons/icon-gascooler.svg', slug: 'gas-cooler' }
 ]
 
 // MYGPS category products (from pre-migration mygps-projects.html links)
@@ -93,10 +98,10 @@ const COILS = [
                 <img v-if="u.icon" :src="u.icon" alt="" class="cat-card-icon" />
                 <span>{{ u.title }}</span>
               </div>
-              <button class="cat-card-btn" @click="goToWizard(1, u.slug)">
+              <button class="cat-card-btn" @click="goToWizard(u.catId, u.slug)">
                 {{ u.sublabel || u.title }}
               </button>
-              <button v-for="e in u.extra" :key="e.slug" class="cat-card-btn" @click="goToWizard(1, e.slug)">
+              <button v-for="e in u.extra" :key="e.slug" class="cat-card-btn" @click="goToWizard(e.catId, e.slug)">
                 {{ e.label }}
               </button>
             </div>
@@ -126,7 +131,7 @@ const COILS = [
                 <img v-if="c.icon" :src="c.icon" alt="" class="cat-card-icon" />
                 <span>{{ c.title }}</span>
               </div>
-              <button v-for="(opt, i) in c.options" :key="i" class="cat-card-btn" @click="goToWizard(1, c.slug)">
+              <button v-for="(opt, i) in c.options" :key="i" class="cat-card-btn" @click="goToWizard(0, c.slug)">
                 {{ opt }}
               </button>
             </div>
@@ -147,7 +152,7 @@ const COILS = [
             <div class="industry-card-img"><img :src="a.image" :alt="a.title" /></div>
             <div class="industry-card-body">
               <h3>{{ a.title }}</h3>
-              <button class="cat-card-btn" @click="goToWizard(1, a.slug)">{{ a.cta }}</button>
+              <button class="cat-card-btn" @click="goToWizard(0, a.slug)">{{ a.cta }}</button>
             </div>
           </div>
         </div>
@@ -169,10 +174,10 @@ const COILS = [
                 <img v-if="c.icon" :src="c.icon" alt="" class="cat-card-icon" />
                 <span>{{ c.title }}</span>
               </div>
-              <button class="cat-card-btn" @click="goToWizard(2, c.slug)">
+              <button class="cat-card-btn" @click="goToWizard(0, c.slug)">
                 {{ c.sublabel || c.title }}
               </button>
-              <button v-for="e in c.extra" :key="e.slug" class="cat-card-btn" @click="goToWizard(2, e.slug)">
+              <button v-for="e in c.extra" :key="e.slug" class="cat-card-btn" @click="goToWizard(0, e.slug)">
                 {{ e.label }}
               </button>
             </div>

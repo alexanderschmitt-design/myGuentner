@@ -130,10 +130,13 @@ function resetToDefaults() {
   inletByTempPressure.value = false
 }
 
+const { current, unitUrl } = useCategory()
+useHead({ title: `myGPC — Thermodynamics (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
+
 function goNext() {
-  if (canProceed.value) router.push('/mygps/unit')
+  if (canProceed.value) router.push(unitUrl())
 }
-function goBack() { router.push('/mygps') }
+function goBack() { router.push('/') }
 </script>
 
 <template>

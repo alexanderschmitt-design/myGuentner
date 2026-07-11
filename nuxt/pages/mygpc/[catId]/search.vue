@@ -108,10 +108,13 @@ function pick(u: ResultRow) {
   store.selectProduct({ productId: u.id, typeDesignation: u.unitKey, quantity: 1 })
 }
 
+const { current, unitUrl, datasheetUrl } = useCategory()
+useHead({ title: `myGPC — Results (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
+
 function goDatasheet() {
-  if (selectedId.value) router.push('/mygps/datasheet')
+  if (selectedId.value) router.push(datasheetUrl())
 }
-function goBack() { router.push('/mygps/unit') }
+function goBack() { router.push(unitUrl()) }
 
 const searchTerm = ref('')
 const filteredRows = computed(() => {
@@ -143,7 +146,7 @@ function deliveryLabel(s: string) {
 
     <!-- Header row -->
     <div class="results-head">
-      <h1>EVAPORATOR (DX)</h1>
+      <h1>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}</h1>
       <div class="head-actions">
         <div class="search">
           <span class="icon">🔍</span>

@@ -2,38 +2,43 @@
 /**
  * 5-step marketing wizard nav — matches all 5 myGPC layout PNGs (2026-07-01).
  *
- * Visual language:
- *   ● pending    — empty circle, light border, muted label
- *   ● current    — filled brand-blue circle, bold blue label
- *   ● done       — filled brand-blue circle with white ✓, normal-weight label
- *   line         — brand-blue between completed steps, gray otherwise
+ * URL scheme (from reference screenshots myguntner.com/#/mygpc/<catId>/*):
+ *   /                          → Category (accordions on Home)
+ *   /mygpc/<catId>/thermodynamics
+ *   /mygpc/<catId>/unit-selection
+ *   /mygpc/<catId>/search
+ *   /gpc-details               → Datasheet
  */
 
-interface Step { id: string; label: string; route: string }
+import { getCategoryById } from '~/composables/useCategory'
+
+interface Step { id: string; label: string; route: (catId: number) => string }
 
 const STEPS: Step[] = [
-  { id: 'category',    label: 'Category',       route: '/mygps' },
-  { id: 'thermo',      label: 'Thermodynamics', route: '/mygps/inputs' },
-  { id: 'unit',        label: 'Unit Selection', route: '/mygps/unit' },
-  { id: 'results',     label: 'Results',        route: '/mygps/output' },
-  { id: 'datasheet',   label: 'Datasheet',      route: '/mygps/datasheet' }
+  { id: 'category',    label: 'Category',       route: ()          => '/' },
+  { id: 'thermo',      label: 'Thermodynamics', route: (c: number) => `/mygpc/${c}/thermodynamics` },
+  { id: 'unit',        label: 'Unit Selection', route: (c: number) => `/mygpc/${c}/unit-selection` },
+  { id: 'results',     label: 'Results',        route: (c: number) => `/mygpc/${c}/search` },
+  { id: 'datasheet',   label: 'Datasheet',      route: ()          => '/gpc-details' }
 ]
-
-const ROUTE_TO_STEP: Record<string, string> = {
-  '/mygps':              'category',
-  '/mygps/projects':     'category',
-  '/mygps/inputs':       'thermo',
-  '/mygps/unit':         'unit',
-  '/mygps/accessories':  'unit',
-  '/mygps/service':      'unit',
-  '/mygps/output':       'results',
-  '/mygps/annual':       'results',
-  '/mygps/datasheet':    'datasheet'
-}
 
 const route = useRoute()
 
-const currentStep = computed(() => ROUTE_TO_STEP[route.path] || 'category')
+// Extract catId from URL: /mygpc/<N>/... → N. Else 0 (default Evaporator DX).
+const catId = computed<number>(() => {
+  const m = route.path.match(/^\/mygpc\/(\d+)\//)
+  return m ? parseInt(m[1], 10) : 0
+})
+
+// Determine current step from route path
+const currentStep = computed<string>(() => {
+  if (route.path === '/' || route.path.startsWith('/mygpc') && route.path.split('/').length <= 3) return 'category'
+  if (route.path.endsWith('/thermodynamics')) return 'thermo'
+  if (route.path.endsWith('/unit-selection')) return 'unit'
+  if (route.path.endsWith('/search')) return 'results'
+  if (route.path === '/gpc-details') return 'datasheet'
+  return 'category'
+})
 const currentIndex = computed(() => STEPS.findIndex(s => s.id === currentStep.value))
 
 function statusFor(i: number): 'done' | 'current' | 'pending' {
@@ -41,11 +46,7 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
   if (i === currentIndex.value) return 'current'
   return 'pending'
 }
-
-function lineDone(i: number): boolean {
-  // The line AFTER step i is "done" only when step i itself is done.
-  return i < currentIndex.value
-}
+function lineDone(i: number): boolean { return i < currentIndex.value }
 </script>
 
 <template>
@@ -53,17 +54,10 @@ function lineDone(i: number): boolean {
     <ol>
       <template v-for="(s, i) in STEPS" :key="s.id">
         <li :class="statusFor(i)">
-          <NuxtLink :to="s.route" class="step">
+          <NuxtLink :to="s.route(catId)" class="step">
             <span class="dot" aria-hidden="true">
               <svg v-if="statusFor(i) === 'done'" viewBox="0 0 16 16" width="10" height="10">
-                <path
-                  d="M3.5 8.5l3 3 6-7"
-                  stroke="white"
-                  stroke-width="2"
-                  fill="none"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
+                <path d="M3.5 8.5l3 3 6-7" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
               </svg>
             </span>
             <span class="label">{{ s.label }}</span>
@@ -81,18 +75,8 @@ function lineDone(i: number): boolean {
   background: var(--c-surface-muted);
   border-bottom: 1px solid var(--c-border);
 }
-ol {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  align-items: center;
-}
-li {
-  display: flex;
-  align-items: center;
-  flex: 0 0 auto;
-}
+ol { list-style: none; margin: 0; padding: 0; display: flex; align-items: center; }
+li { display: flex; align-items: center; flex: 0 0 auto; }
 li .step {
   display: inline-flex;
   align-items: center;
@@ -117,7 +101,11 @@ li .step {
 li.done .step { color: var(--c-text); }
 li.done .dot { background: var(--c-brand-blue); border-color: var(--c-brand-blue); }
 li.current .step { color: var(--c-brand-blue); font-weight: 600; }
-li.current .dot { background: var(--c-brand-blue); border-color: var(--c-brand-blue); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 20%, transparent); }
+li.current .dot {
+  background: var(--c-brand-blue);
+  border-color: var(--c-brand-blue);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 20%, transparent);
+}
 li.pending .step { color: var(--c-text-muted); }
 .line {
   flex: 1;

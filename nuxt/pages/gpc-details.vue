@@ -94,12 +94,14 @@ const deliveryWeeks = 'On request'
 // Impact score (5 stars)
 const impactScore = 3
 
-function goBack() { router.push('/mygps/output') }
+// Datasheet has no catId in URL — pick a sensible fallback (last-used or 0)
+const { current, searchUrl, thermoUrl } = useCategory()
+function goBack() { router.push(searchUrl()) }
 
 const actionButtons = [
   { label: 'Back to results',  icon: '←', primary: true, onClick: goBack },
   { label: 'Recalculate',      icon: '↻', primary: false, onClick: () => {} },
-  { label: 'Input data',       icon: '▤', primary: false, onClick: () => router.push('/mygps/inputs') },
+  { label: 'Input data',       icon: '▤', primary: false, onClick: () => router.push(thermoUrl()) },
   { label: 'Datasheet PDF',    icon: '↓', primary: false, onClick: () => {} },
   { label: 'Datasheet DOCX',   icon: '↓', primary: false, onClick: () => {} },
   { label: 'GPC file webgen',  icon: '↓', primary: false, onClick: () => {} },
@@ -117,7 +119,7 @@ const actionButtons = [
       <div class="content">
         <!-- Product header -->
         <div class="prod-head">
-          <h1>EVAPORATOR (DX)</h1>
+          <h1>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}</h1>
           <div class="prod-sub mono">{{ unitKey }}</div>
         </div>
 
