@@ -89,23 +89,17 @@ const COILS = [
       </button>
       <div v-if="openSections.units" class="accordion-body">
         <div class="cat-grid">
-          <div v-for="u in UNITS" :key="u.slug" class="cat-card">
-            <div class="cat-card-image">
-              <img :src="u.image" :alt="u.title" />
-            </div>
-            <div class="cat-card-body">
-              <div class="cat-card-title">
-                <img v-if="u.icon" :src="u.icon" alt="" class="cat-card-icon" />
-                <span>{{ u.title }}</span>
-              </div>
-              <button class="cat-card-btn" @click="goToWizard(u.catId, u.slug)">
-                {{ u.sublabel || u.title }}
-              </button>
-              <button v-for="e in u.extra" :key="e.slug" class="cat-card-btn" @click="goToWizard(e.catId, e.slug)">
-                {{ e.label }}
-              </button>
-            </div>
-          </div>
+          <ProductCategoryCard
+            v-for="u in UNITS"
+            :key="u.slug"
+            :image="u.image"
+            :icon="u.icon"
+            :title="u.title"
+            :cta-label="u.sublabel || u.title"
+            :on-cta="() => goToWizard(u.catId, u.slug)"
+            :extras="(u.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(e.catId, e.slug) }))"
+            last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
+          />
         </div>
         <div class="upload-section">
           <button class="btn btn-outline">
@@ -124,18 +118,16 @@ const COILS = [
       </button>
       <div v-if="openSections.mygps" class="accordion-body">
         <div class="cat-grid">
-          <div v-for="c in MYGPS_CATS" :key="c.slug" class="cat-card">
-            <div class="cat-card-image"><img :src="c.image" :alt="c.title" /></div>
-            <div class="cat-card-body">
-              <div class="cat-card-title">
-                <img v-if="c.icon" :src="c.icon" alt="" class="cat-card-icon" />
-                <span>{{ c.title }}</span>
-              </div>
-              <button v-for="(opt, i) in c.options" :key="i" class="cat-card-btn" @click="goToWizard(0, c.slug)">
-                {{ opt }}
-              </button>
-            </div>
-          </div>
+          <ProductCategoryCard
+            v-for="c in MYGPS_CATS"
+            :key="c.slug"
+            :image="c.image"
+            :icon="c.icon"
+            :title="c.title"
+            :cta-label="c.options[0]"
+            :on-cta="() => goToWizard(0, c.slug)"
+            :extras="c.options.slice(1).map((opt: string) => ({ label: opt, onClick: () => goToWizard(0, c.slug) }))"
+          />
         </div>
       </div>
     </section>
@@ -147,14 +139,16 @@ const COILS = [
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </button>
       <div v-if="openSections.application" class="accordion-body">
-        <div class="industry-grid">
-          <div v-for="a in APPLICATIONS" :key="a.slug" class="industry-card">
-            <div class="industry-card-img"><img :src="a.image" :alt="a.title" /></div>
-            <div class="industry-card-body">
-              <h3>{{ a.title }}</h3>
-              <button class="cat-card-btn" @click="goToWizard(0, a.slug)">{{ a.cta }}</button>
-            </div>
-          </div>
+        <div class="cat-grid">
+          <ProductCategoryCard
+            v-for="a in APPLICATIONS"
+            :key="a.slug"
+            :image="a.image"
+            :title="a.title"
+            :cta-label="a.cta"
+            :on-cta="() => goToWizard(0, a.slug)"
+            last-config="DCHD 213.1 1x5/08RA-1500L/02P.M"
+          />
         </div>
       </div>
     </section>
@@ -167,21 +161,16 @@ const COILS = [
       </button>
       <div v-if="openSections.coils" class="accordion-body">
         <div class="cat-grid">
-          <div v-for="c in COILS" :key="c.slug" class="cat-card">
-            <div class="cat-card-image"><img :src="c.image" :alt="c.title" /></div>
-            <div class="cat-card-body">
-              <div class="cat-card-title">
-                <img v-if="c.icon" :src="c.icon" alt="" class="cat-card-icon" />
-                <span>{{ c.title }}</span>
-              </div>
-              <button class="cat-card-btn" @click="goToWizard(0, c.slug)">
-                {{ c.sublabel || c.title }}
-              </button>
-              <button v-for="e in c.extra" :key="e.slug" class="cat-card-btn" @click="goToWizard(0, e.slug)">
-                {{ e.label }}
-              </button>
-            </div>
-          </div>
+          <ProductCategoryCard
+            v-for="c in COILS"
+            :key="c.slug"
+            :image="c.image"
+            :icon="c.icon"
+            :title="c.title"
+            :cta-label="c.sublabel || c.title"
+            :on-cta="() => goToWizard(0, c.slug)"
+            :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug) }))"
+          />
         </div>
       </div>
     </section>
@@ -238,44 +227,47 @@ const COILS = [
 .home { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
 
 .accordion {
-  background: white;
+  background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: var(--radius);
+  border-radius: var(--radius-md);            /* 8px */
   overflow: hidden;
 }
 .accordion-head {
   width: 100%;
   background: none;
   border: none;
-  padding: 18px 24px;
+  padding: var(--space-sm) var(--space-6);    /* 19 / 32 */
   display: flex;
   justify-content: space-between;
   align-items: center;
   cursor: pointer;
   color: var(--c-text);
+  font-family: var(--font-headline);
 }
 .accordion-head h2 {
   margin: 0;
-  font-size: 1.1rem;
-  font-weight: 600;
-  color: var(--c-primary);
-  letter-spacing: 0.02em;
+  font-family: var(--font-headline);
+  font-size: var(--font-xl);                  /* 23.7px */
+  line-height: 1;
+  font-weight: 400;
+  color: var(--c-brand-dark-grey);            /* #3c3c3b */
+  letter-spacing: 0;
 }
-.chev { color: var(--c-text-muted); transition: transform 0.2s; }
+.chev { color: var(--c-text-medium); transition: transform 0.2s; }
 .accordion.is-open .chev { transform: rotate(180deg); }
 .accordion-body {
-  padding: 0 24px 24px;
+  padding: 0 var(--space-6) var(--space-6);   /* 0 / 32 / 32 */
   border-top: 1px solid var(--c-border);
 }
 
-.cat-grid, .industry-grid {
+.cat-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  padding-top: 20px;
+  gap: var(--space-5);                        /* 24 */
+  padding-top: var(--space-5);
 }
-@media (max-width: 900px) { .cat-grid, .industry-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .cat-grid, .industry-grid { grid-template-columns: 1fr; } }
+@media (max-width: 900px) { .cat-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px) { .cat-grid { grid-template-columns: 1fr; } }
 
 .cat-card, .industry-card {
   background: white;

@@ -35,3 +35,7 @@ nuxt/dist/
 # OS
 .DS_Store
 Thumbs.db
+
+# Figma MCP screenshots (diagnostic)
+figma-node-*.png
+
