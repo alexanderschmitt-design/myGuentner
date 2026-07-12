@@ -87,6 +87,115 @@ function emptyService(): ServiceConfig {
   };
 }
 
+/**
+ * Bare-coil geometry configuration (Step 3 in the Coil flow, replaces
+ * Unit Selection). Structure mirrors layouts/03 Coil-Geometry-all-formelements.png
+ * and the pre-migration frontend/coil-geometry.html field set.
+ */
+export interface CoilGeometryConfig {
+  maxOperatingPressure: string;           // 'AUTO' or numeric string
+  maxOperatingPressureSpecial: boolean;
+  fins: {
+    finType: string;                      // e.g. 'F 50 mm x 25 mm (staggered) (FT09 old)'
+    material: string;                     // 'AUTO' | material code
+    withoutFins: boolean;
+    thickness: string;                    // 'AUTO' | numeric
+    specialThickness: boolean;
+    finSpacingMinMm: number;
+    finSpacingMaxMm: number;
+    specialFinSpacing: boolean;
+    variableFinSpacing: boolean;
+  };
+  dimensions: {
+    finnedLengthMm: number;
+    finnedHeightMm: number;
+    tubeRowsMin: number;
+    tubeRowsMax: number;
+  };
+  coreTubes: {
+    material: string;
+    wallThickness: string;
+  };
+  circuiting: {
+    passesMin: number;
+    passesMax: number;
+    onlyEvenPasses: boolean;
+    circuits: number;
+  };
+  supportTubes: {
+    mode: 'auto' | 'exact';
+    exactNumber: number;
+  };
+  connectionSystem: {
+    maxOuterDiameterMm: number;
+    material: string;
+  };
+  distributionSystem: {
+    matDistributor: string;
+    matCapillaries: string;
+    minLengthCapillariesMm: number;
+  };
+  frame: {
+    material: string;
+  };
+  coilAlignment: 'vertical' | 'horizontal';
+  constructionFor: 'casing' | 'duct';
+  completeUnit: boolean;
+}
+
+function emptyCoilGeometry(): CoilGeometryConfig {
+  return {
+    maxOperatingPressure: 'AUTO',
+    maxOperatingPressureSpecial: false,
+    fins: {
+      finType: 'F 50 mm x 25 mm (staggered) (FT09 old)',
+      material: 'AUTO',
+      withoutFins: false,
+      thickness: 'AUTO',
+      specialThickness: false,
+      finSpacingMinMm: 4.00,
+      finSpacingMaxMm: 7.00,
+      specialFinSpacing: false,
+      variableFinSpacing: false
+    },
+    dimensions: {
+      finnedLengthMm: 1000,
+      finnedHeightMm: 400,
+      tubeRowsMin: 2,
+      tubeRowsMax: 12
+    },
+    coreTubes: {
+      material: 'AUTO',
+      wallThickness: 'AUTO'
+    },
+    circuiting: {
+      passesMin: 2,
+      passesMax: 999,
+      onlyEvenPasses: false,
+      circuits: 1
+    },
+    supportTubes: {
+      mode: 'auto',
+      exactNumber: 0
+    },
+    connectionSystem: {
+      maxOuterDiameterMm: 0,
+      material: 'AUTO'
+    },
+    distributionSystem: {
+      matDistributor: 'AUTO',
+      matCapillaries: 'AUTO',
+      minLengthCapillariesMm: 0
+    },
+    frame: {
+      material: 'AUTO'
+    },
+    coilAlignment: 'vertical',
+    constructionFor: 'casing',
+    completeUnit: false
+  };
+}
+
 function emptyParameters(): ConfigurationParameters {
   return {
     coolingCapacityKw: null,
@@ -121,7 +230,12 @@ export const useConfigStore = defineStore('configuration', {
     service: emptyService() as ServiceConfig,
     selectedUnitKey: null as string | null,
     currentCategory: null as string | null,
-    currentSubcategory: null as string | null
+    currentSubcategory: null as string | null,
+    // productSection: 1 = Unit (default), 2 = Bare Coil.
+    // Set by Home cards before navigation into the wizard; drives TopStepNav
+    // label (Unit Selection vs Coil Geometry) and Results/Datasheet variants.
+    productSection: 1 as 1 | 2,
+    coilGeometry: emptyCoilGeometry() as CoilGeometryConfig
   }),
 
   getters: {
@@ -166,6 +280,15 @@ export const useConfigStore = defineStore('configuration', {
     selectUnit(key: string | null) {
       this.selectedUnitKey = key;
     },
+    setProductSection(s: 1 | 2) {
+      this.productSection = s;
+    },
+    updateCoilGeometry(patch: Partial<CoilGeometryConfig>) {
+      Object.assign(this.coilGeometry, patch);
+    },
+    resetCoilGeometry() {
+      this.coilGeometry = emptyCoilGeometry();
+    },
     resetWizard() {
       this.parameters = emptyParameters();
       this.validationWarnings = [];
@@ -175,6 +298,8 @@ export const useConfigStore = defineStore('configuration', {
       this.selectedUnitKey = null;
       this.currentCategory = null;
       this.currentSubcategory = null;
+      this.productSection = 1;
+      this.coilGeometry = emptyCoilGeometry();
     }
   },
 
@@ -185,7 +310,8 @@ export const useConfigStore = defineStore('configuration', {
     pick: [
       'activePerspective', 'unitSystem', 'project', 'parameters',
       'selectedProducts', 'selectedAccessories', 'service', 'selectedUnitKey',
-      'currentCategory', 'currentSubcategory'
+      'currentCategory', 'currentSubcategory',
+      'productSection', 'coilGeometry'
     ]
   } as any  // pinia-plugin-persistedstate-Optionen sind aus Sicht von vanilla Pinia "extra"
 });

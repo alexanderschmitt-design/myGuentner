@@ -35,7 +35,13 @@ const store = useConfigStore()
 //   /mygpc/0/thermodynamics  → Evaporator DX
 //   /mygpc/1/thermodynamics  → Evaporator Pump
 //   … see composables/useCategory.ts for full ID map.
-function goToWizard(catId: number, categorySlug: string) {
+//
+// productSection is set BEFORE navigation:
+//   1 = Unit  (Units + By Category + By Application accordions)
+//   2 = Coil  (Bare Coils accordion) — drives TopStepNav to show
+//              "Coil Geometry" as step 3 instead of "Unit Selection"
+function goToWizard(catId: number, categorySlug: string, productSection: 1 | 2 = 1) {
+  store.setProductSection(productSection)
   store.currentCategory = categorySlug
   store.currentSubcategory = null
   router.push(`/mygpc/${catId}/thermodynamics`)
@@ -168,8 +174,8 @@ const COILS = [
             :icon="c.icon"
             :title="c.title"
             :cta-label="c.sublabel || c.title"
-            :on-cta="() => goToWizard(0, c.slug)"
-            :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug) }))"
+            :on-cta="() => goToWizard(0, c.slug, 2)"
+            :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug, 2) }))"
           />
         </div>
       </div>

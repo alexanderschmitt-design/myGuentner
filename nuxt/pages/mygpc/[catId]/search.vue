@@ -108,13 +108,19 @@ function pick(u: ResultRow) {
   store.selectProduct({ productId: u.id, typeDesignation: u.unitKey, quantity: 1 })
 }
 
-const { current, unitUrl, datasheetUrl } = useCategory()
-useHead({ title: `myGPC — Results (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
+const { current, unitUrl, coilGeometryUrl, datasheetUrl } = useCategory()
+
+// Coil-mode adapts the page title and back-navigation target so the flow
+// makes sense for Bare Coil configurations.
+const isCoil = computed(() => store.productSection === 2)
+const pageTitleKind = computed(() => (isCoil.value ? 'Coil Selection' : 'Results'))
+
+useHead({ title: `myGPC — ${pageTitleKind.value} (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
 function goDatasheet() {
   if (selectedId.value) router.push(datasheetUrl())
 }
-function goBack() { router.push(unitUrl()) }
+function goBack() { router.push(isCoil.value ? coilGeometryUrl() : unitUrl()) }
 
 const searchTerm = ref('')
 const filteredRows = computed(() => {
@@ -146,7 +152,9 @@ function deliveryLabel(s: string) {
 
     <!-- Header row -->
     <div class="results-head">
-      <h1>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}</h1>
+      <h1>
+        <span v-if="isCoil" class="mode-tag">COIL · </span>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
+      </h1>
       <div class="head-actions">
         <div class="search">
           <span class="icon">🔍</span>
@@ -251,6 +259,17 @@ function deliveryLabel(s: string) {
   font-weight: 600;
   color: var(--c-primary);
   letter-spacing: 0.02em;
+}
+.results-head h1 .mode-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-right: 8px;
+  background: color-mix(in srgb, var(--c-brand-blue) 12%, white);
+  color: var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
 }
 .head-actions { display: flex; align-items: center; gap: 8px; }
 .search {

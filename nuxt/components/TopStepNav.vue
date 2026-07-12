@@ -18,29 +18,35 @@
 
 interface Step { id: string; label: string; route: (catId: number) => string }
 
-const STEPS: Step[] = [
-  { id: 'category',    label: 'Category',       route: ()          => '/' },
-  { id: 'thermo',      label: 'Thermodynamics', route: (c: number) => `/mygpc/${c}/thermodynamics` },
-  { id: 'unit',        label: 'Unit Selection', route: (c: number) => `/mygpc/${c}/unit-selection` },
-  { id: 'results',     label: 'Results',        route: (c: number) => `/mygpc/${c}/search` },
-  { id: 'datasheet',   label: 'Datasheet',      route: ()          => '/gpc-details' }
-]
-
 const route = useRoute()
+const store = useConfigStore()
 
 const catId = computed<number>(() => {
   const m = route.path.match(/^\/mygpc\/(\d+)\//)
   return m ? parseInt(m[1], 10) : 0
 })
 
+// Step 3 label + route depends on productSection: Coil-Geometry (2) vs
+// Unit-Selection (1). Reactive so both flows share this stepper.
+const STEPS = computed<Step[]>(() => [
+  { id: 'category', label: 'Category',       route: () => '/' },
+  { id: 'thermo',   label: 'Thermodynamics', route: (c) => `/mygpc/${c}/thermodynamics` },
+  store.productSection === 2
+    ? { id: 'coil',   label: 'Coil Geometry',  route: (c) => `/mygpc/${c}/coil-geometry` }
+    : { id: 'unit',   label: 'Unit Selection', route: (c) => `/mygpc/${c}/unit-selection` },
+  { id: 'results',  label: 'Results',        route: (c) => `/mygpc/${c}/search` },
+  { id: 'datasheet',label: 'Datasheet',      route: () => '/gpc-details' }
+])
+
 const currentStep = computed<string>(() => {
   if (route.path.endsWith('/thermodynamics')) return 'thermo'
   if (route.path.endsWith('/unit-selection')) return 'unit'
+  if (route.path.endsWith('/coil-geometry')) return 'coil'
   if (route.path.endsWith('/search')) return 'results'
   if (route.path === '/gpc-details') return 'datasheet'
   return 'category'
 })
-const currentIndex = computed(() => STEPS.findIndex(s => s.id === currentStep.value))
+const currentIndex = computed(() => STEPS.value.findIndex(s => s.id === currentStep.value))
 
 function statusFor(i: number): 'done' | 'current' | 'pending' {
   if (i < currentIndex.value) return 'done'
@@ -54,6 +60,7 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
     <template v-for="(s, i) in STEPS" :key="s.id">
       <div v-if="i > 0" class="divider" aria-hidden="true"></div>
       <NuxtLink :to="s.route(catId)" class="step" :class="statusFor(i)">
+
         <!-- 12×12 stepper icon per Figma spec -->
         <span class="icon" aria-hidden="true">
           <svg viewBox="0 0 12 12" width="12" height="12">

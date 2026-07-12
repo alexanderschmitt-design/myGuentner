@@ -62,14 +62,26 @@ const casingItems = [
   { label: 'Air connections',       value: '2 x 22 mm' },
   { label: 'Circuits',              value: '2' }
 ]
-const dutyItems = [
-  { label: 'Tubes',                 value: 'Alloy — Aluminum®' },
-  { label: 'Fins',                  value: '(Cu inner grooved)' },
-  { label: 'Fluid connections',     value: 'Cu' },
-  { label: 'Inlet connection',      value: '18 x 1.05 mm' },
-  { label: 'Outlet connection',     value: 'Nx 1.05 mm' },
-  { label: 'Weight',                value: '20 · light-blue' }
-]
+const dutyItems = computed(() => {
+  const base = [
+    { label: 'Tubes',                 value: 'Alloy — Aluminum®' },
+    { label: 'Fins',                  value: '(Cu inner grooved)' },
+    { label: 'Fluid connections',     value: 'Cu' },
+    { label: 'Inlet connection',      value: '18 x 1.05 mm' },
+    { label: 'Outlet connection',     value: 'Nx 1.05 mm' },
+    { label: 'Weight',                value: '20 · light-blue' }
+  ]
+  // Additional coil-specific fields (pre-migration coil-datasheet.html)
+  if (store.productSection === 2) {
+    base.push(
+      { label: 'Tube pattern',        value: `${store.coilGeometry.dimensions.tubeRowsMin} – ${store.coilGeometry.dimensions.tubeRowsMax} rows` },
+      { label: 'Distributor',         value: store.coilGeometry.distributionSystem.matDistributor },
+      { label: 'Capillaries',         value: store.coilGeometry.distributionSystem.matCapillaries },
+      { label: 'Passes',              value: `${store.coilGeometry.circuiting.passesMin} – ${store.coilGeometry.circuiting.passesMax}` }
+    )
+  }
+  return base
+})
 
 // Dimensions with A-G legend
 const dims = { L: 1800, W: 950, H: 620 }
@@ -96,6 +108,7 @@ const impactScore = 3
 
 // Datasheet has no catId in URL — pick a sensible fallback (last-used or 0)
 const { current, searchUrl, thermoUrl } = useCategory()
+const isCoil = computed(() => store.productSection === 2)
 function goBack() { router.push(searchUrl()) }
 
 const actionButtons = [
@@ -119,8 +132,10 @@ const actionButtons = [
       <div class="content">
         <!-- Product header -->
         <div class="prod-head">
-          <h1>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}</h1>
-          <div class="prod-sub mono">{{ unitKey }}</div>
+          <h1>
+            <span v-if="isCoil" class="mode-tag">COIL · </span>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
+          </h1>
+          <div class="prod-sub mono">{{ isCoil ? `${current.title} coil — ${unitKey}` : unitKey }}</div>
         </div>
 
         <!-- Attentions -->
@@ -300,6 +315,17 @@ const actionButtons = [
   font-size: 1.25rem;
   color: var(--c-primary);
   letter-spacing: 0.02em;
+}
+.prod-head h1 .mode-tag {
+  display: inline-block;
+  padding: 2px 8px;
+  margin-right: 8px;
+  background: color-mix(in srgb, var(--c-brand-blue) 12%, white);
+  color: var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  font-size: 0.75rem;
+  font-weight: 600;
+  vertical-align: middle;
 }
 .prod-sub {
   font-size: 1rem;

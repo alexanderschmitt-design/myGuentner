@@ -130,11 +130,12 @@ function resetToDefaults() {
   inletByTempPressure.value = false
 }
 
-const { current, unitUrl } = useCategory()
+const { current, step3Url } = useCategory()
 useHead({ title: `myGPC — Thermodynamics (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
+// step3Url() picks /unit-selection or /coil-geometry based on store.productSection
 function goNext() {
-  if (canProceed.value) router.push(unitUrl())
+  if (canProceed.value) router.push(step3Url())
 }
 function goBack() { router.push('/') }
 </script>

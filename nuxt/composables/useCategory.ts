@@ -52,11 +52,19 @@ export function useCategory() {
   })
   const current = computed<CategoryDef>(() => getCategoryById(catId.value) || CATEGORIES[0])
 
-  // Route builders — all four wizard steps share the same /mygpc/<catId>/ prefix
-  function thermoUrl(id?: number)     { return `/mygpc/${id ?? catId.value}/thermodynamics` }
-  function unitUrl(id?: number)       { return `/mygpc/${id ?? catId.value}/unit-selection` }
-  function searchUrl(id?: number)     { return `/mygpc/${id ?? catId.value}/search` }
-  function datasheetUrl()             { return `/gpc-details` }
+  // Route builders — all wizard steps share the same /mygpc/<catId>/ prefix
+  function thermoUrl(id?: number)       { return `/mygpc/${id ?? catId.value}/thermodynamics` }
+  function unitUrl(id?: number)         { return `/mygpc/${id ?? catId.value}/unit-selection` }
+  function coilGeometryUrl(id?: number) { return `/mygpc/${id ?? catId.value}/coil-geometry` }
+  function searchUrl(id?: number)       { return `/mygpc/${id ?? catId.value}/search` }
+  function datasheetUrl()               { return `/gpc-details` }
 
-  return { catId, current, thermoUrl, unitUrl, searchUrl, datasheetUrl }
+  // Mode-aware step-3 URL — reads productSection from the store so we route
+  // Bare-Coil configurations into /coil-geometry instead of /unit-selection.
+  function step3Url(id?: number): string {
+    const store = useConfigStore()
+    return store.productSection === 2 ? coilGeometryUrl(id) : unitUrl(id)
+  }
+
+  return { catId, current, thermoUrl, unitUrl, coilGeometryUrl, searchUrl, datasheetUrl, step3Url }
 }
