@@ -31,6 +31,11 @@
   --c-text-extra-light:#8a8a89;
   --c-text-inverted:   #ffffff;
   --c-text-muted:      var(--c-text-medium);   /* alias */
+  /* Figma-precise variants seen in node 2328:7827 (Thermodynamics coolant) */
+  --c-text-value:      #262326;   /* color/text/brand-tertiary — input values */
+  --c-text-dark2:      #48445a;   /* stepper active, big numeric like "1.7" */
+  --c-text-medium2:    #676377;   /* card titles */
+  --c-text-light2:     #878391;   /* field labels, unit suffixes */
 
   /* ---- Surface ---- */
   --c-bg:            #fafafa;   /* color/surface/canvas  — page bg */
@@ -44,6 +49,11 @@
   --c-border-extra-dark: #9d9d9c;
   --c-input-border:  #d8d8d8;
   --c-border-primary: #2666e0;
+  /* Figma-precise variants for cards + active/disabled inputs (node 2328:7827) */
+  --c-border-card:     #f5f4f6;   /* thermodynamics card border (lighter) */
+  --c-border-input:    #a6a3ad;   /* active input border (darker) */
+  --c-border-disabled: #d9d8dc;   /* disabled input border */
+  --c-impact-green:    #00c897;   /* leaf-score filled state */
 
   /* ---- Navigation ---- */
   --c-nav-background:     #ffffff;   /* color/navigation/background     */
@@ -67,8 +77,13 @@
   --space-xs2:  9px;   /* spacing/2xs */
   --space-xs:  14px;   /* spacing/xs  */
   --space-sm:  19px;   /* spacing/sm-base */
+  --space-md:  28px;   /* spacing/md — thermodynamics grid gap */
   --space-lg:  38px;   /* spacing/lg  */
   --space-2xl: 75px;   /* spacing/2xl */
+  /* Figma one-offs seen in node 2328:7827 */
+  --space-a4:   4px;   /* input inner gap (spacing/spacing-xs) */
+  --space-a8:   8px;   /* dropdown hStack gap (numbers/8, spacing-sm) */
+  --space-a10: 10px;   /* Frost / Pressure inline-group gap */
   /* Legacy aliases used by existing scoped styles */
   --space-1: 4px;
   --space-2: 8px;
@@ -92,6 +107,7 @@
   --font-3xs: 12.81px; /* font/3xs */
   --font-2xs: 14.17px; /* font/2xs — nav, stepper, body labels */
   --font-xs:  15.69px; /* font/xs  — inputs */
+  --font-sm-base: 17.38px; /* font/sm-base — big numeric like "1.7" leaf-score */
   --font-sm:  16px;
   --font-md:  18px;
   --font-lg:  20px;
@@ -102,6 +118,7 @@
   --lh-3xs: 15px;
   --lh-2xs: 16px;
   --lh-xs:  18px;
+  --lh-sm:  24px;      /* pairs with --font-sm-base */
   --lh-xl: 100%;
   --tracking-1: 0.1px;
 

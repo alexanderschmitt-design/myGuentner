@@ -32,9 +32,35 @@ export interface ConfigurationParameters {
   evaporatingTempC: number | null;
   condensingTempC: number | null;
 
-  // Refrigerant
+  // Refrigerant-side (DX / Pump / Condenser / Subcooler / Gas cooler)
   refrigerant: string | null;
   refrigerantRegion: 'eu' | 'us' | 'apac' | null;
+  superheatingK: number | null;
+  subcoolingK: number | null;
+  dewPointMode: 'dew-point' | 'mean';
+  inletByTempPressure: boolean;
+
+  // Liquid-side (Air cooler Coolant / Dry cooler / Oil cooler) — from Figma 2328:7827
+  glycolType: 'ethylene' | 'propylene' | 'water' | null;
+  concentrationVolPct: number | null;
+  inletTempC: number | null;
+  outletTempC: number | null;
+  parameterMode: 'inlet-outlet' | 'inlet-temperature-lift' | 'outlet-temperature-lift';
+
+  // Shared
+  calculationMode: 'fixed-capacity' | 'fixed-surface';
+  minSurfaceReserve: number;
+  maxSurfaceReserve: number;
+  frostThicknessMm: number;
+  maxPressureDropBar: number | null;     // liquid-side unit
+  maxPressureDropK: number | null;       // refrigerant-side unit
+  maxPressureDropAuto: boolean;
+  airInletTempC: number;
+  relHumidityPct: number | null;
+  humidityAuto: boolean;
+  altitudeM: number;
+  airPressureMbar: number;
+  capacityWithHumidityFactor: boolean;
 
   // Application
   coolingPurpose: CoolingPurpose | null;
@@ -44,7 +70,6 @@ export interface ConfigurationParameters {
   installationType: InstallationType | null;
   ambientTempMaxC: number | null;
   ambientTempMinC: number | null;
-  altitudeM: number | null;
   noiseLimitDBA: number | null;
   roomDimensions: Dimensions | null;
   environmentClass: EnvironmentClass;
@@ -198,18 +223,43 @@ function emptyCoilGeometry(): CoilGeometryConfig {
 
 function emptyParameters(): ConfigurationParameters {
   return {
-    coolingCapacityKw: null,
+    coolingCapacityKw: 10,
     airflowM3h: null,
-    evaporatingTempC: null,
-    condensingTempC: null,
-    refrigerant: null,
-    refrigerantRegion: null,
+    evaporatingTempC: -8,
+    condensingTempC: 5,
+
+    refrigerant: 'R744',
+    refrigerantRegion: 'eu',
+    superheatingK: 5,
+    subcoolingK: 1,
+    dewPointMode: 'dew-point',
+    inletByTempPressure: false,
+
+    glycolType: 'ethylene',
+    concentrationVolPct: 34,
+    inletTempC: 45,
+    outletTempC: 40,
+    parameterMode: 'inlet-outlet',
+
+    calculationMode: 'fixed-capacity',
+    minSurfaceReserve: -10,
+    maxSurfaceReserve: 50,
+    frostThicknessMm: 0,
+    maxPressureDropBar: 1,
+    maxPressureDropK: 5,
+    maxPressureDropAuto: true,
+    airInletTempC: 32,
+    relHumidityPct: 40,
+    humidityAuto: true,
+    altitudeM: 0,
+    airPressureMbar: 1013,
+    capacityWithHumidityFactor: false,
+
     coolingPurpose: null,
     defrostMethod: null,
     installationType: null,
     ambientTempMaxC: null,
     ambientTempMinC: null,
-    altitudeM: null,
     noiseLimitDBA: null,
     roomDimensions: null,
     environmentClass: 'standard'
