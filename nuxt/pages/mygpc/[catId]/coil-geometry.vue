@@ -9,9 +9,8 @@
  *   Row 1  full-width  | Max. operating pressure
  *   Row 2  L / R       | Fins                              | Dimensions
  *   Row 3  L / R       | Core tubes                        | Circuiting
- *   Row 4  L / R       | Support tubes                     | Connection + Distribution
+ *   Row 4  full-width  | Connection + Distribution
  *   Row 5  L / R       | Frame + Coil alignment            | Construction for
- *   Footer             | "Complete unit…" checkbox
  *
  * All fields bind to store.coilGeometry. Reset restores defaults from
  * emptyCoilGeometry(). Next → /mygpc/<catId>/search (Results grid).
@@ -41,17 +40,13 @@ function bindRoot<K extends keyof typeof store.coilGeometry>(key: K) {
 
 // Card 1: Max. operating pressure
 const maxOperatingPressure = bindRoot('maxOperatingPressure')
-const maxOperatingPressureSpecial = bindRoot('maxOperatingPressureSpecial')
 
 // Card 2: Fins
 const finType = bindField('fins', 'finType')
 const finMaterial = bindField('fins', 'material')
-const finWithoutFins = bindField('fins', 'withoutFins')
 const finThickness = bindField('fins', 'thickness')
-const finSpecialThickness = bindField('fins', 'specialThickness')
 const finSpacingMin = bindField('fins', 'finSpacingMinMm')
 const finSpacingMax = bindField('fins', 'finSpacingMaxMm')
-const finSpecialSpacing = bindField('fins', 'specialFinSpacing')
 const finVariableSpacing = bindField('fins', 'variableFinSpacing')
 
 // Card 3: Dimensions
@@ -70,10 +65,6 @@ const passesMax = bindField('circuiting', 'passesMax')
 const onlyEvenPasses = bindField('circuiting', 'onlyEvenPasses')
 const circuits = bindField('circuiting', 'circuits')
 
-// Card 6: Support tubes
-const supportTubesMode = bindField('supportTubes', 'mode')
-const supportTubesExactNumber = bindField('supportTubes', 'exactNumber')
-
 // Card 7: Connection + Distribution
 const maxOuterDiameter = bindField('connectionSystem', 'maxOuterDiameterMm')
 const connectionMaterial = bindField('connectionSystem', 'material')
@@ -87,7 +78,6 @@ const coilAlignment = bindRoot('coilAlignment')
 const constructionFor = bindRoot('constructionFor')
 
 // Footer
-const completeUnit = bindRoot('completeUnit')
 
 const canProceed = computed(() => true)
 
@@ -118,8 +108,6 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
       <button class="btn btn-outline" @click="resetConfig">Reset</button>
       <button class="btn btn-outline" type="button">Templates</button>
       <span class="spacer"></span>
-      <span class="step-count">5.0</span>
-      <LeafScore :score="5" :total="5" />
       <button class="btn btn-primary" :disabled="!canProceed" @click="goNext">Next →</button>
     </div>
 
@@ -136,15 +124,10 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
               <option value="45 bar">45 bar</option>
             </select>
           </div>
-          <label class="checkbox">
-            <input type="checkbox" v-model="maxOperatingPressureSpecial" />
-            Special value
-          </label>
         </div>
       </section>
 
       <!-- ================== Row 2 — Fins | Dimensions ================== -->
-      <div class="row-2col">
         <section class="card">
           <h3 class="card-title">Fins</h3>
           <div class="field">
@@ -153,48 +136,32 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
               <option v-for="o in finTypeOptions" :key="o" :value="o">{{ o }}</option>
             </select>
           </div>
-          <div class="field-row">
-            <div class="field">
-              <label>Material</label>
-              <select v-model="finMaterial">
-                <option v-for="o in finMaterialOptions" :key="o" :value="o">{{ o }}</option>
-              </select>
-            </div>
-            <label class="checkbox stacked-check">
-              <input type="checkbox" v-model="finWithoutFins" />
-              Without fins
-            </label>
+          <div class="field">
+            <label>Material</label>
+            <select v-model="finMaterial">
+              <option v-for="o in finMaterialOptions" :key="o" :value="o">{{ o }}</option>
+            </select>
           </div>
-          <div class="field-row">
-            <div class="field">
-              <label>Thickness</label>
-              <select v-model="finThickness">
-                <option v-for="o in thicknessOptions" :key="o" :value="o">{{ o }}</option>
-              </select>
-            </div>
-            <label class="checkbox stacked-check">
-              <input type="checkbox" v-model="finSpecialThickness" />
-              Special thickness
-            </label>
+          <div class="field">
+            <label>Thickness</label>
+            <select v-model="finThickness">
+              <option v-for="o in thicknessOptions" :key="o" :value="o">{{ o }}</option>
+            </select>
           </div>
           <div class="field">
             <label>Fin spacing</label>
             <div class="minmax">
-              <div class="input-with-suffix">
-                <input type="number" step="0.01" v-model.number="finSpacingMin" />
-                <span class="suffix">mm min</span>
+              <div class="minmax-cell">
+                <UnitValueInput v-model="finSpacingMin" quantity="length" unit="mm" :step="0.01" />
+                <span class="minmax-hint">min</span>
               </div>
-              <div class="input-with-suffix">
-                <input type="number" step="0.01" v-model.number="finSpacingMax" />
-                <span class="suffix">mm max</span>
+              <div class="minmax-cell">
+                <UnitValueInput v-model="finSpacingMax" quantity="length" unit="mm" :step="0.01" />
+                <span class="minmax-hint">max</span>
               </div>
             </div>
             <label class="checkbox">
-              <input type="checkbox" v-model="finSpecialSpacing" />
-              Special fin spacing
-            </label>
-            <label class="checkbox" :class="{ disabled: !finSpecialSpacing }">
-              <input type="checkbox" v-model="finVariableSpacing" :disabled="!finSpecialSpacing" />
+              <input type="checkbox" v-model="finVariableSpacing" />
               Variable fin spacing
             </label>
           </div>
@@ -204,17 +171,11 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
           <h3 class="card-title">Dimensions</h3>
           <div class="field">
             <label>Finned length</label>
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="finnedLength" />
-              <span class="suffix">mm</span>
-            </div>
+            <UnitValueInput v-model="finnedLength" quantity="length" unit="mm" />
           </div>
           <div class="field">
             <label>Finned height</label>
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="finnedHeight" />
-              <span class="suffix">mm</span>
-            </div>
+            <UnitValueInput v-model="finnedHeight" quantity="length" unit="mm" />
           </div>
           <div class="field">
             <label>Tube rows in depth</label>
@@ -230,10 +191,8 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
             </div>
           </div>
         </section>
-      </div>
 
       <!-- ================== Row 3 — Core tubes | Circuiting ================== -->
-      <div class="row-2col">
         <section class="card">
           <h3 class="card-title">Core tubes</h3>
           <div class="field">
@@ -274,38 +233,55 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
             <input type="number" v-model.number="circuits" />
           </div>
         </section>
-      </div>
 
-      <!-- ================== Row 4 — Support tubes | Connection + Distribution ================== -->
-      <div class="row-2col">
-        <section class="card">
-          <h3 class="card-title">Support tubes</h3>
-          <div class="radio-group">
-            <label class="radio">
-              <input type="radio" value="auto" v-model="supportTubesMode" />
-              Autom. determination
-            </label>
-            <label class="radio">
-              <input type="radio" value="exact" v-model="supportTubesMode" />
-              Exact no.:
-              <input
-                type="number"
-                v-model.number="supportTubesExactNumber"
-                :disabled="supportTubesMode !== 'exact'"
-                class="inline-input"
-              />
-            </label>
+      <!-- ================== Row 4 — Frame stack (L) | Connection + Distribution (R) ================== -->
+        <div class="frame-stack">
+          <section class="card">
+            <h3 class="card-title">Frame</h3>
+            <div class="field">
+              <label>Material</label>
+              <select v-model="frameMaterial">
+                <option v-for="o in frameMaterialOptions" :key="o" :value="o">{{ o }}</option>
+              </select>
+            </div>
+          </section>
+
+          <div class="frame-sub-grid">
+            <section class="card">
+              <h3 class="card-title">Coil alignment</h3>
+              <div class="radio-group">
+                <label class="radio">
+                  <input type="radio" value="vertical" v-model="coilAlignment" />
+                  Vertical
+                </label>
+                <label class="radio">
+                  <input type="radio" value="horizontal" v-model="coilAlignment" />
+                  Horizontal
+                </label>
+              </div>
+            </section>
+
+            <section class="card">
+              <h3 class="card-title">Construction for</h3>
+              <div class="radio-group">
+                <label class="radio">
+                  <input type="radio" value="casing" v-model="constructionFor" />
+                  Casing
+                </label>
+                <label class="radio">
+                  <input type="radio" value="duct" v-model="constructionFor" />
+                  Duct
+                </label>
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
 
-        <section class="card">
+        <section class="card connection-card">
           <h3 class="card-title">Connection system</h3>
           <div class="field">
             <label>Max. outer diameter</label>
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="maxOuterDiameter" />
-              <span class="suffix">mm</span>
-            </div>
+            <UnitValueInput v-model="maxOuterDiameter" quantity="length" unit="mm" />
           </div>
           <div class="field">
             <label>Connection material</label>
@@ -329,60 +305,10 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
           </div>
           <div class="field">
             <label>Min. length of capillaries</label>
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="minLengthCapillaries" />
-              <span class="suffix">mm</span>
-            </div>
-          </div>
-        </section>
-      </div>
-
-      <!-- ================== Row 5 — Frame + Alignment | Construction ================== -->
-      <div class="row-2col">
-        <section class="card">
-          <h3 class="card-title">Frame</h3>
-          <div class="field">
-            <label>Material</label>
-            <select v-model="frameMaterial">
-              <option v-for="o in frameMaterialOptions" :key="o" :value="o">{{ o }}</option>
-            </select>
-          </div>
-
-          <h4 class="sub-title">Coil alignment</h4>
-          <div class="radio-group horizontal">
-            <label class="radio">
-              <input type="radio" value="vertical" v-model="coilAlignment" />
-              Vertical
-            </label>
-            <label class="radio">
-              <input type="radio" value="horizontal" v-model="coilAlignment" />
-              Horizontal
-            </label>
+            <UnitValueInput v-model="minLengthCapillaries" quantity="length" unit="mm" />
           </div>
         </section>
 
-        <section class="card">
-          <h3 class="card-title">Construction for</h3>
-          <div class="radio-group horizontal">
-            <label class="radio">
-              <input type="radio" value="casing" v-model="constructionFor" />
-              Casing
-            </label>
-            <label class="radio">
-              <input type="radio" value="duct" v-model="constructionFor" />
-              Duct
-            </label>
-          </div>
-        </section>
-      </div>
-
-      <!-- Footer: Complete unit toggle -->
-      <div class="footer-toggle">
-        <label class="checkbox">
-          <input type="checkbox" v-model="completeUnit" />
-          Complete unit…
-        </label>
-      </div>
     </div>
 
     <!-- Bottom nav -->
@@ -396,15 +322,59 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
 <style scoped>
 .coil-geometry-page { max-width: 1200px; margin: 0 auto; }
 
-.rows { display: flex; flex-direction: column; gap: var(--space-5); }
-.row-2col {
+/* Card layout — one 2-column grid instead of stacked per-row grids.
+   Every card is placed directly in the grid, so pairs like Fins /
+   Dimensions land in the same implicit row and share the row height.
+   `align-items: stretch` (grid default) locks both cards' tops AND
+   bottoms per row, so the columns can never drift into a masonry-style
+   staircase when field counts differ. */
+.rows {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-5);
-  align-items: start;
 }
 .row-full { grid-column: 1 / -1; }
-@media (max-width: 900px) { .row-2col { grid-template-columns: 1fr; } }
+
+/* Override the global `.card + .card { margin-top }` rule from
+   components.css — that rule was written for flow layout, but here the
+   grid already handles inter-card spacing via `gap`. Without this reset
+   the second grid item in each row gets pushed down by ~19px and drifts
+   out of top-alignment with its neighbour. */
+.rows > .card + .card,
+.frame-sub-grid > .card + .card {
+  margin-top: 0;
+}
+
+/* Frame block (Row 4 left): Frame card stacked over a nested 2-column
+   grid containing Coil-alignment and Construction-for. Sits in column 1;
+   Connection system is pinned to column 2 next to it. */
+.frame-stack {
+  grid-column: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+.frame-sub-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-5);
+  align-items: stretch;
+}
+/* Force both sub-cards to fill the row's height — belt-and-braces on
+   top of grid's default stretch alignment, so the Coil-alignment and
+   Construction-for boxes always share the same top AND bottom edge
+   regardless of any intrinsic content-height quirks. */
+.frame-sub-grid > .card {
+  height: 100%;
+}
+.connection-card { grid-column: 2; }
+
+@media (max-width: 900px) {
+  .rows { grid-template-columns: 1fr; }
+  .frame-stack { grid-column: 1; }
+  .frame-sub-grid { grid-template-columns: 1fr; }
+  .connection-card { grid-column: 1; }
+}
 
 .card {
   background: var(--c-surface);
@@ -474,6 +444,17 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
   grid-template-columns: 1fr 1fr;
   gap: var(--space-2);
 }
+.minmax-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.minmax-hint {
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-light2);
+  padding-left: 4px;
+}
 
 .input-with-suffix {
   position: relative;
@@ -510,8 +491,6 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
   margin-left: 4px;
 }
 
-.footer-toggle { padding: var(--space-3) 0; }
-
 .sub-toolbar {
   display: flex;
   align-items: center;
@@ -520,11 +499,6 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
   padding: 8px 0;
 }
 .sub-toolbar .spacer { flex: 1; }
-.step-count {
-  font-family: 'DM Mono', monospace;
-  color: var(--c-text-medium);
-  font-size: 0.9rem;
-}
 
 .bottom-nav {
   margin-top: var(--space-5);

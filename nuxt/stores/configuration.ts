@@ -62,6 +62,12 @@ export interface ConfigurationParameters {
   airPressureMbar: number;
   capacityWithHumidityFactor: boolean;
 
+  // Bare-coil-specific Air options (MPD-6932). Rendered inside the Air
+  // "Options" panel when store.productSection === 2 (Bare Coil).
+  volumeFlowValue: number | null;
+  volumeFlowUnit: 'm3s' | 'm3h' | 'cfm' | 'gpm' | 'ls' | 'lmin' | 'lh';
+  volumeFlowReference: 'inlet' | 'outlet';
+
   // Application
   coolingPurpose: CoolingPurpose | null;
   defrostMethod: 'electric' | 'hot-gas' | 'air' | null;
@@ -119,16 +125,12 @@ function emptyService(): ServiceConfig {
  */
 export interface CoilGeometryConfig {
   maxOperatingPressure: string;           // 'AUTO' or numeric string
-  maxOperatingPressureSpecial: boolean;
   fins: {
     finType: string;                      // e.g. 'F 50 mm x 25 mm (staggered) (FT09 old)'
     material: string;                     // 'AUTO' | material code
-    withoutFins: boolean;
     thickness: string;                    // 'AUTO' | numeric
-    specialThickness: boolean;
     finSpacingMinMm: number;
     finSpacingMaxMm: number;
-    specialFinSpacing: boolean;
     variableFinSpacing: boolean;
   };
   dimensions: {
@@ -147,10 +149,6 @@ export interface CoilGeometryConfig {
     onlyEvenPasses: boolean;
     circuits: number;
   };
-  supportTubes: {
-    mode: 'auto' | 'exact';
-    exactNumber: number;
-  };
   connectionSystem: {
     maxOuterDiameterMm: number;
     material: string;
@@ -165,22 +163,17 @@ export interface CoilGeometryConfig {
   };
   coilAlignment: 'vertical' | 'horizontal';
   constructionFor: 'casing' | 'duct';
-  completeUnit: boolean;
 }
 
 function emptyCoilGeometry(): CoilGeometryConfig {
   return {
     maxOperatingPressure: 'AUTO',
-    maxOperatingPressureSpecial: false,
     fins: {
       finType: 'F 50 mm x 25 mm (staggered) (FT09 old)',
       material: 'AUTO',
-      withoutFins: false,
       thickness: 'AUTO',
-      specialThickness: false,
       finSpacingMinMm: 4.00,
       finSpacingMaxMm: 7.00,
-      specialFinSpacing: false,
       variableFinSpacing: false
     },
     dimensions: {
@@ -199,10 +192,6 @@ function emptyCoilGeometry(): CoilGeometryConfig {
       onlyEvenPasses: false,
       circuits: 1
     },
-    supportTubes: {
-      mode: 'auto',
-      exactNumber: 0
-    },
     connectionSystem: {
       maxOuterDiameterMm: 0,
       material: 'AUTO'
@@ -216,8 +205,7 @@ function emptyCoilGeometry(): CoilGeometryConfig {
       material: 'AUTO'
     },
     coilAlignment: 'vertical',
-    constructionFor: 'casing',
-    completeUnit: false
+    constructionFor: 'casing'
   };
 }
 
@@ -254,6 +242,10 @@ function emptyParameters(): ConfigurationParameters {
     altitudeM: 0,
     airPressureMbar: 1013,
     capacityWithHumidityFactor: false,
+
+    volumeFlowValue: null,
+    volumeFlowUnit: 'm3h',
+    volumeFlowReference: 'outlet',
 
     coolingPurpose: null,
     defrostMethod: null,

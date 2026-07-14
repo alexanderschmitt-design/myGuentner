@@ -56,10 +56,11 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
 </script>
 
 <template>
-  <nav class="stepper" aria-label="Wizard steps">
-    <template v-for="(s, i) in STEPS" :key="s.id">
-      <div v-if="i > 0" class="divider" aria-hidden="true"></div>
-      <NuxtLink :to="s.route(catId)" class="step" :class="statusFor(i)">
+  <div class="stepper-row">
+    <nav class="stepper" aria-label="Wizard steps">
+      <template v-for="(s, i) in STEPS" :key="s.id">
+        <div v-if="i > 0" class="divider" aria-hidden="true"></div>
+        <NuxtLink :to="s.route(catId)" class="step" :class="statusFor(i)">
 
         <!-- 12×12 stepper icon per Figma spec -->
         <span class="icon" aria-hidden="true">
@@ -81,16 +82,27 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
       </NuxtLink>
     </template>
   </nav>
+  </div>
 </template>
 
 <style scoped>
+/* Outer band inherits the app-shell canvas colour (--c-bg / #fafafa) so
+   the constrained stepper floats as a white island inside it. The
+   bottom divider spans full width for visual continuity with the header
+   above. */
+.stepper-row {
+  background: transparent;
+  border-bottom: 1px solid var(--c-border);
+}
+
 .stepper {
+  max-width: 1200px;
+  margin: 0 auto;
   display: flex;
   gap: var(--space-xs3);   /* 5px */
   align-items: center;
   padding: var(--space-xs) var(--space-lg);   /* 14px vert, 38px horiz */
-  background: var(--c-surface);
-  border-bottom: 1px solid var(--c-border);
+  background: var(--c-surface);              /* #ffffff */
 }
 
 .step {

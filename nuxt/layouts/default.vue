@@ -105,7 +105,10 @@ function initials(email: string | null | undefined): string {
     </aside>
 
     <footer class="site-footer">
-      <GuentnerLogo />
+      <div class="footer-left">
+        <GuentnerLogo />
+        <NuxtLink to="/admin" class="footer-admin-link">Admin</NuxtLink>
+      </div>
       <div class="footer-links">
         <a href="#">Privacy Policy</a>
         <a href="#">Legal Notice</a>
@@ -280,6 +283,18 @@ function initials(email: string | null | undefined): string {
   font-size: var(--font-3xs);                  /* 12.81px */
   color: var(--c-text-medium);
 }
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+.footer-admin-link {
+  color: var(--c-text-medium);
+  text-decoration: none;
+  font-size: var(--font-3xs);
+}
+.footer-admin-link:hover { color: var(--c-text); }
+.footer-admin-link.router-link-active { color: var(--c-brand-blue); }
 .footer-links {
   display: flex;
   align-items: center;

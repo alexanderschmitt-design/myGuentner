@@ -21,6 +21,10 @@ const router = useRouter()
 const { current, step3Url } = useCategory()
 
 const isLiquid = computed(() => current.value.mediumType === 'liquid')
+// Bare-coil flow (MPD-6929): productSection=2 swaps Step 3 to Coil Geometry
+// AND shrinks the visible Air card to Inlet temp + Air pressure + Options
+// (MPD-6932). Humidity, volume flow and fan selection live in the panel.
+const isCoil = computed(() => store.productSection === 2)
 
 useHead({ title: `myGPC — Thermodynamics (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
@@ -106,6 +110,35 @@ const dewPointMode = bind('dewPointMode')
 const inletByTempPressure = bind('inletByTempPressure')
 const maxPressureDropK = bind('maxPressureDropK')
 
+// Air-panel / Bare-coil extras (MPD-6932)
+const volumeFlowValue = bind('volumeFlowValue')
+const volumeFlowUnit = bind('volumeFlowUnit')
+const volumeFlowReference = bind('volumeFlowReference')
+
+const airOptionsOpen = ref(false)
+const fansModalOpen = ref(false)
+
+const volumeFlowUnitOptions = [
+  { value: 'm3s',  label: 'm³/s' },
+  { value: 'm3h',  label: 'm³/h' },
+  { value: 'cfm',  label: 'cfm' },
+  { value: 'gpm',  label: 'gpm' },
+  { value: 'ls',   label: 'l/s' },
+  { value: 'lmin', label: 'l/min' },
+  { value: 'lh',   label: 'l/h' }
+]
+
+// Placeholder for MPD-7012 Special-Fan-Modal payload — one editable row per
+// fan slot. Real integration lands with the Fan-Selection API.
+const fansSelection = reactive({
+  fanCount: 1,
+  fanModel: '',
+  speedPct: 100
+})
+function applyFansSelection() {
+  fansModalOpen.value = false
+}
+
 const canProceed = computed(() => capacityKw.value != null)
 
 function goNext() { if (canProceed.value) router.push(step3Url()) }
@@ -133,7 +166,10 @@ const isNaturalRefrigerant = computed(() =>
 
       <span class="spacer"></span>
 
-      <LeafScore :score="2" :total="5" score-label="1.7" />
+      <!-- Rating widget: Unit-flow only. Suppressed for Bare-Coil per
+           MPD spec — the confidence score is a Unit-Selection concept
+           and doesn't apply to the Coil-Geometry configuration path. -->
+      <LeafScore v-if="!isCoil" :score="2" :total="5" score-label="1.7" />
 
       <button class="btn btn-primary" :disabled="!canProceed" @click="goNext">
         Next
@@ -156,10 +192,7 @@ const isNaturalRefrigerant = computed(() =>
           </div>
           <div class="field">
             <label>Capacity</label>
-            <div class="input-with-suffix">
-              <input type="number" step="0.1" v-model.number="capacityKw" />
-              <span class="suffix">kW</span>
-            </div>
+            <UnitValueInput v-model="capacityKw" quantity="power" unit="kW" :step="0.1" />
           </div>
 
           <!-- Row 2 -->
@@ -172,9 +205,8 @@ const isNaturalRefrigerant = computed(() =>
           </div>
           <div class="field">
             <label>Frost thickness</label>
-            <div class="input-with-suffix input-with-info">
-              <input type="number" v-model.number="frostThicknessMm" />
-              <span class="suffix">mm</span>
+            <div class="field-with-info">
+              <UnitValueInput v-model="frostThicknessMm" quantity="length" unit="mm" />
               <InfoIcon title="Frost buildup on the coil surface" />
             </div>
           </div>
@@ -225,27 +257,18 @@ const isNaturalRefrigerant = computed(() =>
 
           <div class="field">
             <label>Inlet temp.</label>
-            <div class="input-with-suffix">
-              <input type="number" step="0.5" v-model.number="inletTempC" />
-              <span class="suffix">°C</span>
-            </div>
+            <UnitValueInput v-model="inletTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
           <div class="field">
             <label>Outlet temp.</label>
-            <div class="input-with-suffix">
-              <input type="number" step="0.5" v-model.number="outletTempC" />
-              <span class="suffix">°C</span>
-            </div>
+            <UnitValueInput v-model="outletTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
           <div class="field">
             <label>Max. pressure drop in coil</label>
             <div class="input-inline-auto">
-              <div class="input-with-suffix">
-                <input type="number" step="0.1" v-model.number="maxPressureDropBar" :disabled="maxPressureDropAuto" />
-                <span class="suffix">bar</span>
-              </div>
+              <UnitValueInput v-model="maxPressureDropBar" quantity="pressure" unit="bar" :step="0.1" :disabled="maxPressureDropAuto" />
               <label class="auto-toggle">
                 <input type="checkbox" v-model="maxPressureDropAuto" />
                 Auto
@@ -268,10 +291,7 @@ const isNaturalRefrigerant = computed(() =>
 
           <div class="field">
             <label>Evaporation temp.</label>
-            <div class="input-with-suffix">
-              <input type="number" step="0.5" v-model.number="evapTempC" />
-              <span class="suffix">°C</span>
-            </div>
+            <UnitValueInput v-model="evapTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
           <div class="radio-group">
@@ -287,10 +307,7 @@ const isNaturalRefrigerant = computed(() =>
 
           <div class="field">
             <label>Superheating</label>
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="superheatingK" />
-              <span class="suffix">K</span>
-            </div>
+            <UnitValueInput v-model="superheatingK" quantity="temperatureDelta" unit="K" />
           </div>
 
           <label class="checkbox">
@@ -300,27 +317,18 @@ const isNaturalRefrigerant = computed(() =>
 
           <div class="field">
             <label>Cond. temp.</label>
-            <div class="input-with-suffix">
-              <input type="number" step="0.5" v-model.number="condTempC" />
-              <span class="suffix">°C</span>
-            </div>
+            <UnitValueInput v-model="condTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
           <div class="field">
             <label>Subcooling</label>
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="subcoolingK" />
-              <span class="suffix">K</span>
-            </div>
+            <UnitValueInput v-model="subcoolingK" quantity="temperatureDelta" unit="K" />
           </div>
 
           <div class="field">
             <label>Max. pressure drop in coil</label>
             <div class="input-inline-auto">
-              <div class="input-with-suffix">
-                <input type="number" v-model.number="maxPressureDropK" :disabled="maxPressureDropAuto" />
-                <span class="suffix">K</span>
-              </div>
+              <UnitValueInput v-model="maxPressureDropK" quantity="temperatureDelta" unit="K" :disabled="maxPressureDropAuto" />
               <label class="auto-toggle">
                 <input type="checkbox" v-model="maxPressureDropAuto" />
                 Auto
@@ -335,14 +343,13 @@ const isNaturalRefrigerant = computed(() =>
         <h3 class="card-title">Air</h3>
 
         <div class="field">
-          <label>Air temp</label>
-          <div class="input-with-suffix">
-            <input type="number" step="0.5" v-model.number="airInletTempC" />
-            <span class="suffix">°C</span>
-          </div>
+          <label>Inlet temp.</label>
+          <UnitValueInput v-model="airInletTempC" quantity="temperature" unit="C" :step="0.5" />
         </div>
 
-        <div class="field">
+        <!-- Humidity stays inline for Unit flow (productSection=1); for
+             Bare-Coil (productSection=2) it moves into the Options panel. -->
+        <div v-if="!isCoil" class="field">
           <label>Rel. humidity</label>
           <div v-if="isLiquid" class="input-with-suffix">
             <input type="number" v-model.number="relHumidityPct" />
@@ -362,22 +369,134 @@ const isNaturalRefrigerant = computed(() =>
 
         <div class="field">
           <label>{{ isLiquid ? 'Altitude' : 'Air pressure' }}</label>
-          <div class="input-with-suffix input-with-options">
-            <input
-              type="number"
-              :value="isLiquid ? altitudeM : airPressureMbar"
-              @input="(e) => {
-                const v = Number((e.target as HTMLInputElement).value)
-                if (isLiquid) altitudeM = v
-                else airPressureMbar = v
-              }"
+          <div class="input-with-options">
+            <UnitValueInput
+              v-if="isLiquid"
+              v-model="altitudeM"
+              quantity="length"
+              unit="m"
             />
-            <span class="suffix">{{ isLiquid ? 'm' : 'mbar' }}</span>
-            <button class="btn btn-outline btn-options">Options ↕</button>
+            <UnitValueInput
+              v-else
+              v-model="airPressureMbar"
+              quantity="pressure"
+              unit="mbar"
+            />
+            <button type="button" class="btn btn-outline btn-options" @click="airOptionsOpen = true">
+              <span>Options</span>
+              <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                <path d="M6 3v10M6 3L4 5M6 3l2 2M10 13V3M10 13l-2-2M10 13l2-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
           </div>
         </div>
       </section>
     </div>
+
+    <!-- ================== Air Options Panel (Modal) ==================
+         Bare-Coil variant surfaces the extra Air fields here (MPD-6932).
+         Non-Coil flow reuses the same panel to expose humidity in one
+         place instead of duplicating the inline field. -->
+    <Teleport to="body">
+      <div v-if="airOptionsOpen" class="modal-backdrop" @click.self="airOptionsOpen = false">
+        <div class="modal air-options-modal" role="dialog" aria-labelledby="air-options-title">
+          <header class="modal-head">
+            <h3 id="air-options-title">Air options</h3>
+            <button type="button" class="modal-close" aria-label="Close" @click="airOptionsOpen = false">
+              <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </header>
+
+          <div class="modal-body">
+            <div class="field">
+              <label>Rel. humidity</label>
+              <div class="input-inline-auto">
+                <div class="input-with-suffix">
+                  <input type="number" v-model.number="relHumidityPct" :disabled="humidityAuto" placeholder="0" />
+                  <span class="suffix">%</span>
+                </div>
+                <label class="auto-toggle">
+                  <input type="checkbox" v-model="humidityAuto" />
+                  Auto
+                </label>
+              </div>
+            </div>
+
+            <template v-if="isCoil">
+              <div class="field">
+                <label>Volume flow</label>
+                <div class="input-with-unit-select">
+                  <input type="number" step="0.1" v-model.number="volumeFlowValue" placeholder="0" />
+                  <select v-model="volumeFlowUnit" aria-label="Volume flow unit">
+                    <option v-for="u in volumeFlowUnitOptions" :key="u.value" :value="u.value">{{ u.label }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Volume-flow reference</label>
+                <div class="radio-group radio-group-inline">
+                  <label class="radio">
+                    <input type="radio" value="inlet" v-model="volumeFlowReference" />
+                    Inlet
+                  </label>
+                  <label class="radio">
+                    <input type="radio" value="outlet" v-model="volumeFlowReference" />
+                    Outlet
+                  </label>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Fans</label>
+                <button type="button" class="btn btn-outline btn-block" @click="fansModalOpen = true">
+                  Configure fans…
+                </button>
+              </div>
+            </template>
+          </div>
+
+          <footer class="modal-foot">
+            <button type="button" class="btn btn-primary" @click="airOptionsOpen = false">Done</button>
+          </footer>
+        </div>
+      </div>
+
+      <!-- Special-Fan Modal (MPD-7012) — nested inside the Options panel -->
+      <div v-if="fansModalOpen" class="modal-backdrop" @click.self="fansModalOpen = false">
+        <div class="modal fans-modal" role="dialog" aria-labelledby="fans-modal-title">
+          <header class="modal-head">
+            <h3 id="fans-modal-title">Special fans</h3>
+            <button type="button" class="modal-close" aria-label="Close" @click="fansModalOpen = false">
+              <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </header>
+
+          <div class="modal-body">
+            <div class="field">
+              <label>Fan count</label>
+              <input type="number" min="1" v-model.number="fansSelection.fanCount" />
+            </div>
+            <div class="field">
+              <label>Fan model</label>
+              <input type="text" v-model="fansSelection.fanModel" placeholder="e.g. EC-4x400" />
+            </div>
+            <div class="field">
+              <label>Speed</label>
+              <div class="input-with-suffix">
+                <input type="number" min="0" max="100" v-model.number="fansSelection.speedPct" />
+                <span class="suffix">%</span>
+              </div>
+            </div>
+          </div>
+
+          <footer class="modal-foot">
+            <button type="button" class="btn btn-outline" @click="fansModalOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="applyFansSelection">Apply</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
 
     <!-- Bottom nav (redundant with sub-toolbar for long screens) -->
     <div class="bottom-nav">
@@ -503,15 +622,25 @@ const isNaturalRefrigerant = computed(() =>
   align-items: stretch;
   gap: var(--space-a10);                /* 10px */
 }
-.input-inline-auto .input-with-suffix { flex: 1; }
+.input-inline-auto .input-with-suffix,
+.input-inline-auto .unit-value-input { flex: 1; }
+
+/* Info icon (ⓘ) sits absolutely to the right of the field, keeps the
+   input's row alignment even after switching to <UnitValueInput>. */
+.field-with-info { position: relative; }
+.field-with-info .info-badge {
+  position: absolute;
+  right: -22px;
+  top: 50%;
+  transform: translateY(-50%);
+}
 .auto-toggle {
   display: inline-flex;
   align-items: center;
-  gap: var(--space-a4);                 /* 4px */
-  padding: 0 var(--space-xs2);
+  gap: var(--space-xs3);                /* 5px */
+  padding: 0;
   background: transparent;
-  border: 1px solid var(--c-border-card);
-  border-radius: var(--radius-xs);
+  border: none;
   font-family: var(--font-ui);
   font-size: var(--font-2xs);
   color: var(--c-text-value);
@@ -545,17 +674,26 @@ const isNaturalRefrigerant = computed(() =>
   color: var(--c-impact-green);
 }
 
-/* Options button inline with input */
+/* Options button inline with input — stretches to the input's height
+   so the button visually pairs with the field. Uses the shared
+   .btn-outline treatment for the thin blue border; only the sizing
+   and gap are locally tuned. */
 .input-with-options {
   display: flex;
   align-items: stretch;
   gap: var(--space-a8);
 }
-.input-with-options .input-with-suffix { flex: 1; }
+.input-with-options .input-with-suffix,
+.input-with-options .unit-value-input { flex: 1; }
 .btn-options {
-  padding: 6px 12px;
+  padding: 0 var(--space-xs);              /* 14px horiz — matches input */
   font-size: var(--font-2xs);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs3);                   /* 5px */
+  white-space: nowrap;
 }
+.btn-options svg { flex-shrink: 0; }
 
 /* Radios and checkboxes */
 .radio-group { display: flex; flex-direction: column; gap: var(--space-a4); padding: var(--space-a4) 0; }
@@ -581,4 +719,168 @@ const isNaturalRefrigerant = computed(() =>
   justify-content: space-between;
   align-items: center;
 }
+
+/* Input with trailing unit-select (Volume flow / MPD-6932) */
+.input-with-unit-select {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-a8);
+}
+.input-with-unit-select input { flex: 1; }
+.input-with-unit-select select { width: 96px; flex-shrink: 0; }
+
+.radio-group-inline { flex-direction: row; gap: var(--space-md); }
+
+.btn-block { width: 100%; justify-content: center; }
+</style>
+
+<!--
+  Air-options + Fans modals live inside a Teleport → <body>. Vue's
+  scoped-CSS attribute doesn't reach teleported markup, so their styles
+  must be non-scoped. Kept in a second <style> block so the rest stays
+  scoped and isolated.
+-->
+<style>
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 26, 33, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+.modal {
+  background: white;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--c-border-card, #e6e4ea);
+}
+.modal-head h3 {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-md, 18px);
+  font-weight: 500;
+  color: var(--c-text-value, #262326);
+}
+.modal-close {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--c-text-medium, #676377);
+  display: inline-flex;
+}
+.modal-close:hover { background: var(--c-border-card, #e6e4ea); }
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 19px);
+  overflow-y: auto;
+}
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--c-border-card, #e6e4ea);
+}
+.modal .field { display: flex; flex-direction: column; gap: 4px; }
+.modal .field label {
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-light2, #878391);
+  letter-spacing: 0.1px;
+}
+.modal .field input,
+.modal .field select {
+  padding: 10px 12px;
+  border: 1px solid var(--c-border-input, #a6a3ad);
+  border-radius: var(--radius-xs, 4px);
+  background: white;
+  font-family: var(--font-ui);
+  font-size: var(--font-xs, 15.69px);
+  color: var(--c-text-value, #262326);
+  outline: none;
+}
+.modal .field input:focus,
+.modal .field select:focus {
+  border-color: var(--c-brand-blue, #0078BE);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue, #0078BE) 15%, transparent);
+}
+.modal .field input:disabled {
+  opacity: 0.6;
+  background: var(--c-bg, #f5f4f0);
+  cursor: not-allowed;
+}
+.modal .input-with-suffix { position: relative; display: flex; align-items: center; }
+.modal .input-with-suffix input { flex: 1; padding-right: 42px; }
+.modal .input-with-suffix .suffix {
+  position: absolute;
+  right: 12px;
+  color: var(--c-text-light2, #878391);
+  font-size: var(--font-3xs, 12.81px);
+  pointer-events: none;
+}
+.modal .input-inline-auto {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+.modal .input-inline-auto .input-with-suffix { flex: 1; }
+.modal .auto-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  color: var(--c-text-value, #262326);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.modal .auto-toggle input[type='checkbox'] {
+  accent-color: var(--c-brand-blue, #0078BE);
+  width: 16px; height: 16px; margin: 0;
+}
+.modal .input-with-unit-select {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.modal .input-with-unit-select input { flex: 1; }
+.modal .input-with-unit-select select { width: 96px; flex-shrink: 0; }
+.modal .radio-group {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  padding: 4px 0;
+}
+.modal .radio {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  color: var(--c-text-value, #262326);
+}
+.modal .radio input[type='radio'] { accent-color: var(--c-brand-blue, #0078BE); }
+.modal .btn-block { width: 100%; justify-content: center; }
 </style>

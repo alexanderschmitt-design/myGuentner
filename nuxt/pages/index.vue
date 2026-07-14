@@ -23,8 +23,43 @@ const openSections = ref<Record<string, boolean>>({
   coils: false,
   'api-services': false
 })
+// Units and Bare Coils are mutually exclusive — the user picks one entry
+// point at a time. Toggling either open closes the other. Other accordions
+// (mygps, application, api-services) remain independent.
+const EXCLUSIVE_PAIR = ['units', 'coils'] as const
+
 function toggleOpen(id: string) {
-  openSections.value[id] = !openSections.value[id]
+  const next = !openSections.value[id]
+  openSections.value[id] = next
+  if (next && EXCLUSIVE_PAIR.includes(id as any)) {
+    const other = EXCLUSIVE_PAIR.find(k => k !== id)!
+    openSections.value[other] = false
+  }
+}
+
+// Accordion open/close animation — JS hooks around a height transition
+// so the CSS transition on `height` has real from- and to-values to
+// interpolate. `void e.offsetHeight` forces a reflow between the two
+// height assignments (otherwise the browser batches them and skips the
+// tween).
+function onAccordionEnter(el: Element) {
+  const e = el as HTMLElement
+  e.style.overflow = 'hidden'
+  e.style.height = '0px'
+  void e.offsetHeight
+  e.style.height = e.scrollHeight + 'px'
+}
+function onAccordionAfterEnter(el: Element) {
+  const e = el as HTMLElement
+  e.style.height = ''
+  e.style.overflow = ''
+}
+function onAccordionLeave(el: Element) {
+  const e = el as HTMLElement
+  e.style.overflow = 'hidden'
+  e.style.height = e.scrollHeight + 'px'
+  void e.offsetHeight
+  e.style.height = '0px'
 }
 
 const router = useRouter()
@@ -93,27 +128,29 @@ const COILS = [
         <h2>Units</h2>
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </button>
-      <div v-if="openSections.units" class="accordion-body">
-        <div class="cat-grid">
-          <ProductCategoryCard
-            v-for="u in UNITS"
-            :key="u.slug"
-            :image="u.image"
-            :icon="u.icon"
-            :title="u.title"
-            :cta-label="u.sublabel || u.title"
-            :on-cta="() => goToWizard(u.catId, u.slug)"
-            :extras="(u.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(e.catId, e.slug) }))"
-            last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
-          />
+      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
+        <div v-if="openSections.units" class="accordion-body">
+          <div class="cat-grid">
+            <ProductCategoryCard
+              v-for="u in UNITS"
+              :key="u.slug"
+              :image="u.image"
+              :icon="u.icon"
+              :title="u.title"
+              :cta-label="u.sublabel || u.title"
+              :on-cta="() => goToWizard(u.catId, u.slug)"
+              :extras="(u.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(e.catId, e.slug) }))"
+              last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
+            />
+          </div>
+          <div class="upload-section">
+            <button class="btn btn-outline">
+              Upload Desktop GPC calculation
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </button>
+          </div>
         </div>
-        <div class="upload-section">
-          <button class="btn btn-outline">
-            Upload Desktop GPC calculation
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          </button>
-        </div>
-      </div>
+      </Transition>
     </section>
 
     <!-- 2. BY CATEGORY (myGPS) -->
@@ -122,20 +159,22 @@ const COILS = [
         <h2>By Category (myGPS)</h2>
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </button>
-      <div v-if="openSections.mygps" class="accordion-body">
-        <div class="cat-grid">
-          <ProductCategoryCard
-            v-for="c in MYGPS_CATS"
-            :key="c.slug"
-            :image="c.image"
-            :icon="c.icon"
-            :title="c.title"
-            :cta-label="c.options[0]"
-            :on-cta="() => goToWizard(0, c.slug)"
-            :extras="c.options.slice(1).map((opt: string) => ({ label: opt, onClick: () => goToWizard(0, c.slug) }))"
-          />
+      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
+        <div v-if="openSections.mygps" class="accordion-body">
+          <div class="cat-grid">
+            <ProductCategoryCard
+              v-for="c in MYGPS_CATS"
+              :key="c.slug"
+              :image="c.image"
+              :icon="c.icon"
+              :title="c.title"
+              :cta-label="c.options[0]"
+              :on-cta="() => goToWizard(0, c.slug)"
+              :extras="c.options.slice(1).map((opt: string) => ({ label: opt, onClick: () => goToWizard(0, c.slug) }))"
+            />
+          </div>
         </div>
-      </div>
+      </Transition>
     </section>
 
     <!-- 3. BY APPLICATION -->
@@ -144,19 +183,21 @@ const COILS = [
         <h2>By Application</h2>
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </button>
-      <div v-if="openSections.application" class="accordion-body">
-        <div class="cat-grid">
-          <ProductCategoryCard
-            v-for="a in APPLICATIONS"
-            :key="a.slug"
-            :image="a.image"
-            :title="a.title"
-            :cta-label="a.cta"
-            :on-cta="() => goToWizard(0, a.slug)"
-            last-config="DCHD 213.1 1x5/08RA-1500L/02P.M"
-          />
+      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
+        <div v-if="openSections.application" class="accordion-body">
+          <div class="cat-grid">
+            <ProductCategoryCard
+              v-for="a in APPLICATIONS"
+              :key="a.slug"
+              :image="a.image"
+              :title="a.title"
+              :cta-label="a.cta"
+              :on-cta="() => goToWizard(0, a.slug)"
+              last-config="DCHD 213.1 1x5/08RA-1500L/02P.M"
+            />
+          </div>
         </div>
-      </div>
+      </Transition>
     </section>
 
     <!-- 4. BARE COILS -->
@@ -165,20 +206,29 @@ const COILS = [
         <h2>Bare Coils</h2>
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </button>
-      <div v-if="openSections.coils" class="accordion-body">
-        <div class="cat-grid">
-          <ProductCategoryCard
-            v-for="c in COILS"
-            :key="c.slug"
-            :image="c.image"
-            :icon="c.icon"
-            :title="c.title"
-            :cta-label="c.sublabel || c.title"
-            :on-cta="() => goToWizard(0, c.slug, 2)"
-            :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug, 2) }))"
-          />
+      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
+        <div v-if="openSections.coils" class="accordion-body">
+          <div class="cat-grid">
+            <ProductCategoryCard
+              v-for="c in COILS"
+              :key="c.slug"
+              :image="c.image"
+              :icon="c.icon"
+              :title="c.title"
+              :cta-label="c.sublabel || c.title"
+              :on-cta="() => goToWizard(0, c.slug, 2)"
+              :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug, 2) }))"
+              last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
+            />
+          </div>
+          <div class="upload-section">
+            <button class="btn btn-outline">
+              Upload Desktop GPC calculation
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            </button>
+          </div>
         </div>
-      </div>
+      </Transition>
     </section>
 
     <!-- 5. API & MCP SERVICES -->
@@ -187,40 +237,42 @@ const COILS = [
         <h2>API &amp; MCP Services</h2>
         <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
       </button>
-      <div v-if="openSections['api-services']" class="accordion-body">
-        <div class="api-grid">
-          <article class="api-card">
-            <div class="api-icon api-icon--api">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="16 18 22 12 16 6"/>
-                <polyline points="8 6 2 12 8 18"/>
-              </svg>
-            </div>
-            <h3>myGPC API</h3>
-            <div class="api-tag">Enterprise Integration</div>
-            <p>Direct integration of Güntner's calculation logic into your ERP or CRM software. Automate quotation processes and always work with up-to-date product data.</p>
-            <div class="api-actions">
-              <button class="btn btn-primary">Request Access</button>
-              <button class="btn btn-outline">Learn More</button>
-            </div>
-          </article>
-          <article class="api-card">
-            <div class="api-icon api-icon--mcp">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="7" rx="1.5"/>
-                <rect x="3" y="14" width="18" height="7" rx="1.5"/>
-              </svg>
-            </div>
-            <h3>MCP Server</h3>
-            <div class="api-tag">Future-Proof Data Management</div>
-            <p>Future-proof server solution for centralized configuration and data management. Scalable infrastructure for complex engineering workflows and teams.</p>
-            <div class="api-actions">
-              <button class="btn btn-primary">Request Access</button>
-              <button class="btn btn-outline">Learn More</button>
-            </div>
-          </article>
+      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
+        <div v-if="openSections['api-services']" class="accordion-body">
+          <div class="api-grid">
+            <article class="api-card">
+              <div class="api-icon api-icon--api">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="16 18 22 12 16 6"/>
+                  <polyline points="8 6 2 12 8 18"/>
+                </svg>
+              </div>
+              <h3>myGPC API</h3>
+              <div class="api-tag">Enterprise Integration</div>
+              <p>Direct integration of Güntner's calculation logic into your ERP or CRM software. Automate quotation processes and always work with up-to-date product data.</p>
+              <div class="api-actions">
+                <button class="btn btn-primary">Request Access</button>
+                <button class="btn btn-outline">Learn More</button>
+              </div>
+            </article>
+            <article class="api-card">
+              <div class="api-icon api-icon--mcp">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="3" width="18" height="7" rx="1.5"/>
+                  <rect x="3" y="14" width="18" height="7" rx="1.5"/>
+                </svg>
+              </div>
+              <h3>MCP Server</h3>
+              <div class="api-tag">Future-Proof Data Management</div>
+              <p>Future-proof server solution for centralized configuration and data management. Scalable infrastructure for complex engineering workflows and teams.</p>
+              <div class="api-actions">
+                <button class="btn btn-primary">Request Access</button>
+                <button class="btn btn-outline">Learn More</button>
+              </div>
+            </article>
+          </div>
         </div>
-      </div>
+      </Transition>
     </section>
 
     <div v-if="!Object.values(visibility).some(v => v)" class="empty-state">
@@ -264,6 +316,19 @@ const COILS = [
 .accordion-body {
   padding: 0 var(--space-6) var(--space-6);   /* 0 / 32 / 32 */
   border-top: 1px solid var(--c-border);
+}
+
+/* Height animation is driven by JS hooks (onAccordionEnter/Leave). These
+   classes provide the interpolation window: an easing on `height` while
+   entering or leaving, and a matching opacity fade so short bodies don't
+   just pop. */
+.accordion-enter-active,
+.accordion-leave-active {
+  transition: height 0.28s ease, opacity 0.22s ease;
+}
+.accordion-enter-from,
+.accordion-leave-to {
+  opacity: 0;
 }
 
 .cat-grid {

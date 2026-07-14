@@ -66,7 +66,7 @@ defineProps<{
 .product-tile {
   background: var(--c-surface);
   border: 1px solid var(--c-border);
-  border-radius: var(--radius-xs);           /* 4px */
+  border-radius: 0;                          /* sharp corners — unified card */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -124,23 +124,33 @@ defineProps<{
   color: var(--c-brand-dark-grey);           /* #3c3c3b */
 }
 
-/* CTA button (secondary variant per Figma Code Connect) */
+/* CTA button — pastel Güntner blue (Figma token
+   guntner/color/background/primary-light = #a8c2f3). Kept identical
+   for Unit and Bare-Coil variants so both categories share one
+   interaction language. */
 .tile-cta {
   width: 100%;
   padding: var(--space-xs2) var(--space-xs);
-  background: var(--c-brand-blue);
-  color: white;
+  background: var(--c-background-primary-light);
+  color: var(--c-brand-blue);
   border: none;
-  border-radius: var(--radius-md);           /* 8px */
+  border-radius: 0;                          /* sharp corners, match card */
   font-family: var(--font-ui);
   font-size: var(--font-2xs);                /* 14.17px */
   line-height: var(--lh-2xs);
   font-weight: 500;
   letter-spacing: 0.1px;
   cursor: pointer;
-  transition: filter 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
-.tile-cta:hover { filter: brightness(1.08); }
+.tile-cta:hover {
+  background: var(--c-background-primary-medium);
+  color: white;
+}
+.tile-cta:active {
+  background: var(--c-brand-blue);
+  color: white;
+}
 .tile-cta:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 
 .last-config {
