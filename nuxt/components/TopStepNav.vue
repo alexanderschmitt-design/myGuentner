@@ -86,23 +86,23 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
 </template>
 
 <style scoped>
-/* Outer band inherits the app-shell canvas colour (--c-bg / #fafafa) so
-   the constrained stepper floats as a white island inside it. The
-   bottom divider spans full width for visual continuity with the header
-   above. */
+/* Full-width white band directly below the header — the actual steps
+   are constrained to 1200px and centered inside the band, matching
+   the header's max-width behaviour. Steps distribute evenly within
+   that width with continuous connector lines between each pair. */
 .stepper-row {
   background: transparent;
-  border-bottom: 1px solid var(--c-border);
+  border-bottom: none;
 }
 
 .stepper {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   display: flex;
   gap: var(--space-xs3);   /* 5px */
   align-items: center;
-  padding: var(--space-xs) var(--space-lg);   /* 14px vert, 38px horiz */
-  background: var(--c-surface);              /* #ffffff */
+  padding: var(--space-xs) var(--space-6) var(--space-5);  /* 14 top / 32 side / 24 bottom */
+  background: transparent;
 }
 
 .step {

@@ -15,27 +15,30 @@ useHead({ title: 'myGPC — Home' })
 
 const { visibility } = useSectionVisibility()
 
-// Accordion open-state (independent from admin visibility)
+// Accordion open-state for the secondary sections (myGPS, Application,
+// API services). Unit / Bare Coil are now driven by tabs instead.
 const openSections = ref<Record<string, boolean>>({
-  units: true,
   mygps: true,
   application: false,
-  coils: false,
   'api-services': false
 })
-// Units and Bare Coils are mutually exclusive — the user picks one entry
-// point at a time. Toggling either open closes the other. Other accordions
-// (mygps, application, api-services) remain independent.
-const EXCLUSIVE_PAIR = ['units', 'coils'] as const
-
 function toggleOpen(id: string) {
-  const next = !openSections.value[id]
-  openSections.value[id] = next
-  if (next && EXCLUSIVE_PAIR.includes(id as any)) {
-    const other = EXCLUSIVE_PAIR.find(k => k !== id)!
-    openSections.value[other] = false
-  }
+  openSections.value[id] = !openSections.value[id]
 }
+
+// Primary product-category selector — Unit vs. Bare Coil are two tabs
+// rather than two accordions. Only one panel is visible at a time.
+const activeTab = ref<'unit' | 'coil'>('unit')
+
+// If the currently-active tab is hidden via admin visibility, jump to
+// whichever tab is still on.
+watchEffect(() => {
+  if (activeTab.value === 'unit' && !visibility.value.units && visibility.value.coils) {
+    activeTab.value = 'coil'
+  } else if (activeTab.value === 'coil' && !visibility.value.coils && visibility.value.units) {
+    activeTab.value = 'unit'
+  }
+})
 
 // Accordion open/close animation — JS hooks around a height transition
 // so the CSS transition on `height` has real from- and to-values to
@@ -84,12 +87,12 @@ function goToWizard(catId: number, categorySlug: string, productSection: 1 | 2 =
 
 // UNITS (productSection=1) — id maps to GPC.EU productCategory
 const UNITS = [
-  { catId: 0,  title: 'Evaporator', sublabel: 'DX',      image: '/images/Evaporator-dx.png',   icon: '/icons/icon-dx.svg',        slug: 'evaporator-dx' },
-  { catId: 1,  title: 'Evaporator', sublabel: 'Pump',    image: '/images/Evaporator-Pump.png', icon: '/icons/icon-pump.svg',      slug: 'evaporator-pump' },
-  { catId: 2,  title: 'Air cooler', sublabel: 'Coolant', image: '/images/Aircooler.png',       icon: '/icons/icon-coolant.svg',   slug: 'air-cooler' },
-  { catId: 4,  title: 'Dry cooler', sublabel: '',        image: '/images/Drycooler.png',       icon: '/icons/icon-dry.svg',       slug: 'dry-cooler', extra: [{ label: 'Oil Cooler', catId: 6,  slug: 'oil-cooler' }] },
-  { catId: 3,  title: 'Condenser',  sublabel: '',        image: '/images/Condenser.png',       icon: '/icons/icon-condenser.svg', slug: 'condenser',  extra: [{ label: 'Subcooler',  catId: 5,  slug: 'subcooler'  }] },
-  { catId: 10, title: 'Gas cooler', sublabel: 'CO₂',     image: '/images/Gas-Cooler.png',      icon: '/icons/icon-gascooler.svg', slug: 'gas-cooler' }
+  { catId: 0,  title: 'Evaporator', sublabel: 'DX',      image: '/images/Evaporator-dx.png',   icon: '/icons/icon_evaporator_dx.svg',   slug: 'evaporator-dx' },
+  { catId: 1,  title: 'Evaporator', sublabel: 'Pump',    image: '/images/Evaporator-Pump.png', icon: '/icons/icon_evaporator_pump.svg', slug: 'evaporator-pump' },
+  { catId: 2,  title: 'Air cooler', sublabel: 'Coolant', image: '/images/Aircooler.png',       icon: '/icons/icon_aircooler.svg',       slug: 'air-cooler' },
+  { catId: 4,  title: 'Dry cooler', sublabel: '',        image: '/images/Drycooler.png',       icon: '/icons/icon_drycooler.svg',       slug: 'dry-cooler', extra: [{ label: 'Oil Cooler', catId: 6,  slug: 'oil-cooler' }] },
+  { catId: 3,  title: 'Condenser',  sublabel: '',        image: '/images/Condenser.png',       icon: '/icons/icon_condenser.svg',       slug: 'condenser',  extra: [{ label: 'Subcooler',  catId: 5,  slug: 'subcooler'  }] },
+  { catId: 10, title: 'Gas cooler', sublabel: 'CO₂',     image: '/images/Gas-Cooler.png',      icon: '/icons/icon_gascooler.svg',       slug: 'gas-cooler' }
 ]
 
 // MYGPS category products (from pre-migration mygps-projects.html links)
@@ -111,46 +114,84 @@ const APPLICATIONS = [
 
 // BARE COILS (productSection=2)
 const COILS = [
-  { slug: 'coil-evaporator-dx',   title: 'Evaporator', sublabel: 'DX',     image: '/images/coil-evaporator-dx.png',   icon: '/icons/icon-dx.svg' },
-  { slug: 'coil-evaporator-pump', title: 'Evaporator', sublabel: 'Pump',   image: '/images/coil-evaporator-pump.png', icon: '/icons/icon-pump.svg' },
-  { slug: 'coil-air-cooler',      title: 'Air cooler', sublabel: 'Coolant', image: '/images/coil-air-cooler.png',    icon: '/icons/icon-coolant.svg' },
-  { slug: 'coil-dry-cooler',      title: 'Dry cooler', sublabel: '',       image: '/images/coil-dry-cooler.png',      icon: '/icons/icon-dry.svg', extra: [{ label: 'Oil Cooler', slug: 'coil-oil-cooler' }] },
-  { slug: 'coil-condenser',       title: 'Condenser',  sublabel: '',       image: '/images/coil-condenser.png',       icon: '/icons/icon-condenser.svg' },
+  { slug: 'coil-evaporator-dx',   title: 'Evaporator', sublabel: 'DX',     image: '/images/coil-evaporator-dx.png',   icon: '/icons/icon_evaporator_dx.svg' },
+  { slug: 'coil-evaporator-pump', title: 'Evaporator', sublabel: 'Pump',   image: '/images/coil-evaporator-pump.png', icon: '/icons/icon_evaporator_pump.svg' },
+  { slug: 'coil-air-cooler',      title: 'Air cooler', sublabel: 'Coolant', image: '/images/coil-air-cooler.png',    icon: '/icons/icon_aircooler.svg' },
+  { slug: 'coil-dry-cooler',      title: 'Dry cooler', sublabel: '',       image: '/images/coil-dry-cooler.png',      icon: '/icons/icon_drycooler.svg', extra: [{ label: 'Oil Cooler', slug: 'coil-oil-cooler' }] },
+  { slug: 'coil-condenser',       title: 'Condenser',  sublabel: '',       image: '/images/coil-condenser.png',       icon: '/icons/icon_condenser.svg' },
   { slug: 'coil-subcooler',       title: 'Sub Cooler', sublabel: '',       image: '/images/coil-subcooler.png',       icon: '/icons/icon-sub.svg' }
 ]
 </script>
 
 <template>
   <div class="home">
-    <!-- 1. UNITS -->
-    <section v-if="visibility.units" class="accordion" :class="{ 'is-open': openSections.units }">
-      <button class="accordion-head" @click="toggleOpen('units')">
-        <h2>Units</h2>
-        <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-      </button>
-      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
-        <div v-if="openSections.units" class="accordion-body">
-          <div class="cat-grid">
-            <ProductCategoryCard
-              v-for="u in UNITS"
-              :key="u.slug"
-              :image="u.image"
-              :icon="u.icon"
-              :title="u.title"
-              :cta-label="u.sublabel || u.title"
-              :on-cta="() => goToWizard(u.catId, u.slug)"
-              :extras="(u.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(e.catId, e.slug) }))"
-              last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
-            />
-          </div>
-          <div class="upload-section">
-            <button class="btn btn-outline">
-              Upload Desktop GPC calculation
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </button>
-          </div>
+    <!-- 1. UNIT / BARE COIL — primary category selector, driven by tabs.
+         Panels are mounted inline so the URL state, transitions and
+         admin-visibility flags stay the same as when they were
+         accordions. -->
+    <section v-if="visibility.units || visibility.coils" class="tab-container">
+      <nav class="tab-nav" role="tablist" aria-label="Product category">
+        <button
+          v-if="visibility.units"
+          role="tab"
+          :aria-selected="activeTab === 'unit'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'unit' }"
+          @click="activeTab = 'unit'"
+        >UNIT</button>
+        <button
+          v-if="visibility.coils"
+          role="tab"
+          :aria-selected="activeTab === 'coil'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'coil' }"
+          @click="activeTab = 'coil'"
+        >BARE COIL</button>
+      </nav>
+
+      <div v-if="activeTab === 'unit' && visibility.units" role="tabpanel" class="tab-panel">
+        <div class="cat-grid">
+          <ProductCategoryCard
+            v-for="u in UNITS"
+            :key="u.slug"
+            :image="u.image"
+            :icon="u.icon"
+            :title="u.title"
+            :cta-label="u.sublabel || u.title"
+            :on-cta="() => goToWizard(u.catId, u.slug)"
+            :extras="(u.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(e.catId, e.slug) }))"
+            last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
+          />
         </div>
-      </Transition>
+        <div class="upload-section">
+          <button class="btn btn-outline">
+            Upload Desktop GPC calculation
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div v-else-if="activeTab === 'coil' && visibility.coils" role="tabpanel" class="tab-panel">
+        <div class="cat-grid">
+          <ProductCategoryCard
+            v-for="c in COILS"
+            :key="c.slug"
+            :image="c.image"
+            :icon="c.icon"
+            :title="c.title"
+            :cta-label="c.sublabel || c.title"
+            :on-cta="() => goToWizard(0, c.slug, 2)"
+            :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug, 2) }))"
+            last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
+          />
+        </div>
+        <div class="upload-section">
+          <button class="btn btn-outline">
+            Upload Desktop GPC calculation
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </button>
+        </div>
+      </div>
     </section>
 
     <!-- 2. BY CATEGORY (myGPS) -->
@@ -200,36 +241,6 @@ const COILS = [
       </Transition>
     </section>
 
-    <!-- 4. BARE COILS -->
-    <section v-if="visibility.coils" class="accordion" :class="{ 'is-open': openSections.coils }">
-      <button class="accordion-head" @click="toggleOpen('coils')">
-        <h2>Bare Coils</h2>
-        <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-      </button>
-      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
-        <div v-if="openSections.coils" class="accordion-body">
-          <div class="cat-grid">
-            <ProductCategoryCard
-              v-for="c in COILS"
-              :key="c.slug"
-              :image="c.image"
-              :icon="c.icon"
-              :title="c.title"
-              :cta-label="c.sublabel || c.title"
-              :on-cta="() => goToWizard(0, c.slug, 2)"
-              :extras="(c.extra || []).map(e => ({ label: e.label, onClick: () => goToWizard(0, e.slug, 2) }))"
-              last-config="GACC CX 040.2/2WN/DJA4A.UNNN"
-            />
-          </div>
-          <div class="upload-section">
-            <button class="btn btn-outline">
-              Upload Desktop GPC calculation
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            </button>
-          </div>
-        </div>
-      </Transition>
-    </section>
 
     <!-- 5. API & MCP SERVICES -->
     <section v-if="visibility['api-services']" class="accordion" :class="{ 'is-open': openSections['api-services'] }">
@@ -282,7 +293,57 @@ const COILS = [
 </template>
 
 <style scoped>
-.home { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+.home { max-width: 1400px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+
+/* Tab widget — UNIT / BARE COIL primary selector. Container has no
+   card border (only the panel below carries the surface), so the
+   tabs read as navigation rather than a boxed header. */
+.tab-container {
+  display: flex;
+  flex-direction: column;
+}
+.tab-nav {
+  display: flex;
+  gap: var(--space-4);
+  border-bottom: 1px solid var(--c-border);
+  margin-bottom: var(--space-5);
+}
+.tab-btn {
+  position: relative;
+  padding: var(--space-3) var(--space-2);
+  background: transparent;
+  border: none;
+  font-family: var(--font-ui);
+  font-size: var(--font-md, 18px);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--c-text-light);
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.tab-btn:hover:not(.active) { color: var(--c-text); }
+.tab-btn.active { color: var(--c-brand-blue); }
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--c-brand-blue);
+  border-radius: 2px;
+}
+.tab-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 25%, transparent);
+  border-radius: 4px;
+}
+.tab-panel {
+  background: var(--c-surface);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-6);
+}
 
 .accordion {
   background: var(--c-surface);

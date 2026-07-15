@@ -158,25 +158,6 @@
 input[type='checkbox'],
 input[type='radio'] { accent-color: var(--c-brand-blue); }
 
-/* ============================================================
-   Info badge — small blue circle with i (used next to labels)
-   ============================================================ */
-.info-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--c-brand-blue);
-  color: white;
-  font-size: 0.65rem;
-  font-weight: 700;
-  font-family: 'DM Sans', sans-serif;
-  cursor: help;
-  vertical-align: middle;
-  font-style: italic;
-}
 
 /* ============================================================
    Alerts

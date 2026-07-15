@@ -38,7 +38,10 @@ function initials(email: string | null | undefined): string {
   <div class="app-shell" :data-perspective="useConfigStore().activePerspective">
     <!-- =============================================
          Header — Figma node 1913:1709 (headerNavigation)
+         Full-width band with the actual header row constrained to
+         1200px and centered inside it.
          ============================================= -->
+    <div class="site-header-band">
     <header class="site-header">
       <div class="left-nav">
         <div class="logo-wrap">
@@ -67,13 +70,37 @@ function initials(email: string | null | undefined): string {
           <a href="#" class="nav-link">Overview</a>
           <NuxtLink to="/" class="nav-link" :class="{ active: route.path === '/' }">myGPC</NuxtLink>
           <a href="#" class="nav-link">mySpareParts</a>
+          <a href="#" class="nav-link">myProjects</a>
           <a href="#" class="nav-link nav-link-caret">
             myTools
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
               <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </a>
+          <a href="#" class="nav-link">myServices</a>
           <a href="#" class="nav-link">Documents</a>
+        </div>
+
+        <div class="header-icons">
+          <button type="button" class="icon-btn" aria-label="Favorites">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M10 2.5l2.5 5.1 5.6.8-4.05 3.95.96 5.6L10 15.3l-5.01 2.65.96-5.6L1.9 8.4l5.6-.8L10 2.5z"/>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn" aria-label="Notifications">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4.5 13.5v-3a5.5 5.5 0 1 1 11 0v3l1.5 2h-14l1.5-2z"/>
+              <path d="M8 16.5a2 2 0 0 0 4 0"/>
+            </svg>
+          </button>
+          <button type="button" class="icon-btn icon-btn-labeled" aria-label="Cart">
+            <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2.5 3.5h2l2 10h9l2-7h-11"/>
+              <circle cx="7.5" cy="17" r="1.2"/>
+              <circle cx="14.5" cy="17" r="1.2"/>
+            </svg>
+            <span>Cart</span>
+          </button>
         </div>
 
         <span class="menu-divider" aria-hidden="true"></span>
@@ -93,6 +120,7 @@ function initials(email: string | null | undefined): string {
         </button>
       </nav>
     </header>
+    </div>
 
     <TopStepNav v-if="showStepNav" />
 
@@ -103,6 +131,9 @@ function initials(email: string | null | undefined): string {
     <aside v-if="panelsOpen" class="side-panel">
       <SyncPanel />
     </aside>
+
+    <ChatDock v-if="user" />
+    <ToastStack />
 
     <footer class="site-footer">
       <div class="footer-left">
@@ -128,9 +159,15 @@ function initials(email: string | null | undefined): string {
 }
 
 /* ================== HEADER ================== */
-.site-header {
+/* Outer band — full-width white bar with the bottom divider */
+.site-header-band {
   background: var(--c-nav-background);
   border-bottom: 1px solid var(--c-nav-divider);
+}
+/* Inner row — capped at 1200px and centered inside the band */
+.site-header {
+  max-width: 1400px;
+  margin: 0 auto;
   padding: var(--space-xs);                    /* 14px */
   display: flex;
   align-items: center;
@@ -208,8 +245,40 @@ function initials(email: string | null | undefined): string {
   transition: color 0.15s, background 0.15s;
 }
 .nav-link:hover { color: var(--c-text); }
-.nav-link.active { color: var(--c-brand-blue); font-weight: 500; }
+.nav-link.active {
+  color: var(--c-brand-blue);
+  font-weight: 500;
+  background: color-mix(in srgb, var(--c-brand-blue) 12%, transparent);
+  border-radius: var(--radius-md);
+}
 .nav-link-caret svg { color: currentColor; }
+
+/* Header icon-only buttons (favorites, bell, cart). Cart carries a
+   text label alongside the icon; the others are icon-only. */
+.header-icons {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs3);
+  padding-left: var(--space-xs2);
+}
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs3);
+  padding: 6px 8px;
+  border: none;
+  background: transparent;
+  color: var(--c-nav-button-text);
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: background 0.15s, color 0.15s;
+}
+.icon-btn:hover { background: var(--c-nav-search-bg); color: var(--c-text); }
+.icon-btn-labeled { padding: 6px 10px; }
+.icon-btn svg { flex-shrink: 0; }
 
 /* Divider between nav items and avatar */
 .menu-divider {

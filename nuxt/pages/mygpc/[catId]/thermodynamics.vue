@@ -117,6 +117,7 @@ const volumeFlowReference = bind('volumeFlowReference')
 
 const airOptionsOpen = ref(false)
 const fansModalOpen = ref(false)
+const impactModalOpen = ref(false)
 
 const volumeFlowUnitOptions = [
   { value: 'm3s',  label: 'm³/s' },
@@ -196,7 +197,7 @@ const isNaturalRefrigerant = computed(() =>
           </div>
 
           <!-- Row 2 -->
-          <div class="field">
+          <div v-if="!isCoil" class="field">
             <label>Min. surface reserve</label>
             <div class="input-with-suffix">
               <input type="number" v-model.number="minSurfaceReserve" />
@@ -207,19 +208,23 @@ const isNaturalRefrigerant = computed(() =>
             <label>Frost thickness</label>
             <div class="field-with-info">
               <UnitValueInput v-model="frostThicknessMm" quantity="length" unit="mm" />
-              <InfoIcon title="Frost buildup on the coil surface" />
+              <InfoIcon
+                heading="Information"
+                title="Frost thickness"
+                body="The frost thickness refers to the layer of ice on one side of the fins."
+              />
             </div>
           </div>
 
           <!-- Row 3 -->
-          <div class="field">
+          <div v-if="!isCoil" class="field">
             <label>Max. surface reserve</label>
             <div class="input-with-suffix">
               <input type="number" v-model.number="maxSurfaceReserve" />
               <span class="suffix">%</span>
             </div>
           </div>
-          <div class="field-spacer"></div>
+          <div v-if="!isCoil" class="field-spacer"></div>
         </div>
       </section>
 
@@ -232,11 +237,15 @@ const isNaturalRefrigerant = computed(() =>
           <div class="field">
             <label>Medium</label>
             <div class="medium-select">
-              <span class="leaf-icon" aria-hidden="true">🌿</span>
+              <button type="button" class="impact-icon impact-icon-leading" aria-label="Impact° label — learn more" @click="impactModalOpen = true">
+                <img src="/icons/icon_impact.svg" alt="" />
+              </button>
               <select v-model="glycolMedium">
                 <option v-for="o in fluidOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
-              <span class="leaf-icon-trailing" aria-hidden="true">🌿</span>
+              <button type="button" class="impact-icon impact-icon-trailing" aria-label="Impact° label — learn more" @click="impactModalOpen = true">
+                <img src="/icons/icon_impact.svg" alt="" />
+              </button>
             </div>
           </div>
 
@@ -265,7 +274,7 @@ const isNaturalRefrigerant = computed(() =>
             <UnitValueInput v-model="outletTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
-          <div class="field">
+          <div v-if="!isCoil" class="field">
             <label>Max. pressure drop in coil</label>
             <div class="input-inline-auto">
               <UnitValueInput v-model="maxPressureDropBar" quantity="pressure" unit="bar" :step="0.1" :disabled="maxPressureDropAuto" />
@@ -282,10 +291,27 @@ const isNaturalRefrigerant = computed(() =>
           <div class="field">
             <label>Refrigerant</label>
             <div class="medium-select">
-              <span v-if="isNaturalRefrigerant" class="leaf-icon" aria-hidden="true">🌿</span>
+              <button
+                v-if="isNaturalRefrigerant"
+                type="button"
+                class="impact-icon impact-icon-leading"
+                aria-label="Impact° label — learn more"
+                @click="impactModalOpen = true"
+              >
+                <img src="/icons/icon_impact.svg" alt="" />
+              </button>
               <select v-model="refrigerant">
                 <option v-for="o in fluidOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
               </select>
+              <button
+                v-if="isNaturalRefrigerant"
+                type="button"
+                class="impact-icon impact-icon-trailing"
+                aria-label="Impact° label — learn more"
+                @click="impactModalOpen = true"
+              >
+                <img src="/icons/icon_impact.svg" alt="" />
+              </button>
             </div>
           </div>
 
@@ -295,12 +321,12 @@ const isNaturalRefrigerant = computed(() =>
           </div>
 
           <div class="radio-group">
-            <label class="radio">
-              <input type="radio" value="dew-point" v-model="dewPointMode" />
+            <label class="radio" :class="{ disabled: isCoil }">
+              <input type="radio" value="dew-point" v-model="dewPointMode" :disabled="isCoil" />
               Dew point at inlet (DIN EN328)
             </label>
-            <label class="radio">
-              <input type="radio" value="mean" v-model="dewPointMode" />
+            <label class="radio" :class="{ disabled: isCoil }">
+              <input type="radio" value="mean" v-model="dewPointMode" :disabled="isCoil" />
               Mean
             </label>
           </div>
@@ -310,7 +336,7 @@ const isNaturalRefrigerant = computed(() =>
             <UnitValueInput v-model="superheatingK" quantity="temperatureDelta" unit="K" />
           </div>
 
-          <label class="checkbox">
+          <label v-if="!isCoil" class="checkbox">
             <input type="checkbox" v-model="inletByTempPressure" />
             Inlet state by temperature and pressure
           </label>
@@ -325,7 +351,7 @@ const isNaturalRefrigerant = computed(() =>
             <UnitValueInput v-model="subcoolingK" quantity="temperatureDelta" unit="K" />
           </div>
 
-          <div class="field">
+          <div v-if="!isCoil" class="field">
             <label>Max. pressure drop in coil</label>
             <div class="input-inline-auto">
               <UnitValueInput v-model="maxPressureDropK" quantity="temperatureDelta" unit="K" :disabled="maxPressureDropAuto" />
@@ -496,6 +522,28 @@ const isNaturalRefrigerant = computed(() =>
           </footer>
         </div>
       </div>
+
+      <!-- Impact° label explainer — reachable from either Impact icon in
+           the Medium/Refrigerant dropdown -->
+      <div v-if="impactModalOpen" class="modal-backdrop" @click.self="impactModalOpen = false">
+        <div class="modal impact-modal" role="dialog" aria-labelledby="impact-modal-title">
+          <header class="modal-head">
+            <h3 id="impact-modal-title">Impact° label</h3>
+            <button type="button" class="modal-close" aria-label="Close" @click="impactModalOpen = false">
+              <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </header>
+
+          <div class="modal-body">
+            <p>Fluids with this icon have a low/no GWP and are PFAS-free.</p>
+            <p>Look out for the Impact° label, which lets you select the products and system components that offer optimum sustainability and energy-efficient technology within the Güntner portfolio.</p>
+          </div>
+
+          <footer class="modal-foot">
+            <button type="button" class="btn btn-text" @click="impactModalOpen = false">Close</button>
+          </footer>
+        </div>
+      </div>
     </Teleport>
 
     <!-- Bottom nav (redundant with sub-toolbar for long screens) -->
@@ -518,7 +566,7 @@ const isNaturalRefrigerant = computed(() =>
 
 <style scoped>
 .thermo-page {
-  max-width: 1440px;
+  max-width: 1400px;
   margin: 0 auto;
   padding: var(--space-lg) var(--space-sm) var(--space-sm);
 }
@@ -625,15 +673,15 @@ const isNaturalRefrigerant = computed(() =>
 .input-inline-auto .input-with-suffix,
 .input-inline-auto .unit-value-input { flex: 1; }
 
-/* Info icon (ⓘ) sits absolutely to the right of the field, keeps the
-   input's row alignment even after switching to <UnitValueInput>. */
-.field-with-info { position: relative; }
-.field-with-info .info-badge {
-  position: absolute;
-  right: -22px;
-  top: 50%;
-  transform: translateY(-50%);
+/* Info icon (ⓘ) sits inline to the right of the input, with a small
+   gap. The input still fills the available space; the icon is a
+   fixed-width flex item. */
+.field-with-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs2);        /* 9px */
 }
+.field-with-info > .unit-value-input { flex: 1; }
 .auto-toggle {
   display: inline-flex;
   align-items: center;
@@ -653,7 +701,9 @@ const isNaturalRefrigerant = computed(() =>
   margin: 0;
 }
 
-/* Medium dropdown with leading + trailing leaf */
+/* Medium dropdown with Impact° label icons — one absolutely-positioned
+   inside the input at left, one as a standalone trailing button next
+   to the input. Both open the same explanatory modal on click. */
 .medium-select {
   position: relative;
   display: flex;
@@ -664,14 +714,31 @@ const isNaturalRefrigerant = computed(() =>
   flex: 1;
   padding-left: 36px;
 }
-.medium-select .leaf-icon {
-  position: absolute;
-  left: 12px;
-  color: var(--c-impact-green);
-  pointer-events: none;
+.impact-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background 0.15s;
 }
-.medium-select .leaf-icon-trailing {
-  color: var(--c-impact-green);
+.impact-icon:hover { background: color-mix(in srgb, var(--c-impact-green) 12%, transparent); }
+.impact-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-impact-green) 25%, transparent); }
+.impact-icon img { width: 18px; height: 18px; display: block; }
+.impact-icon-leading {
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 26px; height: 26px;
+}
+.impact-icon-trailing {
+  width: 26px; height: 26px;
+  flex-shrink: 0;
 }
 
 /* Options button inline with input — stretches to the input's height
@@ -709,6 +776,13 @@ const isNaturalRefrigerant = computed(() =>
 .radio input[type='radio'], .checkbox input[type='checkbox'] {
   accent-color: var(--c-brand-blue);
 }
+.radio.disabled,
+.checkbox.disabled {
+  color: var(--c-text-light2);
+  cursor: not-allowed;
+}
+.radio.disabled input,
+.checkbox.disabled input { cursor: not-allowed; }
 
 /* Bottom nav */
 .bottom-nav {
@@ -791,6 +865,13 @@ const isNaturalRefrigerant = computed(() =>
   flex-direction: column;
   gap: var(--space-sm, 19px);
   overflow-y: auto;
+}
+.modal-body p {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  line-height: 1.5;
+  color: var(--c-text-value, #262326);
 }
 .modal-foot {
   display: flex;

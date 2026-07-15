@@ -37,14 +37,14 @@ export interface CategoryDef {
 //   node 2328:7386 (Air cooler Coolant) / 2328:7825 (Dry cooler) /
 //   2328:7827 (this Figma node) / 2328:8703 (Oil cooler)  → liquid fields
 export const CATEGORIES: CategoryDef[] = [
-  { id: 0,  slug: 'evaporator-dx',   title: 'Evaporator', sublabel: 'DX',        productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-dx.svg',        image: '/images/Evaporator-dx.png' },
-  { id: 1,  slug: 'evaporator-pump', title: 'Evaporator', sublabel: 'Pump',      productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-pump.svg',      image: '/images/Evaporator-Pump.png' },
-  { id: 2,  slug: 'air-cooler',      title: 'Air cooler', sublabel: 'Coolant',   productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-coolant.svg',   image: '/images/Aircooler.png' },
-  { id: 3,  slug: 'condenser',       title: 'Condenser',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-condenser.svg', image: '/images/Condenser.png' },
-  { id: 4,  slug: 'dry-cooler',      title: 'Dry cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-dry.svg',       image: '/images/Drycooler.png' },
-  { id: 5,  slug: 'subcooler',       title: 'Subcooler',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-sub.svg',       image: '/images/Condenser.png' },
-  { id: 6,  slug: 'oil-cooler',      title: 'Oil cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-pump.svg',      image: '/images/Drycooler.png' },
-  { id: 10, slug: 'gas-cooler',      title: 'Gas cooler', sublabel: 'CO₂',       productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-gascooler.svg', image: '/images/Gas-Cooler.png' }
+  { id: 0,  slug: 'evaporator-dx',   title: 'Evaporator', sublabel: 'DX',        productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_dx.svg',   image: '/images/Evaporator-dx.png' },
+  { id: 1,  slug: 'evaporator-pump', title: 'Evaporator', sublabel: 'Pump',      productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_pump.svg', image: '/images/Evaporator-Pump.png' },
+  { id: 2,  slug: 'air-cooler',      title: 'Air cooler', sublabel: 'Coolant',   productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_aircooler.svg',       image: '/images/Aircooler.png' },
+  { id: 3,  slug: 'condenser',       title: 'Condenser',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_condenser.svg',       image: '/images/Condenser.png' },
+  { id: 4,  slug: 'dry-cooler',      title: 'Dry cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_drycooler.svg',       image: '/images/Drycooler.png' },
+  { id: 5,  slug: 'subcooler',       title: 'Subcooler',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-sub.svg',             image: '/images/Condenser.png' },
+  { id: 6,  slug: 'oil-cooler',      title: 'Oil cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-pump.svg',            image: '/images/Drycooler.png' },
+  { id: 10, slug: 'gas-cooler',      title: 'Gas cooler', sublabel: 'CO₂',       productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_gascooler.svg',       image: '/images/Gas-Cooler.png' }
 ]
 
 export function getCategoryById(id: number | string): CategoryDef | null {

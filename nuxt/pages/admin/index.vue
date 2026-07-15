@@ -1,126 +1,135 @@
 <script setup lang="ts">
 /**
- * Admin — section visibility toggles for the Home page accordions.
- * Ports the pre-migration frontend/admin.html feature switches.
- * State is persisted to localStorage via useSectionVisibility().
+ * /admin — Hub landing page. Card grid linking to every admin sub-section.
  */
 
+definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'myGPC — Admin' })
 
-const { sections, visibility, setVisible } = useSectionVisibility()
-
-function toggle(id: string, on: boolean) {
-  setVisible(id as any, on)
+interface Card {
+  to: string
+  title: string
+  description: string
+  icon: string  // SVG path (16-viewBox)
 }
 
-function resetToDefaults() {
-  for (const s of sections) setVisible(s.id, s.defaultVisible)
-}
+const cards: Card[] = [
+  {
+    to: '/admin/documents',
+    title: 'Documents',
+    description: 'PDFs und Handbücher hochladen, indexieren und aus dem DMS importieren.',
+    icon: 'M4 2h6l4 4v8a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z M10 2v4h4'
+  },
+  {
+    to: '/admin/rag-settings',
+    title: 'RAG Settings',
+    description: 'LLM-Provider, Embedding-Modell, Chunk-Größe, Top-K, System-Prompt.',
+    icon: 'M8 2v2 M8 12v2 M2 8h2 M12 8h2 M4 4l1.5 1.5 M10.5 10.5 12 12 M4 12l1.5-1.5 M10.5 5.5 12 4 M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z'
+  },
+  {
+    to: '/admin/rag-test',
+    title: 'RAG Test',
+    description: 'Query gegen den Vector Store — Chat oder reines Retrieval.',
+    icon: 'M2 3h12v10H2z M4 7h8 M4 10h5'
+  },
+  {
+    to: '/admin/dms',
+    title: 'DMS',
+    description: 'Volltextsuche im d.velop DMS, Dokumenten-Detail, Import-Jobs.',
+    icon: 'M2 4h5l1.5 1.5H14v8H2z'
+  },
+  {
+    to: '/admin/system',
+    title: 'System',
+    description: 'Status aller Backends: Vector Store, DMS, LLM, GPC.EU.',
+    icon: 'M2 4h12v3H2z M2 9h12v3H2z M5 5.5v.01 M5 10.5v.01'
+  },
+  {
+    to: '/admin/users',
+    title: 'Users',
+    description: 'Supabase-Nutzer verwalten (Liste + Anlegen).',
+    icon: 'M8 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M3 14v-.5A3.5 3.5 0 0 1 6.5 10h3A3.5 3.5 0 0 1 13 13.5v.5'
+  },
+  {
+    to: '/admin/home-sections',
+    title: 'Home Sections',
+    description: 'Sichtbarkeit der Startseiten-Accordions/Tabs pro Browser umschalten.',
+    icon: 'M2 3h12v3H2z M2 8h12v3H2z M2 13h8v1H2z'
+  }
+]
 </script>
 
 <template>
-  <div class="admin">
-    <header>
-      <h1>Admin — Home sections</h1>
-      <p class="lede">Toggle the accordions on the home page. Changes are per-browser (localStorage) and take effect on the next home-page load.</p>
-    </header>
+  <div>
+    <AdminPageHeader
+      title="Admin"
+      description="Content, Konfiguration und System-Health an einem Ort."
+    />
 
-    <section class="card">
-      <h2>Section visibility</h2>
-      <ul class="switch-list">
-        <li v-for="s in sections" :key="s.id">
-          <div class="switch-info">
-            <strong>{{ s.label }}</strong>
-            <p>{{ s.description }}</p>
-            <span class="default" v-if="s.defaultVisible">Default: visible</span>
-            <span class="default off" v-else>Default: hidden</span>
-          </div>
-          <label class="switch">
-            <input
-              type="checkbox"
-              :checked="visibility[s.id]"
-              @change="toggle(s.id, ($event.target as HTMLInputElement).checked)"
-            />
-            <span class="slider"></span>
-          </label>
-        </li>
-      </ul>
-      <div class="actions">
-        <button class="btn btn-outline" @click="resetToDefaults">Reset to defaults</button>
-        <NuxtLink to="/" class="btn btn-primary">View home →</NuxtLink>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Storage</h2>
-      <p class="hint">Section flags are stored as <code>mygpc_section_&lt;id&gt;</code> in <code>localStorage</code>. Clearing site data resets them.</p>
-    </section>
+    <div class="hub-grid">
+      <NuxtLink v-for="c in cards" :key="c.to" :to="c.to" class="hub-card">
+        <span class="hub-card-icon" aria-hidden="true">
+          <svg viewBox="0 0 16 16" width="20" height="20" fill="none" stroke="currentColor"
+               stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path :d="c.icon"/>
+          </svg>
+        </span>
+        <div>
+          <strong>{{ c.title }}</strong>
+          <p>{{ c.description }}</p>
+        </div>
+      </NuxtLink>
+    </div>
   </div>
 </template>
 
 <style scoped>
-.admin { max-width: 800px; margin: 0 auto; }
-header { margin-bottom: 24px; }
-h1 { margin: 0 0 4px; color: var(--c-primary); font-size: 1.4rem; }
-.lede { margin: 0; color: var(--c-text-muted); }
-
-.card {
-  background: white;
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius);
-  padding: 24px;
-  margin-bottom: 20px;
+.hub-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: var(--space-4);
 }
-.card h2 { margin: 0 0 16px; font-size: 1rem; color: var(--c-text); }
-
-.switch-list { list-style: none; margin: 0; padding: 0; }
-.switch-list li {
-  padding: 16px 0;
-  border-bottom: 1px solid var(--c-border);
+.hub-card {
   display: flex;
   align-items: flex-start;
-  gap: 20px;
-  justify-content: space-between;
-}
-.switch-list li:last-child { border-bottom: none; }
-.switch-info { flex: 1; }
-.switch-info strong { display: block; margin-bottom: 4px; color: var(--c-text); }
-.switch-info p { margin: 0; font-size: 0.85rem; color: var(--c-text-muted); }
-.default {
-  display: inline-block;
-  margin-top: 6px;
-  padding: 2px 8px;
-  font-size: 0.7rem;
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--c-success) 12%, white);
-  color: var(--c-success);
-}
-.default.off { background: color-mix(in srgb, var(--c-text-muted) 12%, white); color: var(--c-text-muted); }
-
-/* Toggle switch */
-.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-.switch input { opacity: 0; width: 0; height: 0; }
-.slider {
-  position: absolute; inset: 0;
-  background: var(--c-border);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.15s;
-}
-.slider::before {
-  content: '';
-  position: absolute;
-  top: 3px; left: 3px;
-  width: 18px; height: 18px;
+  gap: 12px;
+  padding: 18px;
   background: white;
-  border-radius: 50%;
-  transition: transform 0.15s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  color: var(--c-text-value);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
 }
-.switch input:checked + .slider { background: var(--c-brand-blue); }
-.switch input:checked + .slider::before { transform: translateX(20px); }
-
-.actions { margin-top: 20px; display: flex; gap: 10px; }
-.hint { color: var(--c-text-muted); font-size: 0.85rem; }
-.hint code { padding: 2px 6px; background: var(--c-surface-muted); border-radius: 3px; font-family: 'DM Mono', monospace; }
+.hub-card:hover {
+  border-color: var(--c-brand-blue);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  transform: translateY(-1px);
+}
+.hub-card-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--c-brand-blue) 10%, white);
+  color: var(--c-brand-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.hub-card strong {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  color: var(--c-text-value);
+  margin-bottom: 4px;
+}
+.hub-card p {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-medium);
+  line-height: 1.45;
+}
 </style>

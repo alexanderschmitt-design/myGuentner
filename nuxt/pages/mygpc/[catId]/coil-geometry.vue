@@ -320,7 +320,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
 </template>
 
 <style scoped>
-.coil-geometry-page { max-width: 1200px; margin: 0 auto; }
+.coil-geometry-page { max-width: 1400px; margin: 0 auto; }
 
 /* Card layout — one 2-column grid instead of stacked per-row grids.
    Every card is placed directly in the grid, so pairs like Fins /
