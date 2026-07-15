@@ -20,6 +20,7 @@ const links: AdminLink[] = [
   { to: '/admin/dms',            label: 'DMS' },
   { to: '/admin/system',         label: 'System' },
   { to: '/admin/users',          label: 'Users' },
+  { to: '/admin/features',       label: 'Features' },
   { to: '/admin/home-sections',  label: 'Home Sections' }
 ]
 </script>

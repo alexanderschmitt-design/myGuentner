@@ -51,9 +51,15 @@ const cards: Card[] = [
     icon: 'M8 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z M3 14v-.5A3.5 3.5 0 0 1 6.5 10h3A3.5 3.5 0 0 1 13 13.5v.5'
   },
   {
+    to: '/admin/features',
+    title: 'Features',
+    description: 'Chatbot ein/aus, Learn-Mode (Element-Kommentierung) und andere App-Schalter.',
+    icon: 'M8 2v2 M8 12v2 M2 8h2 M12 8h2 M4 4l1.5 1.5 M10.5 10.5 12 12 M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z'
+  },
+  {
     to: '/admin/home-sections',
     title: 'Home Sections',
-    description: 'Sichtbarkeit der Startseiten-Accordions/Tabs pro Browser umschalten.',
+    description: 'Sichtbarkeit der Startseiten-Tabs pro Browser umschalten.',
     icon: 'M2 3h12v3H2z M2 8h12v3H2z M2 13h8v1H2z'
   }
 ]

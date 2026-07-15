@@ -15,6 +15,7 @@ import SyncPanel from '~/components/SyncPanel.vue'
 
 const route = useRoute()
 const user = useSupabaseUser()
+const featureFlags = useFeatureFlags()
 
 // Step-nav under /mygpc/* + on the Datasheet page (both are wizard steps).
 const showStepNav = computed(
@@ -132,7 +133,8 @@ function initials(email: string | null | undefined): string {
       <SyncPanel />
     </aside>
 
-    <ChatDock v-if="user" />
+    <ChatDock v-if="user && featureFlags.isOn('chatbot')" />
+    <LearnModeOverlay />
     <ToastStack />
 
     <footer class="site-footer">
