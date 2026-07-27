@@ -79,7 +79,7 @@ export async function* askBella(query: string, chunks: any[], options: AskOption
   try {
     stream = client.messages.stream(params)
   } catch (err: any) {
-    yield { type: 'error', error: 'Bella-Init failed: ' + err.message }
+    yield { type: 'error', error: 'Günther-Init failed: ' + err.message }
     return
   }
 

@@ -112,6 +112,9 @@
   --font-md:  18px;
   --font-lg:  20px;
   --font-xl:  23.7px;  /* font/xl  — headline */
+  --font-2xl: 26.32px; /* font/2xl — support card titles */
+  --font-3xl: 29.05px; /* font/3xl */
+  --font-4xl: 32.49px; /* font/4xl — hero + section headings */
 
   /* Line-heights and letter-spacing per Figma text styles */
   --lh-4xs: 14px;

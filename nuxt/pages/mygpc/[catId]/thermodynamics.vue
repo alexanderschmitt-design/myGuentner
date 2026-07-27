@@ -19,11 +19,10 @@ const store = useConfigStore()
 const gpceu = useGpceu()
 const router = useRouter()
 const { current, step3Url } = useCategory()
+const viewMode = useViewMode()
 
 const isLiquid = computed(() => current.value.mediumType === 'liquid')
-// Bare-coil flow (MPD-6929): productSection=2 swaps Step 3 to Coil Geometry
-// AND shrinks the visible Air card to Inlet temp + Air pressure + Options
-// (MPD-6932). Humidity, volume flow and fan selection live in the panel.
+// Bare-coil flow (MPD-6929): productSection=2 swaps Step 3 to Coil Geometry.
 const isCoil = computed(() => store.productSection === 2)
 
 useHead({ title: `myGPC — Thermodynamics (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
@@ -88,9 +87,13 @@ const frostThicknessMm = bind('frostThicknessMm')
 const airInletTempC = bind('airInletTempC')
 const relHumidityPct = bind('relHumidityPct')
 const humidityAuto = bind('humidityAuto')
+const wetBulbTempC = bind('wetBulbTempC')
 const altitudeM = bind('altitudeM')
 const airPressureMbar = bind('airPressureMbar')
 const maxPressureDropAuto = bind('maxPressureDropAuto')
+const humidityMode = bind('humidityMode')
+const pressureMode = bind('pressureMode')
+const capacityWithHumidityFactor = bind('capacityWithHumidityFactor')
 
 // Liquid-side
 const glycolMedium = bind('glycolType')
@@ -110,34 +113,24 @@ const dewPointMode = bind('dewPointMode')
 const inletByTempPressure = bind('inletByTempPressure')
 const maxPressureDropK = bind('maxPressureDropK')
 
-// Air-panel / Bare-coil extras (MPD-6932)
-const volumeFlowValue = bind('volumeFlowValue')
-const volumeFlowUnit = bind('volumeFlowUnit')
-const volumeFlowReference = bind('volumeFlowReference')
-
 const airOptionsOpen = ref(false)
-const fansModalOpen = ref(false)
 const impactModalOpen = ref(false)
 
-const volumeFlowUnitOptions = [
-  { value: 'm3s',  label: 'm³/s' },
-  { value: 'm3h',  label: 'm³/h' },
-  { value: 'cfm',  label: 'cfm' },
-  { value: 'gpm',  label: 'gpm' },
-  { value: 'ls',   label: 'l/s' },
-  { value: 'lmin', label: 'l/min' },
-  { value: 'lh',   label: 'l/h' }
-]
-
-// Placeholder for MPD-7012 Special-Fan-Modal payload — one editable row per
-// fan slot. Real integration lands with the Fan-Selection API.
-const fansSelection = reactive({
-  fanCount: 1,
-  fanModel: '',
-  speedPct: 100
+// Draft state for the Air Options modal — the user picks radios in a
+// draft, then Save commits to the store; Cancel discards.
+const airOptsDraft = reactive({
+  humidityMode: humidityMode.value as 'rel-humidity' | 'wet-bulb',
+  pressureMode: pressureMode.value as 'air-pressure' | 'altitude'
 })
-function applyFansSelection() {
-  fansModalOpen.value = false
+function openAirOptions() {
+  airOptsDraft.humidityMode = humidityMode.value
+  airOptsDraft.pressureMode = pressureMode.value
+  airOptionsOpen.value = true
+}
+function commitAirOptions() {
+  humidityMode.value = airOptsDraft.humidityMode
+  pressureMode.value = airOptsDraft.pressureMode
+  airOptionsOpen.value = false
 }
 
 const canProceed = computed(() => capacityKw.value != null)
@@ -167,6 +160,8 @@ const isNaturalRefrigerant = computed(() =>
 
       <span class="spacer"></span>
 
+      <ViewModeToggle />
+
       <!-- Rating widget: Unit-flow only. Suppressed for Bare-Coil per
            MPD spec — the confidence score is a Unit-Selection concept
            and doesn't apply to the Coil-Geometry configuration path. -->
@@ -191,20 +186,20 @@ const isNaturalRefrigerant = computed(() =>
               <option v-for="m in calculationModeOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
             </select>
           </div>
-          <div class="field">
+          <div class="field" data-learn-id="thermo-capacity" data-field-name="Kälteleistung" data-api-param="thermalCapacity">
             <label>Capacity</label>
             <UnitValueInput v-model="capacityKw" quantity="power" unit="kW" :step="0.1" />
           </div>
 
           <!-- Row 2 -->
-          <div v-if="!isCoil" class="field">
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field">
             <label>Min. surface reserve</label>
             <div class="input-with-suffix">
               <input type="number" v-model.number="minSurfaceReserve" />
               <span class="suffix">%</span>
             </div>
           </div>
-          <div class="field">
+          <div v-if="viewMode.isExpert.value" class="field">
             <label>Frost thickness</label>
             <div class="field-with-info">
               <UnitValueInput v-model="frostThicknessMm" quantity="length" unit="mm" />
@@ -217,14 +212,14 @@ const isNaturalRefrigerant = computed(() =>
           </div>
 
           <!-- Row 3 -->
-          <div v-if="!isCoil" class="field">
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field">
             <label>Max. surface reserve</label>
             <div class="input-with-suffix">
               <input type="number" v-model.number="maxSurfaceReserve" />
               <span class="suffix">%</span>
             </div>
           </div>
-          <div v-if="!isCoil" class="field-spacer"></div>
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field-spacer"></div>
         </div>
       </section>
 
@@ -234,7 +229,7 @@ const isNaturalRefrigerant = computed(() =>
 
         <!-- Liquid variant (Figma node 2328:7827) -->
         <template v-if="isLiquid">
-          <div class="field">
+          <div class="field" data-learn-id="thermo-medium" data-field-name="Medium (Kühlflüssigkeit)" data-api-param="fluidID">
             <label>Medium</label>
             <div class="medium-select">
               <button type="button" class="impact-icon impact-icon-leading" aria-label="Impact° label — learn more" @click="impactModalOpen = true">
@@ -257,14 +252,14 @@ const isNaturalRefrigerant = computed(() =>
             </div>
           </div>
 
-          <div class="field">
+          <div v-if="viewMode.isExpert.value" class="field">
             <label>Parameter mode</label>
             <select v-model="parameterMode">
               <option v-for="p in parameterModeOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
             </select>
           </div>
 
-          <div class="field">
+          <div class="field" data-learn-id="thermo-inlet-temp" data-field-name="Vorlauftemperatur (Medium)" data-api-param="fluidTempInlet">
             <label>Inlet temp.</label>
             <UnitValueInput v-model="inletTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
@@ -274,7 +269,7 @@ const isNaturalRefrigerant = computed(() =>
             <UnitValueInput v-model="outletTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
-          <div v-if="!isCoil" class="field">
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field">
             <label>Max. pressure drop in coil</label>
             <div class="input-inline-auto">
               <UnitValueInput v-model="maxPressureDropBar" quantity="pressure" unit="bar" :step="0.1" :disabled="maxPressureDropAuto" />
@@ -288,7 +283,7 @@ const isNaturalRefrigerant = computed(() =>
 
         <!-- Refrigerant variant (DX / Condenser / Gas cooler) -->
         <template v-else>
-          <div class="field">
+          <div class="field" data-learn-id="thermo-refrigerant" data-field-name="Kältemittel" data-api-param="fluidID">
             <label>Refrigerant</label>
             <div class="medium-select">
               <button
@@ -315,12 +310,12 @@ const isNaturalRefrigerant = computed(() =>
             </div>
           </div>
 
-          <div class="field">
+          <div class="field" data-learn-id="thermo-evap-temp" data-field-name="Verdampfungstemperatur t₀" data-api-param="fluidTempInlet">
             <label>Evaporation temp.</label>
             <UnitValueInput v-model="evapTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
-          <div class="radio-group">
+          <div v-if="viewMode.isExpert.value" class="radio-group">
             <label class="radio" :class="{ disabled: isCoil }">
               <input type="radio" value="dew-point" v-model="dewPointMode" :disabled="isCoil" />
               Dew point at inlet (DIN EN328)
@@ -331,12 +326,12 @@ const isNaturalRefrigerant = computed(() =>
             </label>
           </div>
 
-          <div class="field">
+          <div v-if="viewMode.isExpert.value" class="field">
             <label>Superheating</label>
             <UnitValueInput v-model="superheatingK" quantity="temperatureDelta" unit="K" />
           </div>
 
-          <label v-if="!isCoil" class="checkbox">
+          <label v-if="!isCoil && viewMode.isExpert.value" class="checkbox">
             <input type="checkbox" v-model="inletByTempPressure" />
             Inlet state by temperature and pressure
           </label>
@@ -346,12 +341,12 @@ const isNaturalRefrigerant = computed(() =>
             <UnitValueInput v-model="condTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
 
-          <div class="field">
+          <div v-if="viewMode.isExpert.value" class="field">
             <label>Subcooling</label>
             <UnitValueInput v-model="subcoolingK" quantity="temperatureDelta" unit="K" />
           </div>
 
-          <div v-if="!isCoil" class="field">
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field">
             <label>Max. pressure drop in coil</label>
             <div class="input-inline-auto">
               <UnitValueInput v-model="maxPressureDropK" quantity="temperatureDelta" unit="K" :disabled="maxPressureDropAuto" />
@@ -368,36 +363,39 @@ const isNaturalRefrigerant = computed(() =>
       <section class="card air-card">
         <h3 class="card-title">Air</h3>
 
-        <div class="field">
+        <div class="field" data-learn-id="thermo-air-inlet" data-field-name="Luft-Eintrittstemperatur" data-api-param="airTemperature">
           <label>Inlet temp.</label>
           <UnitValueInput v-model="airInletTempC" quantity="temperature" unit="C" :step="0.5" />
         </div>
 
-        <!-- Humidity stays inline for Unit flow (productSection=1); for
-             Bare-Coil (productSection=2) it moves into the Options panel. -->
-        <div v-if="!isCoil" class="field">
-          <label>Rel. humidity</label>
-          <div v-if="isLiquid" class="input-with-suffix">
-            <input type="number" v-model.number="relHumidityPct" />
-            <span class="suffix">%</span>
-          </div>
-          <div v-else class="input-inline-auto">
-            <div class="input-with-suffix">
-              <input type="number" v-model.number="relHumidityPct" :disabled="humidityAuto" placeholder="0" />
-              <span class="suffix">%</span>
+        <!-- Humidity measure — only appears when the Capacity-includes-
+             Humidity-Factor checkbox is OFF. When the checkbox is on, the
+             specified capacity already accounts for humidity and this row
+             is hidden. Applies to both Unit and Bare-Coil flows. -->
+        <div v-if="!capacityWithHumidityFactor" class="field">
+          <label>{{ humidityMode === 'wet-bulb' ? 'Wet bulb temperature' : 'Rel humidity' }}</label>
+          <template v-if="humidityMode === 'wet-bulb'">
+            <UnitValueInput v-model="wetBulbTempC" quantity="temperature" unit="C" :step="0.5" />
+          </template>
+          <template v-else>
+            <div class="input-inline-auto">
+              <div class="input-with-suffix">
+                <input type="number" v-model.number="relHumidityPct" :disabled="humidityAuto" placeholder="0" />
+                <span class="suffix">%</span>
+              </div>
+              <label class="auto-toggle">
+                <input type="checkbox" v-model="humidityAuto" />
+                Auto
+              </label>
             </div>
-            <label class="auto-toggle">
-              <input type="checkbox" v-model="humidityAuto" />
-              Auto
-            </label>
-          </div>
+          </template>
         </div>
 
         <div class="field">
-          <label>{{ isLiquid ? 'Altitude' : 'Air pressure' }}</label>
+          <label>{{ pressureMode === 'altitude' ? 'Altitude' : 'Air pressure' }}</label>
           <div class="input-with-options">
             <UnitValueInput
-              v-if="isLiquid"
+              v-if="pressureMode === 'altitude'"
               v-model="altitudeM"
               quantity="length"
               unit="m"
@@ -408,7 +406,7 @@ const isNaturalRefrigerant = computed(() =>
               quantity="pressure"
               unit="mbar"
             />
-            <button type="button" class="btn btn-outline btn-options" @click="airOptionsOpen = true">
+            <button type="button" class="btn btn-outline btn-options" @click="openAirOptions()">
               <span>Options</span>
               <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
                 <path d="M6 3v10M6 3L4 5M6 3l2 2M10 13V3M10 13l-2-2M10 13l2-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -417,108 +415,73 @@ const isNaturalRefrigerant = computed(() =>
           </div>
         </div>
       </section>
+
+      <!-- =========== Capacity Humidity Factor ==========
+           Sits in the left column under the Medium card. When checked, the
+           specified capacity already accounts for humidity and the Rel
+           humidity field on the Air card is hidden. -->
+      <section class="card humidity-factor-row">
+        <label class="checkbox humidity-factor-checkbox">
+          <input type="checkbox" v-model="capacityWithHumidityFactor" />
+          Capacity including Humidity Factor
+        </label>
+        <InfoIcon
+          heading="Information"
+          title="Capacity including Humidity Factor"
+          body="When enabled, the specified capacity already accounts for the humidity load. Uncheck it to specify Rel humidity manually on the Air card."
+        />
+      </section>
     </div>
 
     <!-- ================== Air Options Panel (Modal) ==================
-         Bare-Coil variant surfaces the extra Air fields here (MPD-6932).
-         Non-Coil flow reuses the same panel to expose humidity in one
-         place instead of duplicating the inline field. -->
+         Humidity + Pressure measure toggles for both Unit and Bare-Coil
+         flows. -->
     <Teleport to="body">
       <div v-if="airOptionsOpen" class="modal-backdrop" @click.self="airOptionsOpen = false">
         <div class="modal air-options-modal" role="dialog" aria-labelledby="air-options-title">
           <header class="modal-head">
-            <h3 id="air-options-title">Air options</h3>
+            <h3 id="air-options-title">Options</h3>
             <button type="button" class="modal-close" aria-label="Close" @click="airOptionsOpen = false">
               <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </button>
           </header>
 
           <div class="modal-body">
-            <div class="field">
-              <label>Rel. humidity</label>
-              <div class="input-inline-auto">
-                <div class="input-with-suffix">
-                  <input type="number" v-model.number="relHumidityPct" :disabled="humidityAuto" placeholder="0" />
-                  <span class="suffix">%</span>
-                </div>
-                <label class="auto-toggle">
-                  <input type="checkbox" v-model="humidityAuto" />
-                  Auto
+            <!-- Humidity measure — Rel. humidity vs Wet bulb temperature -->
+            <div class="opt-group">
+              <p class="opt-group-title">Humidity</p>
+              <div class="radio-group">
+                <label class="radio">
+                  <input type="radio" value="rel-humidity" v-model="airOptsDraft.humidityMode" />
+                  Rel. humidity
+                </label>
+                <label class="radio">
+                  <input type="radio" value="wet-bulb" v-model="airOptsDraft.humidityMode" />
+                  Wet bulb temperature
                 </label>
               </div>
             </div>
 
-            <template v-if="isCoil">
-              <div class="field">
-                <label>Volume flow</label>
-                <div class="input-with-unit-select">
-                  <input type="number" step="0.1" v-model.number="volumeFlowValue" placeholder="0" />
-                  <select v-model="volumeFlowUnit" aria-label="Volume flow unit">
-                    <option v-for="u in volumeFlowUnitOptions" :key="u.value" :value="u.value">{{ u.label }}</option>
-                  </select>
-                </div>
+            <!-- Pressure measure — Air pressure vs Altitude -->
+            <div class="opt-group">
+              <p class="opt-group-title">Pressure</p>
+              <div class="radio-group">
+                <label class="radio">
+                  <input type="radio" value="air-pressure" v-model="airOptsDraft.pressureMode" />
+                  Air pressure
+                </label>
+                <label class="radio">
+                  <input type="radio" value="altitude" v-model="airOptsDraft.pressureMode" />
+                  Altitude
+                </label>
               </div>
+            </div>
 
-              <div class="field">
-                <label>Volume-flow reference</label>
-                <div class="radio-group radio-group-inline">
-                  <label class="radio">
-                    <input type="radio" value="inlet" v-model="volumeFlowReference" />
-                    Inlet
-                  </label>
-                  <label class="radio">
-                    <input type="radio" value="outlet" v-model="volumeFlowReference" />
-                    Outlet
-                  </label>
-                </div>
-              </div>
-
-              <div class="field">
-                <label>Fans</label>
-                <button type="button" class="btn btn-outline btn-block" @click="fansModalOpen = true">
-                  Configure fans…
-                </button>
-              </div>
-            </template>
           </div>
 
           <footer class="modal-foot">
-            <button type="button" class="btn btn-primary" @click="airOptionsOpen = false">Done</button>
-          </footer>
-        </div>
-      </div>
-
-      <!-- Special-Fan Modal (MPD-7012) — nested inside the Options panel -->
-      <div v-if="fansModalOpen" class="modal-backdrop" @click.self="fansModalOpen = false">
-        <div class="modal fans-modal" role="dialog" aria-labelledby="fans-modal-title">
-          <header class="modal-head">
-            <h3 id="fans-modal-title">Special fans</h3>
-            <button type="button" class="modal-close" aria-label="Close" @click="fansModalOpen = false">
-              <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-            </button>
-          </header>
-
-          <div class="modal-body">
-            <div class="field">
-              <label>Fan count</label>
-              <input type="number" min="1" v-model.number="fansSelection.fanCount" />
-            </div>
-            <div class="field">
-              <label>Fan model</label>
-              <input type="text" v-model="fansSelection.fanModel" placeholder="e.g. EC-4x400" />
-            </div>
-            <div class="field">
-              <label>Speed</label>
-              <div class="input-with-suffix">
-                <input type="number" min="0" max="100" v-model.number="fansSelection.speedPct" />
-                <span class="suffix">%</span>
-              </div>
-            </div>
-          </div>
-
-          <footer class="modal-foot">
-            <button type="button" class="btn btn-outline" @click="fansModalOpen = false">Cancel</button>
-            <button type="button" class="btn btn-primary" @click="applyFansSelection">Apply</button>
+            <button type="button" class="btn btn-text" @click="airOptionsOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="commitAirOptions">Save</button>
           </footer>
         </div>
       </div>
@@ -784,6 +747,17 @@ const isNaturalRefrigerant = computed(() =>
 .radio.disabled input,
 .checkbox.disabled input { cursor: not-allowed; }
 
+/* Capacity Humidity Factor — small card that sits in the left column of
+   the grid, under the Medium card. */
+.humidity-factor-row {
+  grid-column: 1 / 2;
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs2);
+  padding: var(--space-xs) var(--space-sm);
+}
+.humidity-factor-checkbox { flex: 0 0 auto; }
+
 /* Bottom nav */
 .bottom-nav {
   margin-top: var(--space-md);
@@ -794,16 +768,6 @@ const isNaturalRefrigerant = computed(() =>
   align-items: center;
 }
 
-/* Input with trailing unit-select (Volume flow / MPD-6932) */
-.input-with-unit-select {
-  display: flex;
-  align-items: stretch;
-  gap: var(--space-a8);
-}
-.input-with-unit-select input { flex: 1; }
-.input-with-unit-select select { width: 96px; flex-shrink: 0; }
-
-.radio-group-inline { flex-direction: row; gap: var(--space-md); }
 
 .btn-block { width: 100%; justify-content: center; }
 </style>
@@ -940,13 +904,6 @@ const isNaturalRefrigerant = computed(() =>
   accent-color: var(--c-brand-blue, #0078BE);
   width: 16px; height: 16px; margin: 0;
 }
-.modal .input-with-unit-select {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-.modal .input-with-unit-select input { flex: 1; }
-.modal .input-with-unit-select select { width: 96px; flex-shrink: 0; }
 .modal .radio-group {
   display: flex;
   flex-direction: row;
@@ -964,4 +921,19 @@ const isNaturalRefrigerant = computed(() =>
 }
 .modal .radio input[type='radio'] { accent-color: var(--c-brand-blue, #0078BE); }
 .modal .btn-block { width: 100%; justify-content: center; }
+
+/* Air Options — two labelled radio groups stacked (Humidity, Pressure) */
+.modal .opt-group { display: flex; flex-direction: column; gap: 8px; }
+.modal .opt-group-title {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  font-weight: 500;
+  color: var(--c-text-value, #262326);
+}
+.modal .opt-group .radio-group {
+  flex-direction: column;
+  gap: 4px;
+  padding: 0;
+}
 </style>

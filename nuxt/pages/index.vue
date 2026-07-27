@@ -1,69 +1,43 @@
 <script setup lang="ts">
 /**
- * Home page — 5-accordion layout restored from pre-migration frontend/index.html
- *   1. Units             (default open)
- *   2. By Category (myGPS)
- *   3. By Application
- *   4. Bare Coils
+ * Home page — single tab bar with up to 5 sections.
+ *   1. Units (default)
+ *   2. Bare Coils
+ *   3. By Category (myGPS)
+ *   4. By Application
  *   5. API & MCP Services
  *
- * Each section is toggle-able via /admin (localStorage flag).
- * Default open/closed state per-accordion is also localStorage-persisted.
+ * Each section is toggle-able via /admin (localStorage flag) and drops
+ * out of the tab bar when hidden. If the currently active section
+ * becomes hidden, we fall back to the first still-visible tab.
  */
 
 useHead({ title: 'myGPC — Home' })
 
 const { visibility } = useSectionVisibility()
 
-// Accordion open-state for the secondary sections (myGPS, Application,
-// API services). Unit / Bare Coil are now driven by tabs instead.
-const openSections = ref<Record<string, boolean>>({
-  mygps: true,
-  application: false,
-  'api-services': false
+type TabId = 'unit' | 'coil' | 'mygps' | 'application' | 'api-services'
+
+const activeTab = useHomeTab()
+
+const visibleTabs = computed<TabId[]>(() => {
+  const v = visibility.value
+  const t: TabId[] = []
+  if (v.units)          t.push('unit')
+  if (v.coils)          t.push('coil')
+  if (v.application)    t.push('application')
+  if (v['api-services']) t.push('api-services')
+  if (v.mygps)          t.push('mygps')
+  return t
 })
-function toggleOpen(id: string) {
-  openSections.value[id] = !openSections.value[id]
-}
 
-// Primary product-category selector — Unit vs. Bare Coil are two tabs
-// rather than two accordions. Only one panel is visible at a time.
-const activeTab = ref<'unit' | 'coil'>('unit')
-
-// If the currently-active tab is hidden via admin visibility, jump to
-// whichever tab is still on.
+// If the current tab was hidden by admin, jump to the first visible one.
 watchEffect(() => {
-  if (activeTab.value === 'unit' && !visibility.value.units && visibility.value.coils) {
-    activeTab.value = 'coil'
-  } else if (activeTab.value === 'coil' && !visibility.value.coils && visibility.value.units) {
-    activeTab.value = 'unit'
+  const list = visibleTabs.value
+  if (list.length > 0 && !list.includes(activeTab.value)) {
+    activeTab.value = list[0]
   }
 })
-
-// Accordion open/close animation — JS hooks around a height transition
-// so the CSS transition on `height` has real from- and to-values to
-// interpolate. `void e.offsetHeight` forces a reflow between the two
-// height assignments (otherwise the browser batches them and skips the
-// tween).
-function onAccordionEnter(el: Element) {
-  const e = el as HTMLElement
-  e.style.overflow = 'hidden'
-  e.style.height = '0px'
-  void e.offsetHeight
-  e.style.height = e.scrollHeight + 'px'
-}
-function onAccordionAfterEnter(el: Element) {
-  const e = el as HTMLElement
-  e.style.height = ''
-  e.style.overflow = ''
-}
-function onAccordionLeave(el: Element) {
-  const e = el as HTMLElement
-  e.style.overflow = 'hidden'
-  e.style.height = e.scrollHeight + 'px'
-  void e.offsetHeight
-  e.style.height = '0px'
-}
 
 const router = useRouter()
 const store = useConfigStore()
@@ -107,7 +81,7 @@ const MYGPS_CATS = [
 
 // APPLICATION cards
 const APPLICATIONS = [
-  { slug: 'data-centers',   title: 'Data Centers',           image: 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=600&h=300&fit=crop', cta: 'DC' },
+  { slug: 'food-retail',    title: 'Food Retail',            image: '/images/Food-Retail.png', cta: 'DX' },
   { slug: 'food',           title: 'Food Processing',        image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=300&fit=crop', cta: 'Pump' },
   { slug: 'industrial',     title: 'Industrial Refrigeration', image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=300&fit=crop', cta: 'Coolant' }
 ]
@@ -125,12 +99,10 @@ const COILS = [
 
 <template>
   <div class="home">
-    <!-- 1. UNIT / BARE COIL — primary category selector, driven by tabs.
-         Panels are mounted inline so the URL state, transitions and
-         admin-visibility flags stay the same as when they were
-         accordions. -->
-    <section v-if="visibility.units || visibility.coils" class="tab-container">
-      <nav class="tab-nav" role="tablist" aria-label="Product category">
+    <section v-if="visibleTabs.length" class="tab-container">
+      <!-- Single tab bar covering all 5 sections. Each button drops out
+           automatically when the admin hides its section. -->
+      <nav class="tab-nav" role="tablist" aria-label="Home sections">
         <button
           v-if="visibility.units"
           role="tab"
@@ -147,10 +119,35 @@ const COILS = [
           :class="{ active: activeTab === 'coil' }"
           @click="activeTab = 'coil'"
         >BARE COIL</button>
+        <button
+          v-if="visibility.application"
+          role="tab"
+          :aria-selected="activeTab === 'application'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'application' }"
+          @click="activeTab = 'application'"
+        >BY APPLICATION</button>
+        <button
+          v-if="visibility['api-services']"
+          role="tab"
+          :aria-selected="activeTab === 'api-services'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'api-services' }"
+          @click="activeTab = 'api-services'"
+        >API &amp; MCP SERVICES</button>
+        <button
+          v-if="visibility.mygps"
+          role="tab"
+          :aria-selected="activeTab === 'mygps'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'mygps' }"
+          @click="activeTab = 'mygps'"
+        >myGPS</button>
       </nav>
 
+      <!-- UNIT -->
       <div v-if="activeTab === 'unit' && visibility.units" role="tabpanel" class="tab-panel">
-        <div class="cat-grid">
+        <div class="cat-grid" data-learn-id="home-unit-grid" data-field-name="Produktkategorie (Unit)" data-api-param="productCategory">
           <ProductCategoryCard
             v-for="u in UNITS"
             :key="u.slug"
@@ -171,6 +168,7 @@ const COILS = [
         </div>
       </div>
 
+      <!-- BARE COIL -->
       <div v-else-if="activeTab === 'coil' && visibility.coils" role="tabpanel" class="tab-panel">
         <div class="cat-grid">
           <ProductCategoryCard
@@ -192,101 +190,76 @@ const COILS = [
           </button>
         </div>
       </div>
-    </section>
 
-    <!-- 2. BY CATEGORY (myGPS) -->
-    <section v-if="visibility.mygps" class="accordion" :class="{ 'is-open': openSections.mygps }">
-      <button class="accordion-head" @click="toggleOpen('mygps')">
-        <h2>By Category (myGPS)</h2>
-        <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-      </button>
-      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
-        <div v-if="openSections.mygps" class="accordion-body">
-          <div class="cat-grid">
-            <ProductCategoryCard
-              v-for="c in MYGPS_CATS"
-              :key="c.slug"
-              :image="c.image"
-              :icon="c.icon"
-              :title="c.title"
-              :cta-label="c.options[0]"
-              :on-cta="() => goToWizard(0, c.slug)"
-              :extras="c.options.slice(1).map((opt: string) => ({ label: opt, onClick: () => goToWizard(0, c.slug) }))"
-            />
-          </div>
+      <!-- BY CATEGORY (myGPS) -->
+      <div v-else-if="activeTab === 'mygps' && visibility.mygps" role="tabpanel" class="tab-panel">
+        <div class="cat-grid">
+          <ProductCategoryCard
+            v-for="c in MYGPS_CATS"
+            :key="c.slug"
+            :image="c.image"
+            :icon="c.icon"
+            :title="c.title"
+            :cta-label="c.options[0]"
+            :on-cta="() => goToWizard(0, c.slug)"
+            :extras="c.options.slice(1).map((opt: string) => ({ label: opt, onClick: () => goToWizard(0, c.slug) }))"
+          />
         </div>
-      </Transition>
-    </section>
+      </div>
 
-    <!-- 3. BY APPLICATION -->
-    <section v-if="visibility.application" class="accordion" :class="{ 'is-open': openSections.application }">
-      <button class="accordion-head" @click="toggleOpen('application')">
-        <h2>By Application</h2>
-        <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-      </button>
-      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
-        <div v-if="openSections.application" class="accordion-body">
-          <div class="cat-grid">
-            <ProductCategoryCard
-              v-for="a in APPLICATIONS"
-              :key="a.slug"
-              :image="a.image"
-              :title="a.title"
-              :cta-label="a.cta"
-              :on-cta="() => goToWizard(0, a.slug)"
-              last-config="DCHD 213.1 1x5/08RA-1500L/02P.M"
-            />
-          </div>
+      <!-- BY APPLICATION -->
+      <div v-else-if="activeTab === 'application' && visibility.application" role="tabpanel" class="tab-panel">
+        <div class="cat-grid">
+          <ProductCategoryCard
+            v-for="a in APPLICATIONS"
+            :key="a.slug"
+            :image="a.image"
+            :title="a.title"
+            :cta-label="a.cta"
+            :on-cta="() => goToWizard(0, a.slug)"
+            last-config="DCHD 213.1 1x5/08RA-1500L/02P.M"
+          />
         </div>
-      </Transition>
-    </section>
+      </div>
 
-
-    <!-- 5. API & MCP SERVICES -->
-    <section v-if="visibility['api-services']" class="accordion" :class="{ 'is-open': openSections['api-services'] }">
-      <button class="accordion-head" @click="toggleOpen('api-services')">
-        <h2>API &amp; MCP Services</h2>
-        <svg class="chev" viewBox="0 0 24 24" width="20" height="20"><polyline points="6 9 12 15 18 9" stroke="currentColor" stroke-width="2" fill="none"/></svg>
-      </button>
-      <Transition name="accordion" @enter="onAccordionEnter" @after-enter="onAccordionAfterEnter" @leave="onAccordionLeave">
-        <div v-if="openSections['api-services']" class="accordion-body">
-          <div class="api-grid">
-            <article class="api-card">
-              <div class="api-icon api-icon--api">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="16 18 22 12 16 6"/>
-                  <polyline points="8 6 2 12 8 18"/>
-                </svg>
-              </div>
-              <h3>myGPC API</h3>
-              <div class="api-tag">Enterprise Integration</div>
-              <p>Direct integration of Güntner's calculation logic into your ERP or CRM software. Automate quotation processes and always work with up-to-date product data.</p>
-              <div class="api-actions">
-                <button class="btn btn-primary">Request Access</button>
-                <button class="btn btn-outline">Learn More</button>
-              </div>
-            </article>
-            <article class="api-card">
-              <div class="api-icon api-icon--mcp">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="18" height="7" rx="1.5"/>
-                  <rect x="3" y="14" width="18" height="7" rx="1.5"/>
-                </svg>
-              </div>
-              <h3>MCP Server</h3>
-              <div class="api-tag">Future-Proof Data Management</div>
-              <p>Future-proof server solution for centralized configuration and data management. Scalable infrastructure for complex engineering workflows and teams.</p>
-              <div class="api-actions">
-                <button class="btn btn-primary">Request Access</button>
-                <button class="btn btn-outline">Learn More</button>
-              </div>
-            </article>
-          </div>
+      <!-- API & MCP SERVICES -->
+      <div v-else-if="activeTab === 'api-services' && visibility['api-services']" role="tabpanel" class="tab-panel">
+        <div class="api-grid">
+          <article class="api-card">
+            <div class="api-icon api-icon--api">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <h3>myGPC API</h3>
+            <div class="api-tag">Enterprise Integration</div>
+            <p>Direct integration of Güntner's calculation logic into your ERP or CRM software. Automate quotation processes and always work with up-to-date product data.</p>
+            <div class="api-actions">
+              <button class="btn btn-primary">Request Access</button>
+              <button class="btn btn-outline">Learn More</button>
+            </div>
+          </article>
+          <article class="api-card">
+            <div class="api-icon api-icon--mcp">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="7" rx="1.5"/>
+                <rect x="3" y="14" width="18" height="7" rx="1.5"/>
+              </svg>
+            </div>
+            <h3>MCP Server</h3>
+            <div class="api-tag">Future-Proof Data Management</div>
+            <p>Future-proof server solution for centralized configuration and data management. Scalable infrastructure for complex engineering workflows and teams.</p>
+            <div class="api-actions">
+              <button class="btn btn-primary">Request Access</button>
+              <button class="btn btn-outline">Learn More</button>
+            </div>
+          </article>
         </div>
-      </Transition>
+      </div>
     </section>
 
-    <div v-if="!Object.values(visibility).some(v => v)" class="empty-state">
+    <div v-else class="empty-state">
       All sections are hidden. Visit <NuxtLink to="/admin">Admin</NuxtLink> to enable at least one section.
     </div>
   </div>
@@ -345,52 +318,9 @@ const COILS = [
   padding: var(--space-6);
 }
 
-.accordion {
-  background: var(--c-surface);
-  border: 1px solid var(--c-border);
-  border-radius: var(--radius-md);            /* 8px */
-  overflow: hidden;
-}
-.accordion-head {
-  width: 100%;
-  background: none;
-  border: none;
-  padding: var(--space-sm) var(--space-6);    /* 19 / 32 */
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  color: var(--c-text);
-  font-family: var(--font-headline);
-}
-.accordion-head h2 {
-  margin: 0;
-  font-family: var(--font-headline);
-  font-size: var(--font-xl);                  /* 23.7px */
-  line-height: 1;
-  font-weight: 400;
-  color: var(--c-brand-dark-grey);            /* #3c3c3b */
-  letter-spacing: 0;
-}
-.chev { color: var(--c-text-medium); transition: transform 0.2s; }
-.accordion.is-open .chev { transform: rotate(180deg); }
-.accordion-body {
-  padding: 0 var(--space-6) var(--space-6);   /* 0 / 32 / 32 */
-  border-top: 1px solid var(--c-border);
-}
-
-/* Height animation is driven by JS hooks (onAccordionEnter/Leave). These
-   classes provide the interpolation window: an easing on `height` while
-   entering or leaving, and a matching opacity fade so short bodies don't
-   just pop. */
-.accordion-enter-active,
-.accordion-leave-active {
-  transition: height 0.28s ease, opacity 0.22s ease;
-}
-.accordion-enter-from,
-.accordion-leave-to {
-  opacity: 0;
-}
+/* Tab bar can grow beyond viewport on narrow screens with 5 tabs;
+   allow a horizontal scroll fallback rather than wrapping. */
+.tab-nav { flex-wrap: wrap; }
 
 .cat-grid {
   display: grid;

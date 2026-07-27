@@ -19,6 +19,7 @@
 const store = useConfigStore()
 const router = useRouter()
 const { current, catId, thermoUrl, searchUrl } = useCategory()
+const viewMode = useViewMode()
 
 useHead({ title: `myGPC — Coil Geometry (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
@@ -108,6 +109,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
       <button class="btn btn-outline" @click="resetConfig">Reset</button>
       <button class="btn btn-outline" type="button">Templates</button>
       <span class="spacer"></span>
+      <ViewModeToggle />
       <button class="btn btn-primary" :disabled="!canProceed" @click="goNext">Next →</button>
     </div>
 
@@ -136,13 +138,13 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
               <option v-for="o in finTypeOptions" :key="o" :value="o">{{ o }}</option>
             </select>
           </div>
-          <div class="field">
+          <div v-if="viewMode.isExpert.value" class="field">
             <label>Material</label>
             <select v-model="finMaterial">
               <option v-for="o in finMaterialOptions" :key="o" :value="o">{{ o }}</option>
             </select>
           </div>
-          <div class="field">
+          <div v-if="viewMode.isExpert.value" class="field">
             <label>Thickness</label>
             <select v-model="finThickness">
               <option v-for="o in thicknessOptions" :key="o" :value="o">{{ o }}</option>
@@ -160,7 +162,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
                 <span class="minmax-hint">max</span>
               </div>
             </div>
-            <label class="checkbox">
+            <label v-if="viewMode.isExpert.value" class="checkbox">
               <input type="checkbox" v-model="finVariableSpacing" />
               Variable fin spacing
             </label>
@@ -193,7 +195,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
         </section>
 
       <!-- ================== Row 3 — Core tubes | Circuiting ================== -->
-        <section class="card">
+        <section v-if="viewMode.isExpert.value" class="card">
           <h3 class="card-title">Core tubes</h3>
           <div class="field">
             <label>Material</label>
@@ -209,7 +211,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
           </div>
         </section>
 
-        <section class="card">
+        <section v-if="viewMode.isExpert.value" class="card">
           <h3 class="card-title">Circuiting</h3>
           <div class="field">
             <label>Passes</label>
@@ -236,7 +238,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
 
       <!-- ================== Row 4 — Frame stack (L) | Connection + Distribution (R) ================== -->
         <div class="frame-stack">
-          <section class="card">
+          <section v-if="viewMode.isExpert.value" class="card">
             <h3 class="card-title">Frame</h3>
             <div class="field">
               <label>Material</label>
@@ -277,7 +279,7 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
           </div>
         </div>
 
-        <section class="card connection-card">
+        <section v-if="viewMode.isExpert.value" class="card connection-card">
           <h3 class="card-title">Connection system</h3>
           <div class="field">
             <label>Max. outer diameter</label>

@@ -1,40 +1,64 @@
 /**
  * useGpceu — typisierter Client für die GPC.EU Customer API.
  *
- * Hinter den Kulissen geht jeder Call über den Express-Proxy auf /api/gpc-eu/*
- * (siehe rag/gpceu-proxy.js). Auth-Injection (X-API-Key oder Bearer JWT) passiert
- * dort serverseitig — die Nuxt-App sieht nie einen Token.
+ * Hinter den Kulissen geht jeder Call über den Nitro-Proxy auf /api/gpc-eu/*
+ * (siehe nuxt/server/api/gpc-eu/[...path].ts). Auth-Injection (X-API-Key
+ * oder Bearer JWT) passiert dort serverseitig — die Nuxt-App sieht nie
+ * einen Token.
  *
  * Der Proxy hängt den Pfad-Prefix `api/GPCDataQuery/` automatisch vor jeden
  * Sub-Path (steuerbar über GPCEU_PATH_PREFIX). Deshalb übergeben wir hier nur
  * den kurzen Namen — `findunits` statt `api/GPCDataQuery/findunits`.
  *
  * SSR-Verhalten: Beim Server-Render wird `runtimeConfig.apiBase` genutzt
- * (interner Loopback http://localhost:3001/api), beim Client-Render
- * `runtimeConfig.public.apiBase` (= /api, läuft über Express auf gleicher Origin).
+ * (interner Loopback), beim Client-Render `runtimeConfig.public.apiBase`
+ * (= /api, läuft über den Nitro-Server auf gleicher Origin).
  *
- * Konvention:
- *   - Read-Endpoints (GET) → typischerweise via useAsyncData/useFetch in einer Page
- *     verwendet, damit SSR sie ins Hydration-Payload schreibt
- *   - Write-Endpoints (POST recalc, validate, …) → imperativ aus Event-Handlern
+ * Types: Konkrete Schemas aus `~/types/gpceu` (via openapi-typescript
+ * generiert aus `rag/gpceu_swagger.json`). `unknown` bleibt nur für
+ * Endpoints, deren Response-Schema die API nicht explizit definiert
+ * (z. B. unitfeatures liefert ein untypisiertes Array).
  *
- * Stand: Endpoint-Liste deckt die 32 Routen unter /api/GPCDataQuery/ aus
- * rag/gpceu_swagger.json ab (Version 2026.9-318). Die Wizard-spezifischen
- * Signaturen für defaultInputData, findUnits, unitFeatures, unitBidText,
- * partLoadCalculation und Fluids-Filter sind noch nicht final — das wird
- * Phase-3-Planning klären, bevor wir die mygps-Pages neu wirebauen.
+ * Sprache: Der Default für `languageID` wird reactive aus useGpcLanguage()
+ * gezogen (i18n-Locale → 1/2/3). Aufrufer können explizit überschreiben.
  */
 
 import type { components } from '~/types/gpceu';
+
 // Schema-Helper — kürzt components["schemas"]["X"] auf Schema<'X'>.
-// Die generierte d.ts exportiert die Schemas nicht als Top-Level-Typen, weshalb
-// wir hier den indexierten Zugriff bündeln. Schemata, deren Namen offen ist,
-// stehen als `unknown` und werden später konkret getypt.
 type Schema<K extends keyof components['schemas']> = components['schemas'][K];
 
-type GPCVersionInfo = Schema<'GPCVersionInfo'>;
-type GpcProductCategory = Schema<'GpcProductCategory'>;
-type AvailableFluidListResult = Schema<'AvailableFluidListResultWithValidationInfo'>;
+// ---------- Top-Level Schema-Aliase ----------
+// Damit Konsumenten `import type { UnitInputData } from '~/composables/useGpceu'`
+// schreiben können statt `components["schemas"]["UnitInputData"]`.
+export type UnitInputData                                = Schema<'UnitInputData'>;
+export type UnitInputDataResultWithValidationInfo        = Schema<'UnitInputDataResultWithValidationInfo'>;
+export type CoilInputData                                = Schema<'CoilInputData'>;
+export type FindUnitsResult                              = Schema<'FindUnitsResult'>;
+export type FindUnitsResultOutputData                    = Schema<'FindUnitsResultOutputData'>;
+export type FindUnitsResultOutputDataAccessory           = Schema<'FindUnitsResultOutputDataAccessory'>;
+export type FindUnitsResultOutputDataFootNote            = Schema<'FindUnitsResultOutputDataFootNote'>;
+export type FindCoilsResult                              = Schema<'FindCoilsResult'>;
+export type PartLoadCalcInputData                        = Schema<'PartLoadCalcInputData'>;
+export type PartLoadCalcResult                           = Schema<'PartLoadCalcResult'>;
+export type PartLoadCalcOutputData                       = Schema<'PartLoadCalcOutputData'>;
+export type UnitGroupOption                              = Schema<'UnitGroupOption'>;
+export type UnitGroupOptionValue                         = Schema<'UnitGroupOptionValue'>;
+export type UnitGroupOptionListResultWithValidationInfo  = Schema<'UnitGroupOptionListResultWithValidationInfo'>;
+export type AvailableFluid                               = Schema<'AvailableFluid'>;
+export type AvailableFluidListResultWithValidationInfo   = Schema<'AvailableFluidListResultWithValidationInfo'>;
+export type AvailableFluidInputMode                      = Schema<'AvailableFluidInputMode'>;
+export type AvailableFluidInputModeListResultWithValidationInfo = Schema<'AvailableFluidInputModeListResultWithValidationInfo'>;
+export type ThermodynamicProperties1Ph                   = Schema<'ThermodynamicProperties1Ph'>;
+export type GPCVersionInfo                               = Schema<'GPCVersionInfo'>;
+export type GpcProductCategory                           = Schema<'GpcProductCategory'>;
+export type GeneralTuple                                 = Schema<'GeneralTuple'>;
+export type OrigGPCFileContent                           = Schema<'OrigGPCFileContent'>;
+export type MFCInputAndOutputBinary                      = Schema<'MFCInputAndOutputBinary'>;
+export type RecalculationData                            = Schema<'RecalculationData'>;
+export type ClimateLocation                              = Schema<'ClimateLocation'>;
+export type ClimateLocationAndDistance                   = Schema<'ClimateLocationAndDistance'>;
+export type ClimateDataPointHour                         = Schema<'ClimateDataPointHour'>;
 
 export interface GpceuError {
   ok: false;
@@ -50,9 +74,12 @@ function isGpceuError(x: unknown): x is GpceuError {
 
 export function useGpceu() {
   const cfg = useRuntimeConfig();
-  // Server: interner Loopback. Client: relative URL (gleiche Origin via Express).
+  // Server: interner Loopback. Client: relative URL (gleiche Origin via Nitro).
   const base = import.meta.server ? cfg.apiBase : cfg.public.apiBase;
   const root = `${base}/gpc-eu`;
+
+  // Reactive Default-Sprache aus i18n; Aufrufer können explizit überschreiben.
+  const gpcLang = useGpcLanguage();
 
   const get = <T>(path: string, query?: Record<string, unknown>) =>
     $fetch<T>(`${root}/${path}`, { query });
@@ -61,57 +88,119 @@ export function useGpceu() {
 
   return {
     // ------- Health / Setup -------
-    // /health ist ein Endpoint des Express-Proxys selbst, nicht der GPC-API.
+    // /health ist ein Nitro-Endpoint des Proxys, nicht der GPC-API.
     health:                () => get<{ ok: boolean; gpcVersion?: unknown; baseUrl?: string }>('health'),
     version:               () => get<GPCVersionInfo>('gpcversion'),
-    // Achtung: Bei productcategories heißt der Param `language`, NICHT `languageID`
-    // (Diskrepanz zur fluids-API, bei der `languageID` korrekt ist).
-    productCategories:     (language = 2) => get<GpcProductCategory[]>('productcategories', { language }),
-    inputCapacityModes:    () => get<unknown[]>('inputcapacitymodes'),
-    defaultInputData:      (body: unknown) => post<unknown>('defaultinputdata', body),
-    defaultCoilInputData:  (body: unknown) => post<unknown>('defaultcoilinputdata', body),
-    getInputData:          (body: unknown) => post<unknown>('GetInputData', body),
-    getInputDataCoil:      (body: unknown) => post<unknown>('GetInputDataCoil', body),
-    getInputString:        (body: unknown) => post<unknown>('GetInputString', body),
-    properties1ph:         () => get<unknown[]>('properties1ph'),
-    getAirConfiguration:   () => get<unknown>('getairconfiguration'),
-    getDefaultPartLoadConfig: () => get<unknown>('getdefaultpartloadconfig'),
+    // Diskrepanz zur fluids-API: productcategories nimmt `language`, fluids nimmt `languageID`.
+    productCategories:     (language: number = gpcLang.value) =>
+                              get<GpcProductCategory[]>('productcategories', { language }),
+    inputCapacityModes:    () => get<GeneralTuple[]>('inputcapacitymodes'),
+    /**
+     * Liefert das Default-UnitInputData-Template pro productCategory.
+     * Aufruf: `defaultInputData(0)` gibt Defaults für DX-Evaporator zurück.
+     */
+    defaultInputData:      (productcategory: number) =>
+                              post<UnitInputDataResultWithValidationInfo>(
+                                'defaultinputdata', undefined, { productcategory }
+                              ),
+    defaultCoilInputData:  (productcategory: number) =>
+                              post<CoilInputData>('defaultcoilinputdata', undefined, { productcategory }),
+    getInputData:          (productcategory: number) =>
+                              post<UnitInputData>('GetInputData', undefined, { productcategory }),
+    getInputDataCoil:      (productcategory: number) =>
+                              post<CoilInputData>('GetInputDataCoil', undefined, { productcategory }),
+    getInputString:        (body: UnitInputData) => post<string>('GetInputString', body),
+    properties1ph:         (query: { FluidID: number; conc?: number; temp: number; pressure?: number }) =>
+                              get<ThermodynamicProperties1Ph>('properties1ph', query),
+    getAirConfiguration:   (body: UnitInputData) => post<UnitInputData>('getairconfiguration', body),
+    getDefaultPartLoadConfig: (body: UnitInputData) =>
+                              post<PartLoadCalcInputData>('getdefaultpartloadconfig', body),
 
     // ------- Fluids / Refrigerants -------
     // Liefert Wrapper-Objekt { success, message, content } — `content` enthält die Liste.
-    fluids:                (languageID = 2) => get<AvailableFluidListResult>('fluids', { languageID }),
-    fluidInputMode:        () => get<unknown>('fluidinputmode'),
-    fluidsConfiguration:   (body: unknown) => post<unknown>('fluidsconfiguration', body),
+    fluids:                (languageID: number = gpcLang.value) =>
+                              get<AvailableFluidListResultWithValidationInfo>('fluids', { languageID }),
+    fluidInputMode:        (languageID: number = gpcLang.value) =>
+                              get<AvailableFluidInputModeListResultWithValidationInfo>('fluidinputmode', { languageID }),
+    fluidsConfiguration:   (body: UnitInputData) => post<UnitInputDataResultWithValidationInfo>('fluidsconfiguration', body),
 
     // ------- Search / Models -------
-    findUnits:             (body: Schema<'UnitInputData'>) => post<unknown>('findunits', body),
-    findCoils:             (body: unknown) => post<unknown[]>('findcoils', body),
-    unitGroup:             (body: unknown) => post<unknown>('unitgroup', body),
-    unitModels:            (body: unknown) => post<unknown>('unitmodels', body),
-    singleUnitModels:      (body: unknown) => post<unknown>('singleunitmodels', body),
-    coilGeometry:          (body: unknown) => post<unknown>('coilgeometry', body),
-    getInsertionForTubes:  (body: unknown) => post<unknown>('getinsertionfortubes', body),
+    findUnits:             (body: UnitInputData,
+                            options?: { withFootnote?: boolean; unitSystem?: number; languageID?: number }) =>
+                              post<FindUnitsResult>('findunits', body, {
+                                languageID: options?.languageID ?? gpcLang.value,
+                                withFootnote: options?.withFootnote ?? true,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
+    findCoils:             (body: CoilInputData,
+                            options?: { languageID?: number; unitSystem?: number }) =>
+                              post<FindCoilsResult>('findcoils', body, {
+                                languageID: options?.languageID ?? gpcLang.value,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
+    unitGroup:             (languageID: number = gpcLang.value) =>
+                              get<UnitGroupOptionListResultWithValidationInfo>('unitgroup', { languageID }),
+    unitModels:            (languageID: number = gpcLang.value) =>
+                              get<UnitGroupOptionListResultWithValidationInfo>('unitmodels', { languageID }),
+    singleUnitModels:      (languageID: number = gpcLang.value) =>
+                              get<UnitGroupOptionListResultWithValidationInfo>('singleunitmodels', { languageID }),
+    coilGeometry:          (body: CoilInputData,
+                            options?: { languageID?: number; unitSystem?: number }) =>
+                              post<UnitGroupOptionListResultWithValidationInfo>('coilgeometry', body, {
+                                languageID: options?.languageID ?? gpcLang.value,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
+    getInsertionForTubes:  (languageID: number = gpcLang.value) =>
+                              get<GeneralTuple[]>('getinsertionfortubes', { languageID }),
 
     // ------- Recalc / Validate -------
-    recalculateUnit:        (body: unknown) => post<unknown>('RecalculateUnit', body),
-    recalculationInputData: (body: unknown) => post<unknown>('RecalculationInputData', body),
-    validateUnitConfig:     (body: unknown) => post<unknown>('validateunitconfiguration', body),
+    // RecalculateUnit erwartet RecalculationData, NICHT UnitInputData.
+    recalculateUnit:        (body: RecalculationData,
+                             options?: { withFootnote?: boolean; languageID?: number; unitSystem?: number }) =>
+                              post<FindUnitsResult>('RecalculateUnit', body, {
+                                withFootnote: options?.withFootnote ?? true,
+                                languageID: options?.languageID ?? gpcLang.value,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
+    recalculationInputData: (body: RecalculationData) =>
+                              post<UnitInputDataResultWithValidationInfo>('RecalculationInputData', body),
+    // validateunitconfiguration + unitbidtext nehmen beide MFCInputAndOutputBinary
+    // (Kombination aus UnitInputData + Output-Referenzen der zuvor gewählten Unit).
+    validateUnitConfig:     (body: MFCInputAndOutputBinary,
+                             options?: { languageID?: number; withFootNote?: boolean; unitSystem?: number }) =>
+                              post<unknown>('validateunitconfiguration', body, {
+                                languageID: options?.languageID ?? gpcLang.value,
+                                withFootNote: options?.withFootNote ?? true,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
 
     // ------- Output / Datasheet -------
-    unitFeatures:           (body: unknown) => post<unknown>('unitfeatures', body),
-    unitBidText:            (body: unknown) => post<unknown>('unitbidtext', body),
+    // unitfeatures Response ist ein untypisiertes Array in der Swagger-Doku.
+    unitFeatures:           (body: UnitInputData,
+                             options?: { languageID?: number; unitSystem?: number }) =>
+                              post<unknown[]>('unitfeatures', body, {
+                                languageID: options?.languageID ?? gpcLang.value,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
+    unitBidText:            (body: MFCInputAndOutputBinary,
+                             options?: { languageID?: number; unitSystem?: number }) =>
+                              post<string>('unitbidtext', body, {
+                                languageID: options?.languageID ?? gpcLang.value,
+                                unitSystem: options?.unitSystem ?? 0
+                              }),
 
     // ------- Annual Analysis -------
-    partLoadCalculation:    (body: unknown) => post<unknown>('partloadcalculation', body),
-    impactRating:           (body: unknown) => post<unknown>('impactrating', body),
+    partLoadCalculation:    (body: PartLoadCalcInputData) =>
+                              post<PartLoadCalcResult>('partloadcalculation', body),
+    impactRating:           (body: UnitInputData) => post<unknown>('impactrating', body),
     countryEmissionData:    (countryCode: string) =>
-                              get<unknown>('GetCountryEmissionData', { countryCode }),
+                              get<GeneralTuple[]>('GetCountryEmissionData', { countryCode }),
 
     // ------- File-Handling -------
     getFileContent:         (fileId: string) => get<Blob>('getgpcfilecontent', { fileId }),
-    getNativeContents:      (body: unknown) => post<unknown>('GetNativeContents', body),
+    getNativeContents:      (body: RecalculationData) => post<OrigGPCFileContent>('GetNativeContents', body),
     uploadFile:             (form: FormData) =>
-                              $fetch<unknown>(`${root}/uploadfile`, { method: 'POST', body: form })
+                              $fetch<OrigGPCFileContent>(`${root}/uploadfile`, { method: 'POST', body: form })
   };
 }
 

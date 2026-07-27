@@ -10,6 +10,12 @@
  */
 
 import { defineStore } from 'pinia';
+import type { UnitInputData } from '~/composables/useGpceu';
+import {
+  emptyUnitInputData,
+  mergeUnitInputData,
+  unitInputDataFromLegacyParameters
+} from '~/utils/unitInputDataMapper';
 
 export type Perspective = 'technical' | 'application' | 'location';
 
@@ -58,9 +64,16 @@ export interface ConfigurationParameters {
   airInletTempC: number;
   relHumidityPct: number | null;
   humidityAuto: boolean;
+  wetBulbTempC: number | null;
   altitudeM: number;
   airPressureMbar: number;
   capacityWithHumidityFactor: boolean;
+  /** Which humidity measure is shown on the Air card. Toggled from
+   *  the Options modal on that card. Default 'rel-humidity'. */
+  humidityMode: 'rel-humidity' | 'wet-bulb';
+  /** Which pressure measure is shown on the Air card. Toggled from
+   *  the Options modal on that card. Default 'air-pressure'. */
+  pressureMode: 'air-pressure' | 'altitude';
 
   // Bare-coil-specific Air options (MPD-6932). Rendered inside the Air
   // "Options" panel when store.productSection === 2 (Bare Coil).
@@ -239,9 +252,12 @@ function emptyParameters(): ConfigurationParameters {
     airInletTempC: 32,
     relHumidityPct: 40,
     humidityAuto: true,
+    wetBulbTempC: 15,
     altitudeM: 0,
     airPressureMbar: 1013,
-    capacityWithHumidityFactor: false,
+    capacityWithHumidityFactor: true,
+    humidityMode: 'rel-humidity',
+    pressureMode: 'air-pressure',
 
     volumeFlowValue: null,
     volumeFlowUnit: 'm3h',
@@ -277,7 +293,14 @@ export const useConfigStore = defineStore('configuration', {
     // Set by Home cards before navigation into the wizard; drives TopStepNav
     // label (Unit Selection vs Coil Geometry) and Results/Datasheet variants.
     productSection: 1 as 1 | 2,
-    coilGeometry: emptyCoilGeometry() as CoilGeometryConfig
+    coilGeometry: emptyCoilGeometry() as CoilGeometryConfig,
+    // Vollständiges UnitInputData (222 Properties) — Payload-Shape für
+    // GPC-EU-API-Calls (findunits, unitfeatures, coilgeometry, …). Wird
+    // beim Wizard-Start aus useGpceu().defaultInputData(productCategory)
+    // gefüllt (siehe action `hydrateUnitInputData`). Wizard-Änderungen
+    // schreiben direkt hier hinein oder gehen via `updateParameters` +
+    // Legacy-Mapper. Persistiert.
+    unitInputData: emptyUnitInputData() as UnitInputData
   }),
 
   getters: {
@@ -290,6 +313,19 @@ export const useConfigStore = defineStore('configuration', {
     },
     hasSelection(): boolean {
       return this.selectedProducts.length > 0;
+    },
+    /**
+     * Payload für POST-Endpoints wie /findunits + /unitfeatures + /impactrating.
+     * Merget die aktuellen Wizard-Parameter (camelCase → API-PascalCase)
+     * über die vollständige UnitInputData-Slice, sodass Änderungen im
+     * Wizard immer im finalen Payload landen — auch wenn der User ein Feld
+     * setzt, das noch nie im API-Default-Response war.
+     */
+    payloadForFindUnits(): UnitInputData {
+      return mergeUnitInputData(
+        this.unitInputData,
+        unitInputDataFromLegacyParameters(this.parameters)
+      );
     }
   },
 
@@ -331,6 +367,34 @@ export const useConfigStore = defineStore('configuration', {
     resetCoilGeometry() {
       this.coilGeometry = emptyCoilGeometry();
     },
+    /**
+     * Setzt beliebige Properties der UnitInputData-Slice. Wird vom
+     * Options-Accordion, vom DynamicParameterField und von Presets genutzt.
+     */
+    updateUnitInputData(patch: Partial<UnitInputData>) {
+      this.unitInputData = mergeUnitInputData(this.unitInputData, patch);
+    },
+    /**
+     * Hydriert die UnitInputData-Slice aus einem API-Default-Response
+     * (z. B. `defaultInputData(productCategory)`). Bestehende, vom User
+     * bereits geänderte Werte bleiben erhalten — nur Felder, die noch auf
+     * datatype-Default stehen, werden überschrieben.
+     */
+    hydrateUnitInputData(defaults: Partial<UnitInputData>) {
+      // Nur überschreiben, wo der Store noch auf empty steht; user-eingaben
+      // haben Vorrang. Wir werten "empty" als Wert === Wert aus emptyUnitInputData
+      // — d.h. 0/false/""/[]. Bei ambivalenten 0-Werten (z. B. Temperatur 0 °C)
+      // greift der Default trotzdem, was in der Praxis kein Problem ist, weil
+      // der Wizard vor dem Hydrate noch nicht editiert wurde.
+      const empty = emptyUnitInputData() as unknown as Record<string, unknown>;
+      const cur = this.unitInputData as unknown as Record<string, unknown>;
+      const patch: Record<string, unknown> = {};
+      for (const [k, v] of Object.entries(defaults)) {
+        if (v === undefined) continue;
+        if (cur[k] === empty[k]) patch[k] = v;
+      }
+      this.unitInputData = mergeUnitInputData(this.unitInputData, patch as Partial<UnitInputData>);
+    },
     resetWizard() {
       this.parameters = emptyParameters();
       this.validationWarnings = [];
@@ -342,6 +406,7 @@ export const useConfigStore = defineStore('configuration', {
       this.currentSubcategory = null;
       this.productSection = 1;
       this.coilGeometry = emptyCoilGeometry();
+      this.unitInputData = emptyUnitInputData();
     }
   },
 
@@ -353,7 +418,7 @@ export const useConfigStore = defineStore('configuration', {
       'activePerspective', 'unitSystem', 'project', 'parameters',
       'selectedProducts', 'selectedAccessories', 'service', 'selectedUnitKey',
       'currentCategory', 'currentSubcategory',
-      'productSection', 'coilGeometry'
+      'productSection', 'coilGeometry', 'unitInputData'
     ]
   } as any  // pinia-plugin-persistedstate-Optionen sind aus Sicht von vanilla Pinia "extra"
 });

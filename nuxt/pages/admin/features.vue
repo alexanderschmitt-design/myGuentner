@@ -58,10 +58,11 @@ function count(id: string): number {
       <h2>Learn-Mode: so funktioniert's</h2>
       <ol>
         <li>Feature oben aktivieren.</li>
-        <li>Auf einer beliebigen Seite den Zeiger über ein Element ziehen — es wird mit einer gestrichelten Umrandung markiert.</li>
-        <li>Klick auf das Element öffnet rechts eine Eingabemaske mit Titel + Beschreibung.</li>
-        <li><strong>Speichern</strong> legt die Notiz unter einer stabilen Element-ID im Browser-Storage ab. Fügt der Autor ein <code>data-learn-id</code>-Attribut zu einem Element hinzu, überlebt die Notiz Refactorings.</li>
-        <li>Zum Deaktivieren einfach den Toggle oben umlegen.</li>
+        <li>Chatbot-Drawer öffnen (Sprechblasen-Icon unten rechts).</li>
+        <li>Oben im Drawer den zweiten Tab (Buch-Icon) wählen — der Chat wird zur Notiz-Maske.</li>
+        <li>Auf der Seite links über ein Element fahren — es wird gestrichelt umrandet. Klicken zum Anwählen.</li>
+        <li>Rechts im Drawer eine <strong>Kategorie</strong> wählen (Element / Beziehungen / Produkt), Titel + Beschreibung eingeben, <strong>Speichern</strong>.</li>
+        <li>Notiz liegt unter einer stabilen Element-ID im Browser-Storage. Fügt der Autor ein <code>data-learn-id</code>-Attribut hinzu, überlebt die Notiz Refactorings.</li>
       </ol>
     </section>
   </div>

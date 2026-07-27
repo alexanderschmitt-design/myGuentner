@@ -173,8 +173,8 @@
   },
   "chatTools": {
     "patchCard": {
-      "title": "Bella suggests updating {count} parameters",
-      "titleOne": "Bella suggests updating 1 parameter",
+      "title": "Günther suggests updating {count} parameters",
+      "titleOne": "Günther suggests updating 1 parameter",
       "apply": "Apply",
       "reject": "Reject",
       "details": "Show details",

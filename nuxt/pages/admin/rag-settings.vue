@@ -96,7 +96,7 @@ onMounted(load)
         <div class="field">
           <label>Provider</label>
           <select v-model="settings.llm_provider">
-            <option value="bella">Bella (Anthropic Claude)</option>
+            <option value="bella">Günther (Anthropic Claude)</option>
             <option value="anthropic">Anthropic (direkt)</option>
             <option value="gemini">Google Gemini</option>
           </select>

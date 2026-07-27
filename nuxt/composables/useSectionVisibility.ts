@@ -23,7 +23,7 @@ interface Section {
 
 export const SECTIONS: Section[] = [
   { id: 'units',         label: 'Units',              description: '6 Guentner unit product cards (Evaporator, Air/Dry Cooler, Condenser, Gas Cooler)', defaultVisible: true },
-  { id: 'mygps',         label: 'By Category (myGPS)', description: 'myGPS wizard categories (Evaporative / Adiabatic / High-Density / Dry / Air Cooler / Data Center)', defaultVisible: false },
+  { id: 'mygps',         label: 'myGPS',              description: 'myGPS wizard categories (Evaporative / Adiabatic / High-Density / Dry / Air Cooler / Data Center)', defaultVisible: false },
   { id: 'application',   label: 'By Application',     description: 'Industry-first cards (Data Centers, Food Processing, Industrial Refrigeration)', defaultVisible: false },
   { id: 'coils',         label: 'Bare Coils',         description: '6 bare-coil products routing to the coil configurator (productSection=2)', defaultVisible: false },
   { id: 'api-services',  label: 'API & MCP Services', description: 'myGPC API + MCP Server enterprise integration cards', defaultVisible: false }

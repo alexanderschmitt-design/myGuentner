@@ -16,6 +16,7 @@ import SyncPanel from '~/components/SyncPanel.vue'
 const route = useRoute()
 const user = useSupabaseUser()
 const featureFlags = useFeatureFlags()
+const chatDockOpen = useChatDockState()
 
 // Step-nav under /mygpc/* + on the Datasheet page (both are wizard steps).
 const showStepNav = computed(
@@ -24,6 +25,18 @@ const showStepNav = computed(
 
 const panelsOpen = ref(false)
 const search = ref('')
+const toolsMenuOpen = ref(false)
+const profileOpen   = ref(false)
+
+onMounted(() => {
+  const onDocClick = (e: MouseEvent) => {
+    const t = e.target as HTMLElement
+    if (!t.closest('.tools-menu, .nav-link-tools')) toolsMenuOpen.value = false
+    if (!t.closest('.profile-menu, .avatar-group'))  profileOpen.value = false
+  }
+  document.addEventListener('click', onDocClick)
+  onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
+})
 
 function initials(email: string | null | undefined): string {
   if (!email) return '??'
@@ -32,6 +45,21 @@ function initials(email: string | null | undefined): string {
   const first = parts[0]?.[0] || name[0] || '?'
   const second = parts[1]?.[0] || name[1] || ''
   return (first + second).toUpperCase()
+}
+
+function displayName(email: string | null | undefined): string {
+  if (!email) return 'User'
+  const local = email.split('@')[0]
+  const parts = local.split(/[.\-_]/).filter(Boolean)
+  if (parts.length < 2) return local.charAt(0).toUpperCase() + local.slice(1)
+  return parts.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(' ')
+}
+
+const supabase = useSupabaseClient()
+async function logout() {
+  profileOpen.value = false
+  await supabase.auth.signOut()
+  await navigateTo('/login')
 }
 </script>
 
@@ -45,9 +73,9 @@ function initials(email: string | null | undefined): string {
     <div class="site-header-band">
     <header class="site-header">
       <div class="left-nav">
-        <div class="logo-wrap">
+        <NuxtLink to="/overview" class="logo-wrap" aria-label="myGüntner — Overview">
           <GuentnerLogo />
-        </div>
+        </NuxtLink>
 
         <label class="search-field">
           <span class="search-icon" aria-hidden="true">
@@ -68,18 +96,37 @@ function initials(email: string | null | undefined): string {
 
       <nav class="right-nav">
         <div class="nav-items">
-          <a href="#" class="nav-link">Overview</a>
-          <NuxtLink to="/" class="nav-link" :class="{ active: route.path === '/' }">myGPC</NuxtLink>
-          <a href="#" class="nav-link">mySpareParts</a>
-          <a href="#" class="nav-link">myProjects</a>
-          <a href="#" class="nav-link nav-link-caret">
-            myTools
-            <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-              <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-          <a href="#" class="nav-link">myServices</a>
-          <a href="#" class="nav-link">Documents</a>
+          <NuxtLink to="/overview" class="nav-link" :class="{ active: route.path === '/overview' }">Overview</NuxtLink>
+          <NuxtLink to="/" class="nav-link" :class="{ active: route.path === '/' || route.path.startsWith('/mygpc') }">myGPC</NuxtLink>
+          <NuxtLink to="/spare-parts" class="nav-link" :class="{ active: route.path === '/spare-parts' }">mySpareParts</NuxtLink>
+          <NuxtLink to="/projects" class="nav-link" :class="{ active: route.path === '/projects' }">myProjects</NuxtLink>
+          <div class="tools-menu">
+            <button
+              type="button"
+              class="nav-link nav-link-caret nav-link-tools"
+              :class="{ 'nav-link-tools--open': toolsMenuOpen, active: route.path.startsWith('/tools') }"
+              :aria-expanded="toolsMenuOpen"
+              aria-haspopup="menu"
+              @click.stop="toolsMenuOpen = !toolsMenuOpen"
+            >
+              myTools
+              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" :style="{ transform: toolsMenuOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }">
+                <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </button>
+            <Transition name="tools-drop">
+              <div v-if="toolsMenuOpen" class="tools-dropdown" role="menu">
+                <NuxtLink to="/tools/adiabatic-efficiency" class="tools-item" role="menuitem" @click="toolsMenuOpen = false">
+                  <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 12l4-8 3 6 3-4 4 6"/>
+                    <path d="M3 16h14"/>
+                  </svg>
+                  <span>Adiabatic Efficiency Calculator</span>
+                </NuxtLink>
+              </div>
+            </Transition>
+          </div>
+          <NuxtLink to="/documents" class="nav-link" :class="{ active: route.path === '/documents' }">Documents</NuxtLink>
         </div>
 
         <div class="header-icons">
@@ -106,26 +153,82 @@ function initials(email: string | null | undefined): string {
 
         <span class="menu-divider" aria-hidden="true"></span>
 
-        <button
-          v-if="user"
-          class="avatar-group"
-          :title="user.email || ''"
-          @click="panelsOpen = !panelsOpen"
-          :aria-pressed="panelsOpen"
-          aria-label="Toggle side panel"
-        >
-          <svg class="avatar-chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-            <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <span class="avatar-badge">{{ initials(user.email) }}</span>
-        </button>
+        <div v-if="user" class="profile-cluster">
+          <button
+            class="avatar-group"
+            :class="{ 'avatar-group--open': profileOpen }"
+            :title="user.email || ''"
+            @click.stop="profileOpen = !profileOpen"
+            :aria-expanded="profileOpen"
+            aria-haspopup="menu"
+            aria-label="Open profile menu"
+          >
+            <svg class="avatar-chev" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" :style="{ transform: profileOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }">
+              <path d="M4 6l4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="avatar-badge">{{ initials(user.email) }}</span>
+          </button>
+
+          <Transition name="profile-drop">
+            <div v-if="profileOpen" class="profile-menu" role="menu">
+              <div class="profile-head">
+                <span class="profile-avatar">{{ initials(user.email) }}</span>
+                <span class="profile-head-text">
+                  <span class="profile-name">{{ displayName(user.email) }}</span>
+                  <NuxtLink to="/account" class="profile-view" @click="profileOpen = false">View profile</NuxtLink>
+                </span>
+              </div>
+
+              <div class="profile-section">
+                <button type="button" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h12v9H4z"/><path d="M8 6V4h4v2"/><path d="M4 10h12"/></svg>
+                  <span>Companies</span>
+                </button>
+                <button type="button" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h8l2 2v12H5z"/><path d="M8 8h6M8 11h4"/><circle cx="14.5" cy="13" r="1.4"/></svg>
+                  <span>Sales orders</span>
+                </button>
+                <NuxtLink to="/account/service-orders" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="12" height="14" rx="1"/><path d="M8 8l1 1 3-3M8 13l1 1 3-3"/></svg>
+                  <span>Service orders</span>
+                </NuxtLink>
+                <button type="button" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10s3-5 8-5 8 5 8 5-3 5-8 5-8-5-8-5z"/><circle cx="10" cy="10" r="2.5"/></svg>
+                  <span>Start demo</span>
+                </button>
+              </div>
+
+              <div class="profile-section">
+                <button type="button" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h12v10H10l-3 3v-3H4z"/><path d="M10 7v4M8 9h4"/></svg>
+                  <span>Give feedback</span>
+                </button>
+                <button type="button" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M8.5 8a1.7 1.7 0 1 1 2 1.6c-.6.2-1 .7-1 1.4"/><circle cx="9.5" cy="14" r="0.6" fill="currentColor" stroke="none"/></svg>
+                  <span>Get help</span>
+                </button>
+                <button type="button" class="profile-item" role="menuitem" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c2 2 3 4.5 3 7s-1 5-3 7c-2-2-3-4.5-3-7s1-5 3-7z"/></svg>
+                  <span>EMEA/EN</span>
+                </button>
+              </div>
+
+              <div class="profile-section">
+                <button type="button" class="profile-item" role="menuitem" @click="logout">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4H4v12h4"/><path d="M12 7l3 3-3 3M15 10H8"/></svg>
+                  <span>Log out</span>
+                </button>
+              </div>
+            </div>
+          </Transition>
+        </div>
       </nav>
     </header>
     </div>
 
     <TopStepNav v-if="showStepNav" />
 
-    <main class="site-main" :class="{ 'with-panel': panelsOpen }">
+    <main class="site-main" :class="{ 'with-panel': panelsOpen, 'with-chat': chatDockOpen }">
       <slot />
     </main>
 
@@ -134,13 +237,16 @@ function initials(email: string | null | undefined): string {
     </aside>
 
     <ChatDock v-if="user && featureFlags.isOn('chatbot')" />
+    <GuidedHighlight v-if="user && featureFlags.isOn('chatbot') && featureFlags.isOn('guided_pass')" />
     <LearnModeOverlay />
     <ToastStack />
 
     <footer class="site-footer">
       <div class="footer-left">
-        <GuentnerLogo />
-        <NuxtLink to="/admin" class="footer-admin-link">Admin</NuxtLink>
+        <!-- Logo doubles as the admin entry — click navigates to /admin. -->
+        <NuxtLink to="/admin" class="footer-logo-link" aria-label="Admin">
+          <GuentnerLogo />
+        </NuxtLink>
       </div>
       <div class="footer-links">
         <a href="#">Privacy Policy</a>
@@ -158,6 +264,10 @@ function initials(email: string | null | undefined): string {
   display: flex;
   flex-direction: column;
   background: var(--c-bg);
+  /* Width of the ChatDock drawer + approximate header height. Both are
+     consumed by .site-main.with-chat and by the drawer's CSS. */
+  --chat-drawer-w: 733px;
+  --header-h: 68px;
 }
 
 /* ================== HEADER ================== */
@@ -186,6 +296,14 @@ function initials(email: string | null | undefined): string {
   padding: var(--space-xs2);                   /* 9px */
   border-radius: var(--radius-md);             /* 8px */
   display: inline-flex;
+  text-decoration: none;
+  color: inherit;
+  transition: opacity 0.12s;
+}
+.logo-wrap:hover { opacity: 0.75; }
+.logo-wrap:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 25%, transparent);
 }
 .right-nav {
   display: flex;
@@ -255,6 +373,61 @@ function initials(email: string | null | undefined): string {
 }
 .nav-link-caret svg { color: currentColor; }
 
+/* myTools dropdown */
+.tools-menu { position: relative; }
+.nav-link-tools {
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+}
+.nav-link-tools--open {
+  color: var(--c-text);
+  background: color-mix(in srgb, var(--c-brand-blue) 8%, transparent);
+  border-radius: var(--radius-md);
+}
+.tools-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 260px;
+  padding: 6px;
+  background: white;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.tools-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-xs);
+  color: var(--c-text);
+  text-decoration: none;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.tools-item:hover {
+  background: color-mix(in srgb, var(--c-brand-blue) 8%, white);
+  color: var(--c-brand-blue);
+}
+.tools-item svg { flex-shrink: 0; color: var(--c-text-medium); transition: color 0.12s; }
+.tools-item:hover svg { color: var(--c-brand-blue); }
+
+.tools-drop-enter-active, .tools-drop-leave-active {
+  transition: opacity 0.15s, transform 0.15s;
+}
+.tools-drop-enter-from, .tools-drop-leave-to {
+  opacity: 0; transform: translateY(-4px);
+}
+
 /* Header icon-only buttons (favorites, bell, cart). Cart carries a
    text label alongside the icon; the others are icon-only. */
 .header-icons {
@@ -291,6 +464,7 @@ function initials(email: string | null | undefined): string {
 }
 
 /* Avatar group — Figma _avatar */
+.profile-cluster { position: relative; }
 .avatar-group {
   height: 32px;
   display: inline-flex;
@@ -303,7 +477,101 @@ function initials(email: string | null | undefined): string {
   cursor: pointer;
   transition: background 0.15s;
 }
-.avatar-group:hover { background: var(--c-border); }
+.avatar-group:hover,
+.avatar-group--open { background: var(--c-border); }
+
+/* Profile dropdown menu — opens below the avatar, right-aligned */
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 260px;
+  background: white;
+  border: 1px solid var(--c-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  gap: 4px;
+}
+.profile-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  background: var(--c-surface-alt);
+  border-radius: var(--radius-xs);
+}
+.profile-avatar {
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--c-brand-blue);
+  color: var(--c-text-inverted);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  font-weight: 500;
+  letter-spacing: 0.1px;
+  flex-shrink: 0;
+}
+.profile-head-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.profile-name {
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);
+  font-weight: 500;
+  color: var(--c-text);
+  line-height: 16px;
+}
+.profile-view {
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-brand-blue);
+  text-decoration: none;
+  line-height: 15px;
+}
+.profile-view:hover { text-decoration: underline; }
+
+.profile-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+.profile-section + .profile-section {
+  border-top: 1px solid var(--c-border-card);
+}
+.profile-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--c-text);
+  text-decoration: none;
+  text-align: left;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: background 0.12s, color 0.12s;
+  width: 100%;
+}
+.profile-item:hover {
+  background: color-mix(in srgb, var(--c-brand-blue) 8%, white);
+  color: var(--c-brand-blue);
+}
+.profile-item svg { flex-shrink: 0; color: var(--c-text-medium); transition: color 0.12s; }
+.profile-item:hover svg { color: var(--c-brand-blue); }
+
+.profile-drop-enter-active, .profile-drop-leave-active {
+  transition: opacity 0.15s, transform 0.15s;
+}
+.profile-drop-enter-from, .profile-drop-leave-to {
+  opacity: 0; transform: translateY(-4px);
+}
 .avatar-chev { color: var(--c-nav-search-trailing); }
 .avatar-badge {
   width: 26px;
@@ -326,8 +594,11 @@ function initials(email: string | null | undefined): string {
   flex: 1;
   padding: var(--space-5) var(--space-6);      /* 24 / 32 */
   background: var(--c-bg);
+  transition: padding-right 0.24s ease;
 }
 .site-main.with-panel { padding-right: 340px; }
+.site-main.with-chat { padding-right: var(--chat-drawer-w); }
+.site-main.with-panel.with-chat { padding-right: calc(340px + var(--chat-drawer-w)); }
 
 .side-panel {
   position: fixed;
@@ -359,13 +630,18 @@ function initials(email: string | null | undefined): string {
   align-items: center;
   gap: var(--space-4);
 }
-.footer-admin-link {
-  color: var(--c-text-medium);
-  text-decoration: none;
-  font-size: var(--font-3xs);
+.footer-logo-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 4px;
+  border-radius: var(--radius-xs);
+  transition: opacity 0.12s, background 0.12s;
 }
-.footer-admin-link:hover { color: var(--c-text); }
-.footer-admin-link.router-link-active { color: var(--c-brand-blue); }
+.footer-logo-link:hover { opacity: 0.7; }
+.footer-logo-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 25%, transparent);
+}
 .footer-links {
   display: flex;
   align-items: center;
