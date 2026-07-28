@@ -25,7 +25,7 @@ const findRequest = computed(() => ({
   airflow: store.parameters.airflowM3h
 }))
 
-const { data: units, error, pending, refresh } = await useAsyncData(
+const { data: units, error, pending } = await useAsyncData(
   'mygps-output-findunits',
   () => useGpceu().findUnits(findRequest.value as any).catch(() => null),
   { default: () => null, watch: [findRequest] }
@@ -377,7 +377,7 @@ function ColCell(props: ColCellProps) {
             @dblclick="goDatasheet(r)"
             @mouseenter="!isCoil && onRowEnter(r, $event)"
           >
-            <td class="cell-key" :title="r.unitKey">{{ r.unitKey }}</td>
+            <td class="cell-key" :title="r.unitKey" @click.stop="goDatasheet(r)">{{ r.unitKey }}</td>
             <template v-if="isCoil">
               <td class="num" :class="{ 'is-neg': r.surfaceReservePct < 0 }">{{ r.surfaceReservePct.toFixed(1) }}</td>
               <td class="num">{{ r.surfaceM2.toFixed(1) }}</td>
@@ -437,11 +437,6 @@ function ColCell(props: ColCellProps) {
         <span>Back</span>
       </button>
       <div class="foot-spacer" />
-      <button class="btn btn-outline" @click="refresh()">Recalculate</button>
-      <button class="btn btn-primary" :disabled="!selectedId" @click="goDatasheet()">
-        <span>View datasheet</span>
-        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3l5 5-5 5"/></svg>
-      </button>
     </div>
 
     <!-- ============ Hover preview card ============ -->
@@ -712,7 +707,10 @@ function ColCell(props: ColCellProps) {
   color: var(--c-brand-blue);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  text-decoration: none;
 }
+.results-table tbody td.cell-key:hover { text-decoration: underline; }
 .results-table tbody td.is-neg { color: #B33A3A; }
 .results-table tbody td.on-request {
   text-align: right;
