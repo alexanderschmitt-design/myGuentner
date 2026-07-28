@@ -14,6 +14,7 @@ useHead({ title: 'myGPC — Results' })
 
 const store  = useConfigStore()
 const router = useRouter()
+const isCoil = computed(() => store.productSection === 2)
 
 const findRequest = computed(() => ({
   languageID: 2,
@@ -49,6 +50,8 @@ interface ResultRow {
   deliveryWeeks: number              // integer weeks; 0 = in-stock
   inWarehouse: boolean               // "house" icon prefix on the delivery pill
   totalPriceEur: number
+  numberOfPasses?: number            // bare-coil only
+  priceOnRequest?: boolean           // bare-coil: "Only upon request!"
   // Extra fields for the hover preview card
   motorCapacityKw?: number
   currentA?: number
@@ -83,6 +86,33 @@ const demoRows: ResultRow[] = [
   { id: 'r20', unitKey: 'GACV CX 050.1FE/1E-40.A-15NK.2F ALMB.E5',   capacityKw: 10.7, surfaceReservePct: 36.4, surfaceM2: 55.1, tubeVolumeL: 5.9, pressureRefBar: 1.34, pressureAirBar: 1.68, airVolumeM3h: 5186, fanSpeedRpm: 1160, motorTech: 'EC', dimensionsL: 1581, dimensionsW: 740, dimensionsH: 763, deliveryWeeks: 10, inWarehouse: false, totalPriceEur: 7316 }
 ]
 
+// Bare-coil demo rows — matches the informal reference screenshot the user
+// shared. Coil-key format: F/[fin-per-inch]/[circuits]/[tube-d]/[length]/[material]/ /[id] (FT[nn]).
+// Non-Coil columns (fan/motor/dimensions/delivery/warehouse) are left at safe
+// zero defaults because the Coil view hides them; the values are never rendered.
+const demoCoilRows: ResultRow[] = [
+  { id: 'c1',  unitKey: 'F/2/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct: -43.6, surfaceM2:  9.6, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.18, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  4, priceOnRequest: true },
+  { id: 'c2',  unitKey: 'F/3/8/4.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: -14.2, surfaceM2: 14.4, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.08, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  4, priceOnRequest: true },
+  { id: 'c3',  unitKey: 'F/4/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: -22.1, surfaceM2: 11.5, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c4',  unitKey: 'F/4/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:   1.6, surfaceM2: 15.6, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c5',  unitKey: 'F/4/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  10.0, surfaceM2: 17.2, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c6',  unitKey: 'F/4/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct:  11.4, surfaceM2: 19.2, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c7',  unitKey: 'F/6/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  18.2, surfaceM2: 17.3, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c8',  unitKey: 'F/6/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  52.2, surfaceM2: 23.4, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c9',  unitKey: 'F/6/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  64.2, surfaceM2: 25.8, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c10', unitKey: 'F/6/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct:  67.1, surfaceM2: 28.9, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
+  { id: 'c11', unitKey: 'F/8/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  53.6, surfaceM2: 23.0, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
+  { id: 'c12', unitKey: 'F/8/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  94.8, surfaceM2: 31.2, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
+  { id: 'c13', unitKey: 'F/8/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: 108.9, surfaceM2: 34.4, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
+  { id: 'c14', unitKey: 'F/8/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct: 110.2, surfaceM2: 38.5, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
+  { id: 'c15', unitKey: 'F/10/8/7.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct:  89.8, surfaceM2: 28.8, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.32, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 16, priceOnRequest: true },
+  { id: 'c16', unitKey: 'F/10/8/5.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 135.8, surfaceM2: 39.1, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 26, priceOnRequest: true },
+  { id: 'c17', unitKey: 'F/10/8/4.50/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 152.2, surfaceM2: 43.0, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 26, priceOnRequest: true },
+  { id: 'c18', unitKey: 'F/10/8/4.00/1000/ARS/ /015032 (FT09)', capacityKw: 0, surfaceReservePct: 150.8, surfaceM2: 48.1, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 26, priceOnRequest: true },
+  { id: 'c19', unitKey: 'F/12/8/7.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 121.7, surfaceM2: 34.6, tubeVolumeL: 0, pressureRefBar: 0.23, pressureAirBar: 1.74, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 32, priceOnRequest: true },
+  { id: 'c20', unitKey: 'F/12/8/5.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 179.7, surfaceM2: 46.9, tubeVolumeL: 0, pressureRefBar: 0.23, pressureAirBar: 1.74, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 32, priceOnRequest: true }
+]
+
 const rows = computed<ResultRow[]>(() => {
   if (units.value && Array.isArray(units.value) && units.value.length > 0) {
     return (units.value as any[]).map((u, i) => ({
@@ -105,11 +135,11 @@ const rows = computed<ResultRow[]>(() => {
       totalPriceEur: Number(u.price ?? 0)
     }))
   }
-  return demoRows
+  return isCoil.value ? demoCoilRows : demoRows
 })
 
 // -------- Sort --------
-type SortKey = 'unitKey' | 'capacityKw' | 'surfaceReservePct' | 'surfaceM2' | 'tubeVolumeL' | 'pressureRefBar' | 'airVolumeM3h' | 'fanSpeedRpm' | 'motorTech' | 'dimensionsL' | 'deliveryWeeks' | 'totalPriceEur'
+type SortKey = 'unitKey' | 'capacityKw' | 'surfaceReservePct' | 'surfaceM2' | 'tubeVolumeL' | 'pressureRefBar' | 'airVolumeM3h' | 'fanSpeedRpm' | 'motorTech' | 'dimensionsL' | 'deliveryWeeks' | 'totalPriceEur' | 'numberOfPasses'
 const sortBy  = ref<SortKey>('unitKey')
 const sortDir = ref<'asc' | 'desc'>('asc')
 function sort(col: SortKey) {
@@ -135,7 +165,6 @@ function pick(u: ResultRow) {
   store.selectProduct({ productId: u.id, typeDesignation: u.unitKey, quantity: 1 })
 }
 const { current, unitUrl, coilGeometryUrl, datasheetUrl } = useCategory()
-const isCoil = computed(() => store.productSection === 2)
 function goDatasheet(u?: ResultRow) {
   if (u) pick(u)
   if (selectedId.value) router.push(datasheetUrl())
@@ -278,46 +307,65 @@ function ColCell(props: ColCellProps) {
     <div v-if="error"   class="alert alert-error">Live query failed — showing demo rows.</div>
 
     <!-- ============ Table ============ -->
-    <div class="table-wrap" @mouseleave="onRowLeave">
-      <table class="results-table">
+    <div class="table-wrap" :class="{ 'is-coil': isCoil }" @mouseleave="onRowLeave">
+      <table class="results-table" :class="{ 'is-coil': isCoil }">
         <thead>
           <tr>
             <th class="col-key">
-              <ColCell label="Unit Key" sortable filterable menu :sort-dir="sortBy === 'unitKey' ? sortDir : null" @sort="sort('unitKey')" />
+              <ColCell :label="isCoil ? 'Coil Key' : 'Unit Key'" sortable filterable menu :sort-dir="sortBy === 'unitKey' ? sortDir : null" @sort="sort('unitKey')" />
             </th>
-            <th class="col-num">
-              <ColCell label="Capacity (kW)" sortable :sort-dir="sortBy === 'capacityKw' ? sortDir : null" @sort="sort('capacityKw')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="Surfac..." sortable filterable menu :sort-dir="sortBy === 'surfaceReservePct' ? sortDir : null" @sort="sort('surfaceReservePct')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="Surface (m²)" sortable menu :sort-dir="sortBy === 'surfaceM2' ? sortDir : null" @sort="sort('surfaceM2')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="Tube V..." sortable filterable menu :sort-dir="sortBy === 'tubeVolumeL' ? sortDir : null" @sort="sort('tubeVolumeL')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="Pressure..." sortable :sort-dir="sortBy === 'pressureRefBar' ? sortDir : null" @sort="sort('pressureRefBar')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="Air (m³/H)" sortable filterable :sort-dir="sortBy === 'airVolumeM3h' ? sortDir : null" @sort="sort('airVolumeM3h')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="Speed (mi..." sortable filterable :sort-dir="sortBy === 'fanSpeedRpm' ? sortDir : null" @sort="sort('fanSpeedRpm')" />
-            </th>
-            <th class="col-narrow">
-              <ColCell label="Motor Tec..." sortable filterable :sort-dir="sortBy === 'motorTech' ? sortDir : null" @sort="sort('motorTech')" />
-            </th>
-            <th class="col-num">
-              <ColCell label="L / W / H" filterable :sort-dir="null" />
-            </th>
-            <th class="col-narrow">
-              <ColCell label="Delivery Ti..." sortable filterable :sort-dir="sortBy === 'deliveryWeeks' ? sortDir : null" @sort="sort('deliveryWeeks')" />
-            </th>
-            <th class="col-price">
-              <ColCell label="Total Price (EUR)" sortable filterable menu :sort-dir="sortBy === 'totalPriceEur' ? sortDir : null" @sort="sort('totalPriceEur')" />
-            </th>
+            <template v-if="isCoil">
+              <th class="col-num">
+                <ColCell label="Surface reserve [%]" sortable filterable menu :sort-dir="sortBy === 'surfaceReservePct' ? sortDir : null" @sort="sort('surfaceReservePct')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Surface [m²]" sortable menu :sort-dir="sortBy === 'surfaceM2' ? sortDir : null" @sort="sort('surfaceM2')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Pressure drop [bar / K]" sortable :sort-dir="sortBy === 'pressureRefBar' ? sortDir : null" @sort="sort('pressureRefBar')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Number of passes" sortable :sort-dir="sortBy === 'numberOfPasses' ? sortDir : null" @sort="sort('numberOfPasses')" />
+              </th>
+              <th class="col-price">
+                <ColCell label="Price [EUR]" filterable menu :sort-dir="null" />
+              </th>
+            </template>
+            <template v-else>
+              <th class="col-num">
+                <ColCell label="Capacity (kW)" sortable :sort-dir="sortBy === 'capacityKw' ? sortDir : null" @sort="sort('capacityKw')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Surfac..." sortable filterable menu :sort-dir="sortBy === 'surfaceReservePct' ? sortDir : null" @sort="sort('surfaceReservePct')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Surface (m²)" sortable menu :sort-dir="sortBy === 'surfaceM2' ? sortDir : null" @sort="sort('surfaceM2')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Tube V..." sortable filterable menu :sort-dir="sortBy === 'tubeVolumeL' ? sortDir : null" @sort="sort('tubeVolumeL')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Pressure..." sortable :sort-dir="sortBy === 'pressureRefBar' ? sortDir : null" @sort="sort('pressureRefBar')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Air (m³/H)" sortable filterable :sort-dir="sortBy === 'airVolumeM3h' ? sortDir : null" @sort="sort('airVolumeM3h')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="Speed (mi..." sortable filterable :sort-dir="sortBy === 'fanSpeedRpm' ? sortDir : null" @sort="sort('fanSpeedRpm')" />
+              </th>
+              <th class="col-narrow">
+                <ColCell label="Motor Tec..." sortable filterable :sort-dir="sortBy === 'motorTech' ? sortDir : null" @sort="sort('motorTech')" />
+              </th>
+              <th class="col-num">
+                <ColCell label="L / W / H" filterable :sort-dir="null" />
+              </th>
+              <th class="col-narrow">
+                <ColCell label="Delivery Ti..." sortable filterable :sort-dir="sortBy === 'deliveryWeeks' ? sortDir : null" @sort="sort('deliveryWeeks')" />
+              </th>
+              <th class="col-price">
+                <ColCell label="Total Price (EUR)" sortable filterable menu :sort-dir="sortBy === 'totalPriceEur' ? sortDir : null" @sort="sort('totalPriceEur')" />
+              </th>
+            </template>
           </tr>
         </thead>
         <tbody>
@@ -327,30 +375,39 @@ function ColCell(props: ColCellProps) {
             :class="{ 'is-selected': selectedId === r.unitKey, 'is-hover': hoveredRow?.id === r.id }"
             @click="pick(r)"
             @dblclick="goDatasheet(r)"
-            @mouseenter="onRowEnter(r, $event)"
+            @mouseenter="!isCoil && onRowEnter(r, $event)"
           >
             <td class="cell-key" :title="r.unitKey">{{ r.unitKey }}</td>
-            <td class="num">{{ r.capacityKw.toFixed(1) }}</td>
-            <td class="num" :class="{ 'is-neg': r.surfaceReservePct < 0 }">{{ fmtSigned(r.surfaceReservePct) }}</td>
-            <td class="num">{{ r.surfaceM2.toFixed(1) }}</td>
-            <td class="num">{{ r.tubeVolumeL.toFixed(1) }}</td>
-            <td class="num">{{ r.pressureRefBar.toFixed(2) }} / {{ r.pressureAirBar.toFixed(2) }}</td>
-            <td class="num">{{ fmtInt(r.airVolumeM3h) }}</td>
-            <td class="num">{{ r.fanSpeedRpm }}</td>
-            <td>{{ r.motorTech }}</td>
-            <td class="num dim-cell">{{ r.dimensionsL }}/{{ r.dimensionsW }}/{{ r.dimensionsH }}</td>
-            <td>
-              <span class="delivery-pill">
-                <svg v-if="r.inWarehouse" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M2 8l6-5 6 5v6H2z"/><path d="M6 14v-4h4v4"/>
-                </svg>
-                <span>{{ r.deliveryWeeks }} weeks</span>
-              </span>
-            </td>
-            <td class="num strong">{{ fmtEur(r.totalPriceEur) }}</td>
+            <template v-if="isCoil">
+              <td class="num" :class="{ 'is-neg': r.surfaceReservePct < 0 }">{{ r.surfaceReservePct.toFixed(1) }}</td>
+              <td class="num">{{ r.surfaceM2.toFixed(1) }}</td>
+              <td class="num">{{ r.pressureRefBar.toFixed(2) }} / {{ r.pressureAirBar.toFixed(2) }}</td>
+              <td class="num">{{ r.numberOfPasses ?? '—' }}</td>
+              <td class="on-request">Only upon request!</td>
+            </template>
+            <template v-else>
+              <td class="num">{{ r.capacityKw.toFixed(1) }}</td>
+              <td class="num" :class="{ 'is-neg': r.surfaceReservePct < 0 }">{{ fmtSigned(r.surfaceReservePct) }}</td>
+              <td class="num">{{ r.surfaceM2.toFixed(1) }}</td>
+              <td class="num">{{ r.tubeVolumeL.toFixed(1) }}</td>
+              <td class="num">{{ r.pressureRefBar.toFixed(2) }} / {{ r.pressureAirBar.toFixed(2) }}</td>
+              <td class="num">{{ fmtInt(r.airVolumeM3h) }}</td>
+              <td class="num">{{ r.fanSpeedRpm }}</td>
+              <td>{{ r.motorTech }}</td>
+              <td class="num dim-cell">{{ r.dimensionsL }}/{{ r.dimensionsW }}/{{ r.dimensionsH }}</td>
+              <td>
+                <span class="delivery-pill">
+                  <svg v-if="r.inWarehouse" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M2 8l6-5 6 5v6H2z"/><path d="M6 14v-4h4v4"/>
+                  </svg>
+                  <span>{{ r.deliveryWeeks }} weeks</span>
+                </span>
+              </td>
+              <td class="num strong">{{ fmtEur(r.totalPriceEur) }}</td>
+            </template>
           </tr>
           <tr v-if="!filteredRows.length">
-            <td colspan="12" class="empty">No matching units.</td>
+            <td :colspan="isCoil ? 6 : 12" class="empty">No matching units.</td>
           </tr>
         </tbody>
       </table>
@@ -550,10 +607,13 @@ function ColCell(props: ColCellProps) {
   min-width: 1402px;
   table-layout: fixed;
 }
+.results-table.is-coil { min-width: 900px; }
 .col-key    { width: 260px; }
 .col-num    { width: 96px; }
 .col-narrow { width: 96px; }
 .col-price  { width: 148px; }
+.results-table.is-coil .col-key   { width: 320px; }
+.results-table.is-coil .col-price { width: 180px; }
 
 .results-table thead th {
   padding: 8px 10px;
@@ -654,6 +714,11 @@ function ColCell(props: ColCellProps) {
   font-variant-numeric: tabular-nums;
 }
 .results-table tbody td.is-neg { color: #B33A3A; }
+.results-table tbody td.on-request {
+  text-align: right;
+  color: var(--c-text-medium2);
+  font-style: italic;
+}
 
 .results-table tbody tr {
   cursor: pointer;
