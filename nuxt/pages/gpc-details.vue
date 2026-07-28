@@ -143,123 +143,7 @@ const impactScore = 3
 
 // -------- Navigation --------
 const { current, searchUrl, thermoUrl } = useCategory()
-const isCoil = computed(() => store.productSection === 2)
 function goBack() { router.push(searchUrl()) }
-
-// -------- Coil datasheet data — captured from reference PDF
-//          GCO F/2/8/4.00/1000/ARS/ /015032 (FT09), Güntner GPC.EU export.
-//          Used only when isCoil === true.
-const coilTitle = 'Evaporator coil'
-const coilKey = computed(() => {
-  const k = store.selectedUnitKey || 'F/2/8/4.00/1000/ARS/ /015032 (FT09)'
-  return k.startsWith('GCO ') ? k : `GCO ${k}`
-})
-const coilMeta = [
-  { label: 'Date',           value: '2026-07-28' },
-  { label: 'Enquiry dated',  value: '—' },
-  { label: 'Project',        value: '—' },
-  { label: 'Quotation-no.',  value: '—' },
-  { label: 'Item',           value: '—' },
-  { label: 'Reference',      value: '—' }
-]
-const coilPerfLeft: DataRow[]  = [
-  { label: 'Capacity',        a: '5.0 kW (1)(2)' },
-  { label: 'Surface',         a: '9.6 m²' },
-  { label: 'Rqrd. surface',   a: '17.0 m²' },
-  { label: 'Surface reserve', a: '−43.6 %' }
-]
-const coilPerfRight: DataRow[] = [
-  { label: 'Construction for', a: 'Casing' },
-  { label: 'Connections',      a: 'right side' },
-  { label: 'Tube pattern',     a: 'staggered' },
-  { label: 'Frost thickness',  a: '0.0 mm' }
-]
-const coilAirRows = [
-  { label: 'Volume flow',  inlet: '—',        outlet: '5000 m³/h' },
-  { label: 'Temperature',  inlet: '0.0 °C',   outlet: '−2.4 °C' }
-]
-const coilAirExtras: DataRow[] = [
-  { label: 'Air pressure',  a: '1013 mbar' },
-  { label: 'Pressure drop', a: '36 Pa' }
-]
-const coilRefrigerant: DataRow[] = [
-  { label: 'Refrigerant',        a: 'R22 (3)' },
-  { label: 'Evaporation temp.',  a: '−8.0 °C' },
-  { label: 'Superheating',       a: '5.0 K' },
-  { label: 'Condensation temp.', a: '35.0 °C' },
-  { label: 'Subcooled temp.',    a: '34.0 °C' },
-  { label: 'Pressure drop',      a: '0.024 bar / 0.18 K' }
-]
-const coilConstructionLeft: DataRow[] = [
-  { label: 'Tube volume',            a: '2.1 l' },
-  { label: 'Fin spacing',            a: '4.00 mm' },
-  { label: 'Empty weight',           a: '13.8 kg' },
-  { label: 'Finned length',          a: '1000 mm' },
-  { label: 'Finned height',          a: '400 mm' },
-  { label: 'Total length',           a: '1158 mm' },
-  { label: 'Frame length',           a: '1100 mm' },
-  { label: 'Frame height',           a: '500 mm' },
-  { label: 'Frame depth',            a: '150 mm' },
-  { label: 'Tube rows in depth',     a: '2' },
-  { label: 'Max. operating pressure', a: '32.0 bar' },
-  { label: 'Inlet connection',       a: '16 × 1.00 mm' },
-  { label: 'Outlet header',          a: '18 × 1.00 mm' },
-  { label: 'Outlet connection',      a: '16 × 1.00 mm' }
-]
-const coilConstructionRight: DataRow[] = [
-  { label: 'Tubes',             a: 'Copper (4)' },
-  { label: 'Distributor',       a: 'Brass' },
-  { label: 'Capillary tubes',   a: 'Copper' },
-  { label: 'Fins',              a: 'Aluminium (4)' },
-  { label: 'Outlet header',     a: 'Copper' },
-  { label: 'Outlet connection', a: 'Copper' },
-  { label: 'Frame',             a: 'Galv. Steel' },
-  { label: 'Circuits',          a: '1N' },
-  { label: 'Passes',            a: '4' },
-  { label: 'Distributions',     a: '4' },
-  { label: 'Support tubes',     a: '4' },
-  { label: 'PED classification', a: 'Art. 4(3) (5)' },
-  { label: 'Capillaries',       a: '4.0 × 0.75 mm' },
-  { label: 'Length',            a: '500 mm' },
-  { label: 'Distr. press. drop', a: '1.5 bar' },
-  { label: 'Part of total',     a: '16 %' }
-]
-const coilAccessories = [
-  { description: 'Cover and bottom plates beaded with drain hole', pieces: 1 }
-]
-const coilTerms = [
-  { label: 'Terms of delivery', value: '—' },
-  { label: 'Payment cond.',     value: '—' },
-  { label: 'Delivery time',     value: '15 weeks  (Status: 2026-07-22)' },
-  { label: 'Validity',          value: '—' }
-]
-// Dimensional letter table (matches PDF page 2 legend)
-const coilDims = [
-  [ { letter: 'GL', value: '1158 mm' }, { letter: 'L',  value: '1100 mm' }, { letter: 'BL', value: '1000 mm' } ],
-  [ { letter: 'T',  value: '150 mm'  }, { letter: 'BT', value: '50 mm'   }, { letter: 'H',  value: '500 mm'  } ],
-  [ { letter: 'BH', value: '400 mm'  }, { letter: 'a',  value: '50 mm'   }, { letter: 'b',  value: '50 mm'   } ],
-  [ { letter: 'c',  value: '50 mm'   }, { letter: 'd',  value: '50 mm'   }, { letter: 'e',  value: '50 mm'   } ],
-  [ { letter: 'f',  value: '50 mm'   }, { letter: 'h',  value: '150 mm'  }, { letter: '',   value: ''        } ]
-]
-const coilCapillary: DataRow[] = [
-  { label: 'Capillary tubes',   a: '4.0 × 0.75 mm, 500 mm' },
-  { label: 'Pieces',            a: '4' },
-  { label: 'Outlet header',     a: '18 × 1.00 mm' },
-  { label: 'Outlet connection', a: '16 × 1.00 mm' },
-  { label: 'Tube volume',       a: '2.1 l' },
-  { label: 'Refrigerant',       a: 'R22' },
-  { label: 'Empty weight',      a: '13.8 kg' },
-  { label: 'Surface',           a: '9.6 m²' },
-  { label: 'Distributions',     a: '4' },
-  { label: 'Passes',            a: '4' }
-]
-const coilFootnotes = [
-  'Calculations and capacity tests are based on the following standards: condensers/gas coolers EN 327, evaporators/air coolers EN 328, dry coolers EN 1048.',
-  'Capacity including humidity factor.',
-  'Fluid group 2 in accordance with Pressure Equipment Directive 2014/68/EU.',
-  'When using the unit in aggressive atmospheres, it is imperative to select the materials according to the specific application, see material recommendation brochure in the GPC programme menu "?".',
-  'Pipe (DN = 16.0 mm, TSmax = 100 °C, gaseous). Final classification in accordance with Pressure Equipment Directive 2014/68/EU when the order is processed.'
-]
 
 // -------- Sidebar action buttons (grouped like Figma dropdownMenu) --------
 interface SidebarAction { label: string; icon: string; onClick: () => void; danger?: boolean }
@@ -305,9 +189,9 @@ const sidebarGroups: SidebarAction[][] = [
               </span>
               <div class="ds-title-wrap">
                 <h1 class="ds-title">
-                  <span v-if="isCoil" class="mode-tag">COIL · </span>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
+                  {{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
                 </h1>
-                <a href="#" class="ds-title-link">{{ isCoil ? `${coilTitle} — ${coilKey}` : unitKey }}</a>
+                <a href="#" class="ds-title-link">{{ unitKey }}</a>
               </div>
             </div>
             <div class="ds-header-actions">
@@ -320,198 +204,6 @@ const sidebarGroups: SidebarAction[][] = [
             </div>
           </header>
 
-          <!-- ==================== COIL DATASHEET (from PDF ref) ==================== -->
-          <template v-if="isCoil">
-            <!-- Meta block: Date / Enquiry / Project / … -->
-            <section class="ds-section ds-coil-meta">
-              <div class="ds-meta-grid">
-                <div v-for="m in coilMeta" :key="m.label" class="ds-meta-row">
-                  <span class="k">{{ m.label }}</span><span class="v mono">{{ m.value }}</span>
-                </div>
-              </div>
-            </section>
-
-            <!-- Coil title bar -->
-            <section class="ds-section ds-coil-title">
-              <div class="ds-coil-title-row">
-                <span class="ds-coil-kind">{{ coilTitle }}</span>
-                <span class="ds-coil-key mono">{{ coilKey }}</span>
-              </div>
-            </section>
-
-            <!-- Performance / Construction (2 col) -->
-            <section class="ds-section">
-              <div class="ds-two-col">
-                <div class="ds-col">
-                  <div v-for="(r, i) in coilPerfLeft" :key="`cpl-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-                <div class="ds-col">
-                  <div v-for="(r, i) in coilPerfRight" :key="`cpr-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Air (Inlet/Outlet) + Refrigerant (2 col) -->
-            <section class="ds-section">
-              <div class="ds-two-col">
-                <div class="ds-col">
-                  <div class="ds-air-head">
-                    <span class="k ds-air-label">Air</span>
-                    <span class="ds-air-col-head">Inlet</span>
-                    <span class="ds-air-col-head">Outlet</span>
-                  </div>
-                  <div v-for="(r, i) in coilAirRows" :key="`car-${i}`" class="ds-air-row">
-                    <span class="k">{{ r.label }}</span>
-                    <span class="v mono">{{ r.inlet }}</span>
-                    <span class="v mono">{{ r.outlet }}</span>
-                  </div>
-                  <div v-for="(r, i) in coilAirExtras" :key="`cae-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-                <div class="ds-col">
-                  <div v-for="(r, i) in coilRefrigerant" :key="`crf-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Construction / Materials (2 col) -->
-            <section class="ds-section">
-              <div class="ds-two-col">
-                <div class="ds-col">
-                  <div v-for="(r, i) in coilConstructionLeft" :key="`cnl-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-                <div class="ds-col">
-                  <div v-for="(r, i) in coilConstructionRight" :key="`cnr-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            <!-- Accessories -->
-            <section class="ds-section">
-              <p class="ds-section-title">Accessories</p>
-              <div v-for="(a, i) in coilAccessories" :key="`caa-${i}`" class="ds-row">
-                <span class="k">{{ a.description }}</span><span class="v mono">Piece(s): {{ a.pieces }}</span>
-              </div>
-            </section>
-
-            <!-- Terms of delivery -->
-            <section class="ds-section">
-              <div v-for="t in coilTerms" :key="t.label" class="ds-row">
-                <span class="k">{{ t.label }}</span><span class="v mono">{{ t.value }}</span>
-              </div>
-              <p class="ds-terms">Our general terms of sales and delivery apply! Subject to technical modifications.</p>
-            </section>
-
-            <!-- Technical drawings — Side view + Front view -->
-            <section class="ds-section">
-              <p class="ds-section-title">Dimensional drawing — Construction for casing, without varnishing</p>
-              <div class="ds-coil-drawings">
-                <!-- Side view (narrow) -->
-                <div class="ds-drawing ds-drawing-side" aria-label="Side view">
-                  <svg viewBox="0 0 200 260" preserveAspectRatio="xMidYMid meet">
-                    <!-- Outer frame -->
-                    <rect x="60" y="30" width="80" height="200" fill="white" stroke="#3c3c3b" stroke-width="1.2"/>
-                    <!-- Inner coil block (BT) -->
-                    <rect x="80" y="50" width="40" height="160" fill="none" stroke="#3c3c3b" stroke-width="1"/>
-                    <!-- U-tube markers -->
-                    <circle cx="100" cy="80" r="4" fill="none" stroke="#3c3c3b" stroke-width="0.8"/>
-                    <circle cx="100" cy="130" r="4" fill="none" stroke="#3c3c3b" stroke-width="0.8"/>
-                    <circle cx="100" cy="180" r="4" fill="none" stroke="#3c3c3b" stroke-width="0.8"/>
-                    <!-- Airflow arrow (left side, indicates H direction) -->
-                    <path d="M40 130 L52 125 L48 130 L52 135 Z" fill="#3c3c3b"/>
-                    <line x1="40" y1="130" x2="52" y2="130" stroke="#3c3c3b" stroke-width="1"/>
-                    <!-- Top dim labels: T (frame width), BT (coil width), f (offset), e (offset) -->
-                    <text x="100" y="18" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">T</text>
-                    <line x1="60" y1="22" x2="140" y2="22" stroke="#676377" stroke-width="0.7"/>
-                    <text x="100" y="46" text-anchor="middle" font-family="Geist" font-size="9" fill="#676377">BT</text>
-                    <text x="70" y="46" text-anchor="middle" font-family="Geist" font-size="9" fill="#676377">f</text>
-                    <text x="130" y="46" text-anchor="middle" font-family="Geist" font-size="9" fill="#676377">e</text>
-                    <!-- Left side labels: H (frame height), BH (coil height) -->
-                    <text x="30" y="130" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">H</text>
-                    <line x1="46" y1="30" x2="46" y2="230" stroke="#676377" stroke-width="0.7"/>
-                    <text x="90" y="130" text-anchor="middle" font-family="Geist" font-size="9" fill="#676377" transform="rotate(-90 90 130)">BH</text>
-                    <!-- Bottom dim labels: c, d -->
-                    <text x="70" y="248" text-anchor="middle" font-family="Geist" font-size="9" fill="#676377">c</text>
-                    <text x="130" y="248" text-anchor="middle" font-family="Geist" font-size="9" fill="#676377">d</text>
-                  </svg>
-                </div>
-
-                <!-- Front view (wide) -->
-                <div class="ds-drawing ds-drawing-front" aria-label="Front view">
-                  <svg viewBox="0 0 480 260" preserveAspectRatio="xMidYMid meet">
-                    <!-- Outer frame (GL) -->
-                    <rect x="40" y="60" width="400" height="160" fill="white" stroke="#3c3c3b" stroke-width="1.2"/>
-                    <!-- Inner coil block (BL) -->
-                    <rect x="70" y="80" width="330" height="120" fill="none" stroke="#3c3c3b" stroke-width="1"/>
-                    <!-- Fin lines -->
-                    <g stroke="#c5c5c5" stroke-width="0.4">
-                      <line v-for="n in 30" :key="`fin-${n}`" :x1="76 + n * 10" y1="82" :x2="76 + n * 10" y2="198"/>
-                    </g>
-                    <!-- Inlet/outlet connections (right side) -->
-                    <line x1="400" y1="100" x2="450" y2="100" stroke="#3c3c3b" stroke-width="1.2"/>
-                    <line x1="400" y1="180" x2="450" y2="180" stroke="#3c3c3b" stroke-width="1.2"/>
-                    <!-- Airflow arrow -->
-                    <path d="M15 140 L27 135 L23 140 L27 145 Z" fill="#3c3c3b"/>
-                    <line x1="15" y1="140" x2="27" y2="140" stroke="#3c3c3b" stroke-width="1"/>
-                    <!-- Top dim labels: GL, L, BL -->
-                    <text x="240" y="16" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">GL</text>
-                    <line x1="40" y1="22" x2="440" y2="22" stroke="#676377" stroke-width="0.7"/>
-                    <text x="240" y="38" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">L</text>
-                    <line x1="55" y1="44" x2="425" y2="44" stroke="#676377" stroke-width="0.7"/>
-                    <text x="235" y="76" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">BL</text>
-                    <!-- Right side dim labels: h, a, b -->
-                    <text x="465" y="80" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">h</text>
-                    <text x="465" y="140" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">a</text>
-                    <text x="25" y="80" text-anchor="middle" font-family="Geist" font-size="10" fill="#676377">b</text>
-                  </svg>
-                </div>
-              </div>
-
-              <!-- Legend table -->
-              <div class="ds-dim-table ds-coil-dim-table">
-                <div v-for="(row, i) in coilDims" :key="`cd-${i}`" class="ds-dim-row">
-                  <template v-for="(d, j) in row" :key="`cdc-${i}-${j}`">
-                    <span class="k">{{ d.letter }}</span><span class="v mono">{{ d.value }}</span>
-                  </template>
-                </div>
-              </div>
-              <p class="ds-note">Attention: Drawing and dimensions not valid for all accessory options! Bottom sheet with drain hole. File: EMF\022-F_UNI.emf</p>
-            </section>
-
-            <!-- Capillary layout summary -->
-            <section class="ds-section">
-              <p class="ds-section-title">Distribution / capillary layout</p>
-              <div class="ds-coil-capillary">
-                <!-- Little schematic of 4×2 capillary distribution -->
-                <svg class="ds-cap-sketch" viewBox="0 0 80 200" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
-                  <rect x="20" y="10" width="40" height="180" fill="none" stroke="#3c3c3b" stroke-width="1"/>
-                  <g fill="none" stroke="#3c3c3b" stroke-width="0.8">
-                    <circle v-for="n in 10" :key="`cap-l-${n}`" cx="30" :cy="20 + n * 16" r="3"/>
-                    <circle v-for="n in 10" :key="`cap-r-${n}`" cx="50" :cy="20 + n * 16" r="3"/>
-                  </g>
-                </svg>
-                <div class="ds-cap-values">
-                  <div v-for="(r, i) in coilCapillary" :key="`cap-v-${i}`" class="ds-row">
-                    <span class="k">{{ r.label }}</span><span class="v mono">{{ r.a }}</span>
-                  </div>
-                </div>
-              </div>
-            </section>
-          </template>
-
-          <!-- ==================== UNIT DATASHEET (original) ==================== -->
-          <template v-else>
           <!-- Notification banners -->
           <div v-for="(a, i) in attentions" :key="`att-${i}`" class="ds-banner">
             <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l8 14H2z"/><path d="M10 8v4"/><circle cx="10" cy="14.5" r="0.7" fill="currentColor" stroke="none"/></svg>
@@ -732,10 +424,7 @@ const sidebarGroups: SidebarAction[][] = [
             </table>
           </section>
 
-          </template>
-          <!-- ==================== END UNIT DATASHEET ==================== -->
-
-          <!-- Section 12 — Impact rating (shared) -->
+          <!-- Section 12 — Impact rating -->
           <section class="ds-section">
             <div class="ds-row ds-row--impact">
               <span class="k">Impact Product Rating</span>
@@ -750,10 +439,7 @@ const sidebarGroups: SidebarAction[][] = [
           <!-- Section 13 — Important remarks / explanatory notes -->
           <section class="ds-section ds-footnotes-section">
             <p class="ds-section-title">Important remarks / explanatory notes:</p>
-            <ol v-if="isCoil" class="footnotes">
-              <li v-for="(fn, i) in coilFootnotes" :key="`cfn-${i}`">{{ fn }}</li>
-            </ol>
-            <ol v-else class="footnotes">
+            <ol class="footnotes">
               <li>Fluid group 2 in accordance with Pressure Equipment Directive 2014/68/EU</li>
               <li>In accordance with the enveloping surface method defined in EN 13487/EN 9614-1; tolerance = +2 dB(A). Applies only for AC fans, AC fans with sine control and EC fans. Noise caused by other control methods, water spraying systems or sound reflexions occurring at the installation site are not taken into account and may result in an increased sound pressure level.</li>
               <li>Based on the calculation of the operating point of the fan</li>
@@ -851,18 +537,6 @@ const sidebarGroups: SidebarAction[][] = [
   color: var(--c-text-value);
   line-height: 30px;
   word-break: break-word;
-}
-.mode-tag {
-  display: inline-block;
-  padding: 2px 8px;
-  margin-right: 6px;
-  background: color-mix(in srgb, var(--c-brand-blue) 12%, white);
-  color: var(--c-brand-blue);
-  border-radius: var(--radius-xs2);
-  font-size: var(--font-3xs);
-  font-weight: 500;
-  vertical-align: middle;
-  font-family: var(--font-ui);
 }
 .ds-title-link {
   font-family: var(--font-ui);
@@ -1138,98 +812,4 @@ const sidebarGroups: SidebarAction[][] = [
 /* ---------- Debug ---------- */
 .api-debug { margin-top: 20px; padding: 12px; background: white; border-radius: var(--radius-xs); border: 1px solid var(--c-border-card); }
 .api-debug pre { max-height: 240px; overflow: auto; background: var(--c-surface-alt); padding: 8px; border-radius: 4px; font-size: var(--font-4xs); }
-
-/* ---------- Coil datasheet ---------- */
-.ds-coil-meta { padding-top: 0; }
-.ds-meta-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 4px var(--space-md);
-}
-.ds-meta-row {
-  display: grid;
-  grid-template-columns: minmax(0, 120px) minmax(0, 1fr);
-  gap: 12px;
-  padding: 3px 0;
-  font-family: var(--font-ui);
-  font-size: var(--font-3xs);
-  line-height: 15px;
-}
-.ds-meta-row .k { color: var(--c-text-medium); }
-.ds-meta-row .v { color: var(--c-text-value); }
-
-.ds-coil-title { padding-top: 6px; padding-bottom: 6px; }
-.ds-coil-title-row {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-md);
-  padding: 8px 0;
-  border-top: 1px solid var(--c-text);
-  border-bottom: 1px solid var(--c-text);
-  font-family: var(--font-ui);
-  font-size: var(--font-2xs);
-}
-.ds-coil-kind { font-weight: 500; color: var(--c-text-value); }
-.ds-coil-key  { color: var(--c-text-value); }
-
-/* Air Inlet/Outlet header row */
-.ds-air-head {
-  display: grid;
-  grid-template-columns: minmax(0, 173.5px) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
-  padding: 5px 0;
-  font-family: var(--font-ui);
-  font-size: var(--font-3xs);
-  align-items: baseline;
-}
-.ds-air-label { font-weight: 500; color: var(--c-text-value); }
-.ds-air-col-head {
-  color: var(--c-text-medium);
-  font-weight: 500;
-  text-align: left;
-}
-.ds-air-row {
-  display: grid;
-  grid-template-columns: minmax(0, 173.5px) minmax(0, 1fr) minmax(0, 1fr);
-  gap: 12px;
-  padding: 5px 0;
-  align-items: baseline;
-  font-family: var(--font-ui);
-  font-size: var(--font-3xs);
-  line-height: 15px;
-}
-.ds-air-row .k { color: var(--c-text-medium); }
-.ds-air-row .v { color: var(--c-text-value); font-feature-settings: 'tnum'; }
-
-/* Drawings side-by-side */
-.ds-coil-drawings {
-  display: grid;
-  grid-template-columns: 200px minmax(0, 1fr);
-  gap: 12px;
-  align-items: start;
-}
-.ds-drawing-side svg  { max-height: 260px; }
-.ds-drawing-front svg { max-height: 260px; }
-
-/* Dim table adapted for 3-per-row with 5 rows */
-.ds-coil-dim-table {
-  margin-top: 12px;
-}
-
-/* Capillary schematic + values */
-.ds-coil-capillary {
-  display: grid;
-  grid-template-columns: 100px minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-}
-.ds-cap-sketch {
-  width: 80px;
-  height: auto;
-  background: white;
-  border: 1px solid var(--c-border-card);
-  border-radius: var(--radius-xs2);
-  padding: 4px;
-}
-.ds-cap-values { display: flex; flex-direction: column; }
 </style>

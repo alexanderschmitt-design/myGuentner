@@ -67,7 +67,13 @@ export function useCategory() {
   function unitUrl(id?: number)         { return `/mygpc/${id ?? catId.value}/unit-selection` }
   function coilGeometryUrl(id?: number) { return `/mygpc/${id ?? catId.value}/coil-geometry` }
   function searchUrl(id?: number)       { return `/mygpc/${id ?? catId.value}/search` }
-  function datasheetUrl()               { return `/gpc-details` }
+  function coilDatasheetUrl(id?: number) { return `/mygpc/${id ?? catId.value}/coil-datasheet` }
+  function datasheetUrl(id?: number) {
+    // Bare-Coil configurations get their own datasheet route (reduced sidebar,
+    // PDF-derived section structure). Unit configurations stay on /gpc-details.
+    const store = useConfigStore()
+    return store.productSection === 2 ? coilDatasheetUrl(id) : `/gpc-details`
+  }
 
   // Mode-aware step-3 URL — reads productSection from the store so we route
   // Bare-Coil configurations into /coil-geometry instead of /unit-selection.
@@ -76,5 +82,5 @@ export function useCategory() {
     return store.productSection === 2 ? coilGeometryUrl(id) : unitUrl(id)
   }
 
-  return { catId, current, thermoUrl, unitUrl, coilGeometryUrl, searchUrl, datasheetUrl, step3Url }
+  return { catId, current, thermoUrl, unitUrl, coilGeometryUrl, searchUrl, datasheetUrl, coilDatasheetUrl, step3Url }
 }
