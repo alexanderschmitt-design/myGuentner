@@ -51,7 +51,6 @@ interface ResultRow {
   inWarehouse: boolean               // "house" icon prefix on the delivery pill
   totalPriceEur: number
   numberOfPasses?: number            // bare-coil only
-  priceOnRequest?: boolean           // bare-coil: "Only upon request!"
   // Extra fields for the hover preview card
   motorCapacityKw?: number
   currentA?: number
@@ -91,26 +90,26 @@ const demoRows: ResultRow[] = [
 // Non-Coil columns (fan/motor/dimensions/delivery/warehouse) are left at safe
 // zero defaults because the Coil view hides them; the values are never rendered.
 const demoCoilRows: ResultRow[] = [
-  { id: 'c1',  unitKey: 'F/2/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct: -43.6, surfaceM2:  9.6, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.18, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  4, priceOnRequest: true },
-  { id: 'c2',  unitKey: 'F/3/8/4.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: -14.2, surfaceM2: 14.4, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.08, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  4, priceOnRequest: true },
-  { id: 'c3',  unitKey: 'F/4/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: -22.1, surfaceM2: 11.5, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c4',  unitKey: 'F/4/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:   1.6, surfaceM2: 15.6, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c5',  unitKey: 'F/4/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  10.0, surfaceM2: 17.2, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c6',  unitKey: 'F/4/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct:  11.4, surfaceM2: 19.2, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c7',  unitKey: 'F/6/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  18.2, surfaceM2: 17.3, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c8',  unitKey: 'F/6/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  52.2, surfaceM2: 23.4, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c9',  unitKey: 'F/6/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  64.2, surfaceM2: 25.8, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c10', unitKey: 'F/6/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct:  67.1, surfaceM2: 28.9, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  8, priceOnRequest: true },
-  { id: 'c11', unitKey: 'F/8/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  53.6, surfaceM2: 23.0, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
-  { id: 'c12', unitKey: 'F/8/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  94.8, surfaceM2: 31.2, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
-  { id: 'c13', unitKey: 'F/8/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: 108.9, surfaceM2: 34.4, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
-  { id: 'c14', unitKey: 'F/8/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct: 110.2, surfaceM2: 38.5, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses:  9, priceOnRequest: true },
-  { id: 'c15', unitKey: 'F/10/8/7.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct:  89.8, surfaceM2: 28.8, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.32, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 16, priceOnRequest: true },
-  { id: 'c16', unitKey: 'F/10/8/5.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 135.8, surfaceM2: 39.1, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 26, priceOnRequest: true },
-  { id: 'c17', unitKey: 'F/10/8/4.50/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 152.2, surfaceM2: 43.0, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 26, priceOnRequest: true },
-  { id: 'c18', unitKey: 'F/10/8/4.00/1000/ARS/ /015032 (FT09)', capacityKw: 0, surfaceReservePct: 150.8, surfaceM2: 48.1, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 26, priceOnRequest: true },
-  { id: 'c19', unitKey: 'F/12/8/7.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 121.7, surfaceM2: 34.6, tubeVolumeL: 0, pressureRefBar: 0.23, pressureAirBar: 1.74, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 32, priceOnRequest: true },
-  { id: 'c20', unitKey: 'F/12/8/5.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 179.7, surfaceM2: 46.9, tubeVolumeL: 0, pressureRefBar: 0.23, pressureAirBar: 1.74, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 0, numberOfPasses: 32, priceOnRequest: true }
+  { id: 'c1',  unitKey: 'F/2/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct: -43.6, surfaceM2:  9.6, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.18, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur:  778, numberOfPasses:  4 },
+  { id: 'c2',  unitKey: 'F/3/8/4.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: -14.2, surfaceM2: 14.4, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.08, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur:  987, numberOfPasses:  4 },
+  { id: 'c3',  unitKey: 'F/4/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: -22.1, surfaceM2: 11.5, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur:  994, numberOfPasses:  8 },
+  { id: 'c4',  unitKey: 'F/4/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:   1.6, surfaceM2: 15.6, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1026, numberOfPasses:  8 },
+  { id: 'c5',  unitKey: 'F/4/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  10.0, surfaceM2: 17.2, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1040, numberOfPasses:  8 },
+  { id: 'c6',  unitKey: 'F/4/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct:  11.4, surfaceM2: 19.2, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.29, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1303, numberOfPasses:  8 },
+  { id: 'c7',  unitKey: 'F/6/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  18.2, surfaceM2: 17.3, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1352, numberOfPasses:  8 },
+  { id: 'c8',  unitKey: 'F/6/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  52.2, surfaceM2: 23.4, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1510, numberOfPasses:  8 },
+  { id: 'c9',  unitKey: 'F/6/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  64.2, surfaceM2: 25.8, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1685, numberOfPasses:  8 },
+  { id: 'c10', unitKey: 'F/6/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct:  67.1, surfaceM2: 28.9, tubeVolumeL: 0, pressureRefBar: 0.02, pressureAirBar: 0.13, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 1842, numberOfPasses:  8 },
+  { id: 'c11', unitKey: 'F/8/8/7.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  53.6, surfaceM2: 23.0, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 2015, numberOfPasses:  9 },
+  { id: 'c12', unitKey: 'F/8/8/5.00/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct:  94.8, surfaceM2: 31.2, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 2198, numberOfPasses:  9 },
+  { id: 'c13', unitKey: 'F/8/8/4.50/1000/ARS/ /025032 (FT09)',  capacityKw: 0, surfaceReservePct: 108.9, surfaceM2: 34.4, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 2374, numberOfPasses:  9 },
+  { id: 'c14', unitKey: 'F/8/8/4.00/1000/ARS/ /015032 (FT09)',  capacityKw: 0, surfaceReservePct: 110.2, surfaceM2: 38.5, tubeVolumeL: 0, pressureRefBar: 0.01, pressureAirBar: 0.10, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 2611, numberOfPasses:  9 },
+  { id: 'c15', unitKey: 'F/10/8/7.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct:  89.8, surfaceM2: 28.8, tubeVolumeL: 0, pressureRefBar: 0.04, pressureAirBar: 0.32, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 2860, numberOfPasses: 16 },
+  { id: 'c16', unitKey: 'F/10/8/5.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 135.8, surfaceM2: 39.1, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 3125, numberOfPasses: 26 },
+  { id: 'c17', unitKey: 'F/10/8/4.50/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 152.2, surfaceM2: 43.0, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 3410, numberOfPasses: 26 },
+  { id: 'c18', unitKey: 'F/10/8/4.00/1000/ARS/ /015032 (FT09)', capacityKw: 0, surfaceReservePct: 150.8, surfaceM2: 48.1, tubeVolumeL: 0, pressureRefBar: 0.19, pressureAirBar: 1.44, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 3720, numberOfPasses: 26 },
+  { id: 'c19', unitKey: 'F/12/8/7.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 121.7, surfaceM2: 34.6, tubeVolumeL: 0, pressureRefBar: 0.23, pressureAirBar: 1.74, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 4055, numberOfPasses: 32 },
+  { id: 'c20', unitKey: 'F/12/8/5.00/1000/ARS/ /025032 (FT09)', capacityKw: 0, surfaceReservePct: 179.7, surfaceM2: 46.9, tubeVolumeL: 0, pressureRefBar: 0.23, pressureAirBar: 1.74, airVolumeM3h: 0, fanSpeedRpm: 0, motorTech: '—', dimensionsL: 0, dimensionsW: 0, dimensionsH: 0, deliveryWeeks: 0, inWarehouse: false, totalPriceEur: 4420, numberOfPasses: 32 }
 ]
 
 const rows = computed<ResultRow[]>(() => {
@@ -216,6 +215,7 @@ const hoverPosition = computed(() => {
 
 // -------- Formatters --------
 function fmtEur(v: number)      { return v.toLocaleString('de-DE') + ',00 EUR' }
+function fmtEurBare(v: number)  { return v.toFixed(2) }
 function fmtSigned(v: number)   { return (v > 0 ? '+' : '') + v.toFixed(1) }
 function fmtInt(v: number)      { return v.toLocaleString('de-DE') }
 
@@ -328,7 +328,7 @@ function ColCell(props: ColCellProps) {
                 <ColCell label="Number of passes" sortable :sort-dir="sortBy === 'numberOfPasses' ? sortDir : null" @sort="sort('numberOfPasses')" />
               </th>
               <th class="col-price">
-                <ColCell label="Price [EUR]" filterable menu :sort-dir="null" />
+                <ColCell label="Price [EUR]" sortable filterable menu :sort-dir="sortBy === 'totalPriceEur' ? sortDir : null" @sort="sort('totalPriceEur')" />
               </th>
             </template>
             <template v-else>
@@ -383,7 +383,7 @@ function ColCell(props: ColCellProps) {
               <td class="num">{{ r.surfaceM2.toFixed(1) }}</td>
               <td class="num">{{ r.pressureRefBar.toFixed(2) }} / {{ r.pressureAirBar.toFixed(2) }}</td>
               <td class="num">{{ r.numberOfPasses ?? '—' }}</td>
-              <td class="on-request">Only upon request!</td>
+              <td class="num strong">{{ fmtEurBare(r.totalPriceEur) }}</td>
             </template>
             <template v-else>
               <td class="num">{{ r.capacityKw.toFixed(1) }}</td>
@@ -712,11 +712,6 @@ function ColCell(props: ColCellProps) {
 }
 .results-table tbody td.cell-key:hover { text-decoration: underline; }
 .results-table tbody td.is-neg { color: #B33A3A; }
-.results-table tbody td.on-request {
-  text-align: right;
-  color: var(--c-text-medium2);
-  font-style: italic;
-}
 
 .results-table tbody tr {
   cursor: pointer;
