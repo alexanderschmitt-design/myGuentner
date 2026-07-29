@@ -404,23 +404,20 @@ const sidebarGroups: SidebarAction[][] = [
 .ds-content {
   width: 100%;
   max-width: 900px;
-  background: white;
-  border: 1px solid var(--c-border-card);
-  border-radius: var(--radius-xs);
-  overflow: hidden;
+  background: transparent;
   display: flex;
   flex-direction: column;
+  gap: var(--space-sm);
 }
 
-/* Header band (grey) */
+/* Header — on page background, no card */
 .ds-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-sm);
-  padding: var(--space-sm);
-  background: var(--c-surface-alt);
-  border-bottom: 1px solid var(--c-border-card);
+  padding: 0 var(--space-xs) var(--space-xs);
+  background: transparent;
 }
 .ds-header-actions { display: inline-flex; gap: 4px; flex-shrink: 0; }
 .icon-btn {
@@ -447,8 +444,6 @@ const sidebarGroups: SidebarAction[][] = [
 }
 .ds-copy-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 12%, transparent); }
 
-/* Sections need their own horizontal padding since ds-content no longer pads */
-.ds-section { padding-left: var(--space-sm); padding-right: var(--space-sm); }
 .ds-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .ds-logo  { flex-shrink: 0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; }
 .ds-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
@@ -470,15 +465,16 @@ const sidebarGroups: SidebarAction[][] = [
 }
 .ds-title-link:hover { text-decoration: underline; }
 
-/* Sections */
+/* Sections — each is its own white card */
 .ds-section {
-  padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--c-border-card);
+  padding: var(--space-sm);
+  background: white;
+  border: 1px solid var(--c-border-card);
+  border-radius: var(--radius-xs);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.ds-section:last-child { border-bottom: none; }
 .ds-section-title {
   margin: 0 0 6px;
   font-family: var(--font-ui);

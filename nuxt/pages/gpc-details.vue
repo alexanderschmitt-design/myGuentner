@@ -509,23 +509,20 @@ const sidebarGroups: SidebarAction[][] = [
 .ds-content {
   width: 100%;
   max-width: 900px;
-  background: white;
-  border: 1px solid var(--c-border-card);
-  border-radius: var(--radius-xs);
-  overflow: hidden;
+  background: transparent;
   display: flex;
   flex-direction: column;
+  gap: var(--space-sm);
 }
 
-/* ---------- Header (grey band) ---------- */
+/* ---------- Header (on page background, no card) ---------- */
 .ds-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-sm);
-  padding: var(--space-sm);
-  background: var(--c-surface-alt);
-  border-bottom: 1px solid var(--c-border-card);
+  padding: 0 var(--space-xs) var(--space-xs);
+  background: transparent;
 }
 .ds-header-actions { display: inline-flex; gap: 4px; flex-shrink: 0; }
 .icon-btn {
@@ -552,19 +549,12 @@ const sidebarGroups: SidebarAction[][] = [
 }
 .ds-copy-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 12%, transparent); }
 
-/* Give sections their own horizontal padding since ds-content no longer pads */
-.ds-section { padding-left: var(--space-sm); padding-right: var(--space-sm); }
-
-/* ---------- Attention banner (white section, orange icon) ---------- */
-.ds-attention-section {
-  background: white;
-  border-bottom: 1px solid var(--c-border-card);
-}
+/* ---------- Attention banner (white card w/ orange icon) ---------- */
 .ds-attention-row {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 6px 0;
+  padding: 4px 0;
   font-family: var(--font-ui);
   font-size: var(--font-3xs);
   color: var(--c-text);
@@ -617,15 +607,16 @@ const sidebarGroups: SidebarAction[][] = [
 }
 .ds-banner svg { color: var(--c-warning); flex-shrink: 0; margin-top: 1px; }
 
-/* ---------- Sections ---------- */
+/* ---------- Sections (each is its own white card) ---------- */
 .ds-section {
-  padding: var(--space-sm) 0;
-  border-bottom: 1px solid var(--c-border-card);
+  padding: var(--space-sm);
+  background: white;
+  border: 1px solid var(--c-border-card);
+  border-radius: var(--radius-xs);
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
-.ds-section:last-child { border-bottom: none; }
 .ds-section-title {
   margin: 0 0 6px;
   font-family: var(--font-ui);
