@@ -172,14 +172,6 @@ const sidebarGroups: SidebarAction[][] = [
                 <a href="#" class="ds-title-link">{{ coilTitle }} — {{ coilKey }}</a>
               </div>
             </div>
-            <div class="ds-header-actions">
-              <button type="button" class="icon-btn" aria-label="Share">
-                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4.5" r="2"/><circle cx="5" cy="10" r="2"/><circle cx="15" cy="15.5" r="2"/><path d="M6.7 9l6.6-3.4M6.7 11l6.6 3.4"/></svg>
-              </button>
-              <button type="button" class="icon-btn" aria-label="Download">
-                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M6 9l4 4 4-4M4 16h12"/></svg>
-              </button>
-            </div>
           </header>
 
           <!-- Performance / Construction (2 col) -->
@@ -445,18 +437,6 @@ const sidebarGroups: SidebarAction[][] = [
   padding: 3px 0;
 }
 .ds-title-link:hover { text-decoration: underline; }
-.ds-header-actions { display: inline-flex; gap: 2px; flex-shrink: 0; }
-.icon-btn {
-  width: 36px; height: 34px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: transparent;
-  border: 1px solid var(--c-border);
-  color: var(--c-text-medium);
-  border-radius: var(--radius-xs);
-  cursor: pointer;
-  transition: border-color 0.12s, color 0.12s;
-}
-.icon-btn:hover { border-color: var(--c-brand-blue); color: var(--c-brand-blue); }
 
 /* Sections */
 .ds-section {
