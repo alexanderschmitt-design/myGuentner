@@ -512,7 +512,7 @@ const sidebarGroups: SidebarAction[][] = [
   background: transparent;
   display: flex;
   flex-direction: column;
-  gap: var(--space-sm);
+  gap: var(--space-xs);
 }
 
 /* ---------- Header (on page background, no card) ---------- */
@@ -520,8 +520,8 @@ const sidebarGroups: SidebarAction[][] = [
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: var(--space-sm);
-  padding: 0 var(--space-xs) var(--space-xs);
+  gap: var(--space-xs2);
+  padding: 0;
   background: transparent;
 }
 .ds-header-actions { display: inline-flex; gap: 4px; flex-shrink: 0; }
@@ -552,33 +552,33 @@ const sidebarGroups: SidebarAction[][] = [
 /* ---------- Attention banner (white card w/ orange icon) ---------- */
 .ds-attention-row {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 4px 0;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
   font-family: var(--font-ui);
   font-size: var(--font-3xs);
-  color: var(--c-text);
-  line-height: 18px;
+  color: var(--c-text-medium);
+  line-height: 15px;
 }
-.ds-attention-row svg { flex-shrink: 0; margin-top: 1px; }
-.ds-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.ds-attention-row svg { flex-shrink: 0; }
+.ds-brand { display: flex; align-items: center; gap: var(--space-xs2); min-width: 0; }
 .ds-logo  {
   flex-shrink: 0;
-  width: 24px;
+  width: 30px;
   height: 24px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
 .ds-logo svg { display: block; }
-.ds-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ds-title-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ds-title {
   margin: 0;
   font-family: var(--font-headline);
   font-weight: 400;
-  font-size: var(--font-xl);
+  font-size: var(--font-4xl);
   color: var(--c-text-value);
-  line-height: 30px;
+  line-height: 1;
   word-break: break-word;
 }
 .ds-title-link {
@@ -607,11 +607,11 @@ const sidebarGroups: SidebarAction[][] = [
 }
 .ds-banner svg { color: var(--c-warning); flex-shrink: 0; margin-top: 1px; }
 
-/* ---------- Sections (each is its own white card) ---------- */
+/* ---------- Sections (each is its own white card per Figma 4910:19166) ---------- */
 .ds-section {
-  padding: var(--space-sm);
+  padding: var(--space-xs);
   background: white;
-  border: 1px solid var(--c-border-card);
+  border: 1px solid var(--c-border);
   border-radius: var(--radius-xs);
   display: flex;
   flex-direction: column;
