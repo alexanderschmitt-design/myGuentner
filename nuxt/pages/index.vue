@@ -302,8 +302,8 @@ const COILS = [
   left: 0;
   right: 0;
   bottom: -1px;
-  height: 2px;
-  background: var(--c-brand-blue);
+  height: 3px;
+  background: #39EDB5;
   border-radius: 2px;
 }
 .tab-btn:focus-visible {
