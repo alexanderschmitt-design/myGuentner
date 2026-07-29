@@ -130,6 +130,9 @@ const footnotes = [
   'Pipe (DN = 16.0 mm, TSmax = 100 °C, gaseous). Final classification in accordance with Pressure Equipment Directive 2014/68/EU when the order is processed.'
 ]
 
+// -------- Actions --------
+function copyKey() { navigator.clipboard?.writeText(coilKey.value) }
+
 // -------- Sidebar (reduced set for Coil) --------
 function goBack() { router.push(searchUrl()) }
 interface SidebarAction { label: string; icon: string; onClick: () => void }
@@ -156,12 +159,12 @@ const sidebarGroups: SidebarAction[][] = [
       <!-- ================== Content column ================== -->
       <div class="ds-content-shell">
         <div class="ds-content">
-          <!-- Header: brand + product title + coil-key link + icon actions -->
+          <!-- Header band (grey): brand + product title + coil-key + icon actions -->
           <header class="ds-header">
             <div class="ds-brand">
               <span class="ds-logo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-                  <circle cx="12" cy="12" r="11" fill="#f5f4f6" stroke="#c5c5c5" stroke-width="0.8"/>
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <circle cx="12" cy="12" r="11" fill="white" stroke="#c5c5c5" stroke-width="0.8"/>
                   <text x="12" y="15.5" text-anchor="middle" font-family="Simplon BP, Geist, sans-serif" font-size="10" font-weight="500" fill="#3c3c3b">güntner</text>
                 </svg>
               </span>
@@ -169,8 +172,21 @@ const sidebarGroups: SidebarAction[][] = [
                 <h1 class="ds-title">
                   {{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
                 </h1>
-                <a href="#" class="ds-title-link">{{ coilKey }}</a>
+                <span class="ds-title-linewrap">
+                  <a href="#" class="ds-title-link">{{ coilKey }}</a>
+                  <button type="button" class="ds-copy-btn" aria-label="Copy coil key" @click="copyKey">
+                    <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M3 13V4a1 1 0 0 1 1-1h9"/></svg>
+                  </button>
+                </span>
               </div>
+            </div>
+            <div class="ds-header-actions">
+              <button type="button" class="icon-btn" aria-label="Favorite">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L10 15.4l-4.8 2.5.9-5.4L2.2 8.7l5.4-.8z"/></svg>
+              </button>
+              <button type="button" class="icon-btn" aria-label="Print" @click="() => window.print()">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7V3h8v4M4 7h12v6h-3v4H7v-4H4z"/></svg>
+              </button>
             </div>
           </header>
 
@@ -391,20 +407,48 @@ const sidebarGroups: SidebarAction[][] = [
   background: white;
   border: 1px solid var(--c-border-card);
   border-radius: var(--radius-xs);
-  padding: var(--space-sm);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* Header */
+/* Header band (grey) */
 .ds-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-sm);
-  padding-bottom: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--c-surface-alt);
   border-bottom: 1px solid var(--c-border-card);
 }
+.ds-header-actions { display: inline-flex; gap: 4px; flex-shrink: 0; }
+.icon-btn {
+  width: 34px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.icon-btn:hover { background: white; border-color: var(--c-border); }
+.ds-title-linewrap { display: inline-flex; align-items: center; gap: 6px; }
+.ds-copy-btn {
+  width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--c-brand-blue);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.12s;
+}
+.ds-copy-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 12%, transparent); }
+
+/* Sections need their own horizontal padding since ds-content no longer pads */
+.ds-section { padding-left: var(--space-sm); padding-right: var(--space-sm); }
 .ds-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .ds-logo  { flex-shrink: 0; width: 24px; height: 24px; display: inline-flex; align-items: center; justify-content: center; }
 .ds-title-wrap { display: flex; flex-direction: column; gap: 4px; min-width: 0; }

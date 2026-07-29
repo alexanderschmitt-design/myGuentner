@@ -104,6 +104,7 @@ const dims = { L: 1800, W: 950, H: 620, legs: 4 }
 const productCode = 'GPC-2101-25-1-041-K-2R-BASE-C'
 const productType = 'MPZ: GACV CX 040.2B/16-ALMB E5 [50]'
 function copyCode() { navigator.clipboard?.writeText(productCode) }
+function copyKey()  { navigator.clipboard?.writeText(unitKey.value) }
 
 // -------- Section 8: Pricing --------
 interface PriceRow { pos: number; description: string; quantity: number; unitPrice: number; totalPrice: number }
@@ -178,12 +179,12 @@ const sidebarGroups: SidebarAction[][] = [
       <!-- ================== Content column ================== -->
       <div class="ds-content-shell">
         <div class="ds-content">
-          <!-- Header: brand + product title + link + icon actions -->
+          <!-- Header band (grey): brand + product title + link + icon actions -->
           <header class="ds-header">
             <div class="ds-brand">
               <span class="ds-logo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="24" height="24" fill="none">
-                  <circle cx="12" cy="12" r="11" fill="#f5f4f6" stroke="#c5c5c5" stroke-width="0.8"/>
+                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
+                  <circle cx="12" cy="12" r="11" fill="white" stroke="#c5c5c5" stroke-width="0.8"/>
                   <text x="12" y="15.5" text-anchor="middle" font-family="Simplon BP, Geist, sans-serif" font-size="10" font-weight="500" fill="#3c3c3b">güntner</text>
                 </svg>
               </span>
@@ -191,16 +192,31 @@ const sidebarGroups: SidebarAction[][] = [
                 <h1 class="ds-title">
                   {{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
                 </h1>
-                <a href="#" class="ds-title-link">{{ unitKey }}</a>
+                <span class="ds-title-linewrap">
+                  <a href="#" class="ds-title-link">{{ unitKey }}</a>
+                  <button type="button" class="ds-copy-btn" aria-label="Copy unit key" @click="copyKey">
+                    <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="7" width="10" height="10" rx="1.5"/><path d="M3 13V4a1 1 0 0 1 1-1h9"/></svg>
+                  </button>
+                </span>
               </div>
+            </div>
+            <div class="ds-header-actions">
+              <button type="button" class="icon-btn" aria-label="Favorite">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L10 15.4l-4.8 2.5.9-5.4L2.2 8.7l5.4-.8z"/></svg>
+              </button>
+              <button type="button" class="icon-btn" aria-label="Print" @click="() => window.print()">
+                <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7V3h8v4M4 7h12v6h-3v4H7v-4H4z"/></svg>
+              </button>
             </div>
           </header>
 
-          <!-- Notification banners -->
-          <div v-for="(a, i) in attentions" :key="`att-${i}`" class="ds-banner">
-            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l8 14H2z"/><path d="M10 8v4"/><circle cx="10" cy="14.5" r="0.7" fill="currentColor" stroke="none"/></svg>
-            <span>{{ a }}</span>
-          </div>
+          <!-- Notification banners (white section, orange icon) -->
+          <section v-if="attentions.length" class="ds-section ds-attention-section">
+            <div v-for="(a, i) in attentions" :key="`att-${i}`" class="ds-attention-row">
+              <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#C57B00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l8 14H2z"/><path d="M10 8v4"/><circle cx="10" cy="14.5" r="0.7" fill="#C57B00" stroke="none"/></svg>
+              <span>{{ a }}</span>
+            </div>
+          </section>
 
           <!-- Section 1 — Duty / operating conditions (3 columns) -->
           <section class="ds-section">
@@ -496,20 +512,65 @@ const sidebarGroups: SidebarAction[][] = [
   background: white;
   border: 1px solid var(--c-border-card);
   border-radius: var(--radius-xs);
-  padding: var(--space-sm);
+  overflow: hidden;
   display: flex;
   flex-direction: column;
 }
 
-/* ---------- Header ---------- */
+/* ---------- Header (grey band) ---------- */
 .ds-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: var(--space-sm);
-  padding-bottom: var(--space-xs);
+  padding: var(--space-sm);
+  background: var(--c-surface-alt);
   border-bottom: 1px solid var(--c-border-card);
 }
+.ds-header-actions { display: inline-flex; gap: 4px; flex-shrink: 0; }
+.icon-btn {
+  width: 34px; height: 32px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s;
+}
+.icon-btn:hover { background: white; border-color: var(--c-border); }
+.ds-title-linewrap { display: inline-flex; align-items: center; gap: 6px; }
+.ds-copy-btn {
+  width: 20px; height: 20px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--c-brand-blue);
+  cursor: pointer;
+  border-radius: 3px;
+  transition: background 0.12s;
+}
+.ds-copy-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 12%, transparent); }
+
+/* Give sections their own horizontal padding since ds-content no longer pads */
+.ds-section { padding-left: var(--space-sm); padding-right: var(--space-sm); }
+
+/* ---------- Attention banner (white section, orange icon) ---------- */
+.ds-attention-section {
+  background: white;
+  border-bottom: 1px solid var(--c-border-card);
+}
+.ds-attention-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 6px 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text);
+  line-height: 18px;
+}
+.ds-attention-row svg { flex-shrink: 0; margin-top: 1px; }
 .ds-brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .ds-logo  {
   flex-shrink: 0;
