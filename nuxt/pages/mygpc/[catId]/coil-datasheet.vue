@@ -169,7 +169,7 @@ const sidebarGroups: SidebarAction[][] = [
                 <h1 class="ds-title">
                   {{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
                 </h1>
-                <a href="#" class="ds-title-link">{{ coilTitle }} — {{ coilKey }}</a>
+                <a href="#" class="ds-title-link">{{ coilKey }}</a>
               </div>
             </div>
           </header>
