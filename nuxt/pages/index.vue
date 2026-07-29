@@ -295,7 +295,7 @@ const COILS = [
   transition: color 0.15s;
 }
 .tab-btn:hover:not(.active) { color: var(--c-text); }
-.tab-btn.active { color: var(--c-brand-blue); }
+.tab-btn.active { color: var(--c-text-value); }
 .tab-btn.active::after {
   content: '';
   position: absolute;
