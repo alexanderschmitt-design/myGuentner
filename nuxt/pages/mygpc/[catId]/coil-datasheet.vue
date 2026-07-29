@@ -167,7 +167,7 @@ const sidebarGroups: SidebarAction[][] = [
               </span>
               <div class="ds-title-wrap">
                 <h1 class="ds-title">
-                  <span class="mode-tag">COIL · </span>{{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
+                  {{ current.title.toUpperCase() }}{{ current.sublabel ? ' [' + current.sublabel + ']' : '' }}
                 </h1>
                 <a href="#" class="ds-title-link">{{ coilTitle }} — {{ coilKey }}</a>
               </div>
@@ -416,18 +416,6 @@ const sidebarGroups: SidebarAction[][] = [
   color: var(--c-text-value);
   line-height: 30px;
   word-break: break-word;
-}
-.mode-tag {
-  display: inline-block;
-  padding: 2px 8px;
-  margin-right: 6px;
-  background: color-mix(in srgb, var(--c-brand-blue) 12%, white);
-  color: var(--c-brand-blue);
-  border-radius: var(--radius-xs2);
-  font-size: var(--font-3xs);
-  font-weight: 500;
-  vertical-align: middle;
-  font-family: var(--font-ui);
 }
 .ds-title-link {
   font-family: var(--font-ui);
