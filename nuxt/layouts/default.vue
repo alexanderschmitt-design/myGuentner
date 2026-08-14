@@ -12,6 +12,7 @@
 import GuentnerLogo from '~/components/GuentnerLogo.vue'
 import TopStepNav from '~/components/TopStepNav.vue'
 import SyncPanel from '~/components/SyncPanel.vue'
+import PerspectiveSwitcher from '~/components/PerspectiveSwitcher.vue'
 
 const route = useRoute()
 const user = useSupabaseUser()
@@ -153,6 +154,12 @@ async function logout() {
 
         <span class="menu-divider" aria-hidden="true"></span>
 
+        <!-- 3-Ebenen-Switcher per CLAUDE.md — always visible in the header,
+             wired via usePerspective() to the shared Pinia store. -->
+        <PerspectiveSwitcher class="header-perspective" />
+
+        <span class="menu-divider" aria-hidden="true"></span>
+
         <div v-if="user" class="profile-cluster">
           <button
             class="avatar-group"
@@ -268,6 +275,22 @@ async function logout() {
      consumed by .site-main.with-chat and by the drawer's CSS. */
   --chat-drawer-w: 733px;
   --header-h: 68px;
+  /* Perspective accent — 3-Ebenen-Farbcode am oberen Rand. */
+  --perspective-accent: var(--c-brand-blue);
+  border-top: 3px solid var(--perspective-accent);
+  transition: border-top-color 0.2s ease;
+}
+/* Data-perspective attribute on .app-shell (set in template above) drives
+   the accent color of the top bar. Same values as PerspectiveSwitcher. */
+.app-shell[data-perspective='technical']   { --perspective-accent: var(--c-primary, #003865); }
+.app-shell[data-perspective='application'] { --perspective-accent: var(--c-process, #0078BE); }
+.app-shell[data-perspective='location']    { --perspective-accent: var(--c-site, #5B8C5A); }
+
+/* Header-mounted PerspectiveSwitcher — a bit smaller than the default. */
+.header-perspective { flex-shrink: 0; }
+.header-perspective :deep(.perspective-btn) {
+  padding: 6px 10px;
+  font-size: var(--font-3xs);
 }
 
 /* ================== HEADER ================== */

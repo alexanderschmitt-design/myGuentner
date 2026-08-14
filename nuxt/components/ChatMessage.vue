@@ -5,8 +5,13 @@
  * Assistant messages support Markdown via `marked` + sanitisation with
  * `dompurify`, so LLM-authored content can safely land in the DOM.
  * User turns render as plain text.
+ *
+ * Feedback: bei gesetzter `messageId` (nur assistant-Turns nach Persistenz)
+ * werden 👍/👎-Buttons + Korrektur-Toggle angezeigt. Klicks feuern das
+ * `feedback`-Event nach oben — die tatsächliche API-Kommunikation macht
+ * ChatDock.
  */
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import type { RagSource } from '~/composables/useChatStream'
@@ -17,20 +22,62 @@ const props = defineProps<{
   content: string
   sources?: RagSource[]
   streaming?: boolean
+  messageId?: string | null
 }>()
 
-const emit = defineEmits<{ (e: 'openSource', src: RagSource): void }>()
+export interface FeedbackPayload {
+  messageId: string
+  rating: -1 | 0 | 1
+  correctionText?: string
+}
+
+const emit = defineEmits<{
+  (e: 'openSource', src: RagSource): void
+  (e: 'feedback', payload: FeedbackPayload): void
+}>()
 
 marked.setOptions({ breaks: true, gfm: true })
 
 const html = computed(() => {
   if (props.role !== 'assistant') return ''
   const raw = marked.parse(props.content || '') as string
-  // DOMPurify is client-only; on SSR return the raw HTML (the widget is
-  // never rendered on the server anyway).
   if (typeof window === 'undefined') return raw
   return DOMPurify.sanitize(raw)
 })
+
+const currentRating = ref<-1 | 0 | 1 | null>(null)
+const showCorrection = ref(false)
+const correctionText = ref('')
+const saving = ref(false)
+const savedAt = ref<number | null>(null)
+
+function rate(r: -1 | 1) {
+  if (!props.messageId || props.streaming) return
+  currentRating.value = currentRating.value === r ? 0 : r
+  if (currentRating.value === -1) showCorrection.value = true
+  if (currentRating.value !== 0) sendFeedback()
+}
+
+function sendFeedback() {
+  if (!props.messageId || currentRating.value === null) return
+  saving.value = true
+  emit('feedback', {
+    messageId: props.messageId,
+    rating: currentRating.value,
+    correctionText: correctionText.value.trim() || undefined
+  })
+  // Optimistic — parent will confirm via a prop refresh later if needed
+  setTimeout(() => { saving.value = false; savedAt.value = Date.now() }, 300)
+}
+
+function submitCorrection() {
+  if (!props.messageId) return
+  currentRating.value = -1
+  sendFeedback()
+  showCorrection.value = false
+}
+
+const canFeedback = computed(() => props.role === 'assistant' && !!props.messageId && !props.streaming)
 </script>
 
 <template>
@@ -47,6 +94,47 @@ const html = computed(() => {
           :source="s"
           @open="emit('openSource', $event)"
         />
+      </div>
+      <div v-if="canFeedback" class="chat-msg-feedback">
+        <button
+          type="button"
+          class="fb-btn"
+          :class="{ active: currentRating === 1 }"
+          :aria-pressed="currentRating === 1"
+          title="Hilfreich"
+          @click="rate(1)"
+        >👍</button>
+        <button
+          type="button"
+          class="fb-btn"
+          :class="{ active: currentRating === -1 }"
+          :aria-pressed="currentRating === -1"
+          title="Nicht hilfreich"
+          @click="rate(-1)"
+        >👎</button>
+        <button
+          v-if="currentRating === -1 || showCorrection"
+          type="button"
+          class="fb-link"
+          @click="showCorrection = !showCorrection"
+        >{{ showCorrection ? 'Korrektur abbrechen' : 'Korrektur schreiben' }}</button>
+        <span v-if="savedAt" class="fb-saved">gespeichert</span>
+      </div>
+      <div v-if="canFeedback && showCorrection" class="chat-msg-correction">
+        <textarea
+          v-model="correctionText"
+          class="fb-textarea"
+          rows="3"
+          placeholder="Das ist falsch — richtig wäre …"
+        />
+        <div class="fb-actions">
+          <button
+            type="button"
+            class="fb-submit"
+            :disabled="!correctionText.trim() || saving"
+            @click="submitCorrection"
+          >Korrektur senden</button>
+        </div>
       </div>
     </div>
   </div>
@@ -118,4 +206,64 @@ const html = computed(() => {
   flex-wrap: wrap;
   gap: 4px;
 }
+
+.chat-msg-feedback {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+}
+.fb-btn {
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1.2;
+  transition: background 120ms;
+}
+.fb-btn:hover { background: rgba(0,0,0,0.05); }
+.fb-btn.active { background: var(--c-brand-blue); border-color: var(--c-brand-blue); color: white; }
+.fb-link {
+  background: transparent;
+  border: none;
+  color: var(--c-brand-blue);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  text-decoration: underline;
+}
+.fb-saved {
+  color: var(--c-text-muted, #666);
+  font-style: italic;
+}
+.chat-msg-correction {
+  margin-top: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fb-textarea {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid rgba(0,0,0,0.15);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
+  resize: vertical;
+}
+.fb-actions { display: flex; justify-content: flex-end; }
+.fb-submit {
+  background: var(--c-brand-blue);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 12px;
+  cursor: pointer;
+}
+.fb-submit:disabled { opacity: 0.5; cursor: not-allowed; }
 </style>

@@ -18,15 +18,59 @@ useHead({ title: 'myGPC — Datasheet' })
 
 const store  = useConfigStore()
 const router = useRouter()
+const gpceu  = useGpceu()
 
-const unitKey = computed(() => store.selectedUnitKey || 'GACV CX 040.2B/16-ALMB.E5(x50)')
-
-const gpceu = useGpceu()
-const { data: features } = await useAsyncData(
-  'mygps-datasheet-features',
-  () => store.selectedUnitKey ? gpceu.unitFeatures({ languageID: 2, unitKey: store.selectedUnitKey } as any).catch(() => null) : Promise.resolve(null),
-  { default: () => null, watch: [() => store.selectedUnitKey] }
+// Reuse the same useAsyncData key as search.vue so the findUnits result is
+// cached across the wizard step transition — no second network round-trip
+// just to open the datasheet.
+const findPayload = computed(() => store.payloadForFindUnits)
+const { data: findResult } = await useAsyncData(
+  'mygps-output-findunits',
+  () => gpceu.findUnits(findPayload.value).catch((err) => {
+    console.warn('[datasheet] findUnits failed:', err)
+    return null
+  }),
+  { default: () => null, watch: [findPayload] }
 )
+
+/** The GPC.EU entry matching the picked unit key, or null if we're on the
+ *  hardcoded fallback path (nothing selected / query failed / mock data). */
+const selectedApi = computed<any | null>(() => {
+  const r: any = findResult.value
+  const list: any[] = Array.isArray(r) ? r : Array.isArray(r?.foundUnits) ? r.foundUnits : []
+  if (!list.length) return null
+  const key = store.selectedUnitKey
+  if (key) {
+    const hit = list.find((u: any) => u.unitKey === key || u.modelRange === key)
+    if (hit) return hit
+  }
+  // No selectedUnitKey → fall back to first result so the datasheet still
+  // renders something coherent when the user jumps straight to /gpc-details.
+  return list[0] ?? null
+})
+
+const unitKey = computed(() => {
+  const api = selectedApi.value
+  if (api?.unitKey) return String(api.unitKey)
+  return store.selectedUnitKey || 'GACV CX 040.2B/16-ALMB.E5(x50)'
+})
+
+// ---- Small formatters used across the derived rows ----
+function fmtN(v: unknown, digits = 1, unit = ''): string {
+  if (v == null || v === '') return '—'
+  const n = Number(v)
+  if (!Number.isFinite(n)) return String(v)
+  return `${n.toFixed(digits)}${unit ? ' ' + unit : ''}`
+}
+function fmtStr(v: unknown, fallback = '—'): string {
+  return v == null || v === '' ? fallback : String(v)
+}
+function motorTechLabel(code: unknown): string {
+  const n = Number(code)
+  if (n === 2) return 'EC'
+  if (n === 1) return 'AC'
+  return 'EC'
+}
 
 // -------- Notifications --------
 const attentions = [
@@ -36,35 +80,51 @@ const attentions = [
 
 // -------- Section 1: Operating condition / duty --------
 // Three-column data: label · duty · circuit-2 (for multi-circuit units).
+// Backed by the live GPC.EU entry when available; falls back to the wizard
+// slice so the layout always renders even without an API connection.
 interface DataRow { label: string; a?: string; b?: string; c?: string }
-const dutyRows: DataRow[] = [
-  { label: 'Capacity',          a: `${(store.parameters.coolingCapacityKw ?? 10).toFixed(1)} kW`, b: 'Condensate',      c: '0.3 kg/h' },
-  { label: 'Air volume',        a: '6,200 m³/h',                                                    b: 'Air throw',       c: 'approx. 13 m' },
-  { label: 'Air velocity',      a: '2.4 m/s',                                                       b: 'Duty',            c: 'Standard' },
-  { label: 'Surface reserve',   a: '+2 %',                                                          b: 'Frost thickness', c: '0 mm' },
-  { label: 'Air temp. in',      a: '0 °C',                                                          b: 'Air temp. out',   c: '−4.5 °C' },
-  { label: 'Rel. humidity',     a: 'auto',                                                          b: 'ADP',             c: '−7.5 °C' },
-  { label: 'Fluid',             a: `${store.parameters.refrigerant ?? 'R744'} (A1)`,                b: 'Evap. temp.',     c: `${store.parameters.evaporatingTempC ?? -8} °C` },
-  { label: 'Superheating',      a: '5 K',                                                           b: 'Cond. temp.',     c: '+30 °C' },
-  { label: 'Outlet temperature',a: '−12 °C',                                                        b: 'Subcooling',      c: '2 K' },
-  { label: 'Tube volume',       a: '10.5 l',                                                        b: 'Pressure drop',   c: '0.15 bar' }
-]
+const dutyRows = computed<DataRow[]>(() => {
+  const u = selectedApi.value
+  const p = store.parameters
+  const capacityKw = u?.thermalCapacity != null
+    ? Number(u.thermalCapacity) / 1000
+    : (p.coolingCapacityKw ?? 10)
+  return [
+    { label: 'Capacity',           a: `${capacityKw.toFixed(1)} kW`,                          b: 'Condensate',      c: fmtStr(u?.condensate, '0.3 kg/h') },
+    { label: 'Air volume',         a: fmtN(u?.airVolumeFlow ?? 6200, 0, 'm³/h'),              b: 'Air throw',       c: 'approx. 13 m' },
+    { label: 'Air velocity',       a: fmtN(u?.airVelocity ?? 2.4, 1, 'm/s'),                  b: 'Duty',            c: 'Standard' },
+    { label: 'Surface reserve',    a: `${(u?.surfaceReserve != null ? Number(u.surfaceReserve) : 2).toFixed(1).replace(/^-?/, m => m || '+')} %`,
+                                                                                                b: 'Frost thickness', c: `${p.frostThicknessMm ?? 0} mm` },
+    { label: 'Air temp. in',       a: fmtN(u?.airTempInlet ?? p.airInletTempC, 1, '°C'),      b: 'Air temp. out',   c: fmtN(u?.airTempOutlet ?? -4.5, 1, '°C') },
+    { label: 'Rel. humidity',      a: p.humidityAuto ? 'auto' : `${p.relHumidityPct ?? 40} %`, b: 'ADP',            c: '−7.5 °C' },
+    { label: 'Fluid',              a: `${p.refrigerant ?? 'R744'} (A1)`,                       b: 'Evap. temp.',    c: fmtN(u?.evaporationTemp ?? p.evaporatingTempC, 1, '°C') },
+    { label: 'Superheating',       a: fmtN(u?.superHeating ?? p.superheatingK, 0, 'K'),        b: 'Cond. temp.',    c: fmtN(p.condensingTempC ?? 30, 0, '°C') },
+    { label: 'Outlet temperature', a: '−12 °C',                                                b: 'Subcooling',     c: fmtN(p.subcoolingK ?? 2, 0, 'K') },
+    { label: 'Tube volume',        a: fmtStr(u?.tubeVolume, '10.5 l'),                         b: 'Pressure drop',  c: fmtN(u?.fluidPressureDrop ?? 0.15, 2, 'bar') }
+  ]
+})
 
 // -------- Section 2: Fan / control (small) --------
-const fanRows: DataRow[] = [
-  { label: 'Fan type',   a: 'EC · Ø 500 mm',   b: 'Speed control', c: '0–10 V' },
-  { label: 'Fan count',  a: '4',                b: 'Casing air',    c: 'IP54' },
-  { label: 'Air blow',   a: 'Induced' }
-]
+const fanRows = computed<DataRow[]>(() => {
+  const u = selectedApi.value
+  return [
+    { label: 'Fan type',   a: `${motorTechLabel(u?.motorTechnology)} · Ø 500 mm`, b: 'Speed control', c: '0–10 V' },
+    { label: 'Fan count',  a: fmtStr(u?.noOfDevices, '4'),                        b: 'Casing air',    c: 'IP54' },
+    { label: 'Air blow',   a: 'Induced' }
+  ]
+})
 
 // -------- Section 3: Materials / grid (medium) --------
-const materialsA: DataRow[] = [
-  { label: 'Casing',        a: 'Alu. powder coated RAL 9010' },
-  { label: 'Fin material',  a: 'Aluminium, hydrophilic' },
-  { label: 'Tube material', a: 'Cu inner grooved' },
-  { label: 'Coating',       a: 'None' },
-  { label: 'Legs',          a: 'Galvanised steel' }
-]
+const materialsA = computed<DataRow[]>(() => {
+  const u = selectedApi.value
+  return [
+    { label: 'Casing',        a: fmtStr(u?.casing, 'Alu. powder coated RAL 9010') },
+    { label: 'Fin material',  a: fmtStr(u?.finMaterialCode, 'Aluminium, hydrophilic') },
+    { label: 'Tube material', a: u?.coreTubeMaterialCode ? `${u.coreTubeMaterialCode} inner grooved` : 'Cu inner grooved' },
+    { label: 'Coating',       a: 'None' },
+    { label: 'Legs',          a: 'Galvanised steel' }
+  ]
+})
 const materialsB: DataRow[] = [
   { label: 'Fin spacing',      a: '4.5 mm' },
   { label: 'Fluid connection', a: 'Cu · brazing' },
@@ -76,42 +136,63 @@ const powerConsumption = '0.85 kW'
 const efficiencyGrade  = 'A'
 
 // -------- Section 5: Coil / heat-exchanger data --------
-const coilA: DataRow[] = [
-  { label: 'Casing',            a: 'Alu. Powder coated RAL 9010' },
-  { label: 'Surface',           a: '33 x 5' },
-  { label: 'Tube volume',       a: '10.5 l' },
-  { label: 'Fin spacing',       a: '4.5 mm' },
-  { label: 'Weight',            a: '48 kg' },
-  { label: 'Max. pressure',     a: '45 bar' },
-  { label: 'Distribution system', a: 'Venturi' },
-  { label: 'No. circuits',      a: '2' }
-]
-const coilB: DataRow[] = [
-  { label: 'Tubes',             a: 'Cu inner grooved · Ø 12 mm' },
-  { label: 'Fins',              a: 'Alu hydrophilic 4.5 mm' },
-  { label: 'Pressure drop',     a: '0.15 bar' },
-  { label: 'Outlet connection', a: '1 x 22 mm · Cu' },
-  { label: 'Inlet connection',  a: '1 x 18 mm · Cu' },
-  { label: 'Classification',    a: 'Art. 4.3 PED' },
-  { label: 'Passes',            a: '4' },
-  { label: 'Connections',       a: 'Air-flow side, right' }
-]
+const coilA = computed<DataRow[]>(() => {
+  const u = selectedApi.value
+  return [
+    { label: 'Casing',              a: fmtStr(u?.casing, 'Alu. Powder coated RAL 9010') },
+    { label: 'Surface',             a: fmtStr(u?.surface, '33 x 5') },
+    { label: 'Tube volume',         a: fmtStr(u?.tubeVolume, '10.5 l') },
+    { label: 'Fin spacing',         a: '4.5 mm' },
+    { label: 'Weight',              a: '48 kg' },
+    { label: 'Max. pressure',       a: '45 bar' },
+    { label: 'Distribution system', a: 'Venturi' },
+    { label: 'No. circuits',        a: fmtStr(u?.noOfPasses, '2') }
+  ]
+})
+const coilB = computed<DataRow[]>(() => {
+  const u = selectedApi.value
+  const inletCount    = u?.noInletNipples ?? '1'
+  const inletDia      = u?.inletNippleOuterDiameter ?? '18 mm'
+  const outletCount   = u?.noOutletNipples ?? '1'
+  const outletDia     = u?.outletNippleOuterDiameter ?? '22 mm'
+  return [
+    { label: 'Tubes',             a: fmtStr(u?.tubes, 'Cu inner grooved · Ø 12 mm') },
+    { label: 'Fins',              a: fmtStr(u?.fins, 'Alu hydrophilic 4.5 mm') },
+    { label: 'Pressure drop',     a: fmtN(u?.fluidPressureDrop ?? 0.15, 2, 'bar') },
+    { label: 'Outlet connection', a: `${outletCount} x ${outletDia} · Cu` },
+    { label: 'Inlet connection',  a: `${inletCount} x ${inletDia} · Cu` },
+    { label: 'Classification',    a: 'Art. 4.3 PED' },
+    { label: 'Passes',            a: fmtStr(u?.noOfPasses, '4') },
+    { label: 'Connections',       a: 'Air-flow side, right' }
+  ]
+})
 
 // -------- Section 6: Dimensions (installation) --------
 const dims = { L: 1800, W: 950, H: 620, legs: 4 }
 
 // -------- Section 7: Product code + product type --------
 const productCode = 'GPC-2101-25-1-041-K-2R-BASE-C'
-const productType = 'MPZ: GACV CX 040.2B/16-ALMB E5 [50]'
+const productType = computed(() => {
+  const u = selectedApi.value
+  if (u?.unitKey) return `MPZ: ${u.unitKey}`
+  return `MPZ: ${unitKey.value}`
+})
 function copyCode() { navigator.clipboard?.writeText(productCode) }
 function copyKey()  { navigator.clipboard?.writeText(unitKey.value) }
 
 // -------- Section 8: Pricing --------
 interface PriceRow { pos: number; description: string; quantity: number; unitPrice: number; totalPrice: number }
-const priceRows: PriceRow[] = [
-  { pos: 1, description: 'GACV CX 040.2B/16-ALMB E5', quantity: 1, unitPrice: 3822.15, totalPrice: 3822.15 }
-]
-const totalPrice = computed(() => priceRows.reduce((sum, r) => sum + r.totalPrice, 0))
+const priceRows = computed<PriceRow[]>(() => {
+  const u = selectedApi.value
+  const desc = u?.unitKey ?? store.selectedUnitKey ?? 'GACV CX 040.2B/16-ALMB E5'
+  // GPC.EU doesn't ship prices via findUnits; fall back to the last known
+  // demo price so the totals block stays populated.
+  const unitPrice = Number(u?.price ?? u?.totalPrice ?? 3822.15)
+  return [
+    { pos: 1, description: String(desc), quantity: 1, unitPrice, totalPrice: unitPrice }
+  ]
+})
+const totalPrice = computed(() => priceRows.value.reduce((sum, r) => sum + r.totalPrice, 0))
 const deliveryWeeks = 'On request'
 
 // -------- Section 9: Dimensional drawing + letter-labelled dim table --------
@@ -146,6 +227,37 @@ const impactScore = 3
 const { current, searchUrl, thermoUrl } = useCategory()
 function goBack() { router.push(searchUrl()) }
 
+// --- Ask-Günther failsafe -------------------------------------------------
+// True when we're rendering the datasheet without a matching live entry —
+// either the API returned an empty foundUnits array, or the user's
+// selectedUnitKey didn't appear in the results. Drives the fallback CTA.
+const isLiveDataMissing = computed(() => {
+  const r: any = findResult.value
+  if (!r) return true // API unavailable
+  const list: any[] = Array.isArray(r) ? r : Array.isArray(r.foundUnits) ? r.foundUnits : []
+  if (!list.length) return true
+  const key = store.selectedUnitKey
+  return key ? !list.some((u: any) => u.unitKey === key || u.modelRange === key) : false
+})
+
+const chatDockOpen    = useChatDockState()
+const chatDockPreload = useChatDockPreload()
+function askGuentherAboutUnit() {
+  const p = store.parameters
+  const parts = [
+    p.coolingCapacityKw != null ? `Kälteleistung ${p.coolingCapacityKw} kW` : null,
+    p.refrigerant                ? `Kältemittel ${p.refrigerant}` : null,
+    p.evaporatingTempC != null   ? `t₀ = ${p.evaporatingTempC} °C` : null
+  ].filter(Boolean).join(', ')
+  const target = store.selectedUnitKey || unitKey.value
+  chatDockPreload.value =
+    `Ich möchte Details zu ${target} für ${current.value.title}` +
+    `${current.value.sublabel ? ' ' + current.value.sublabel : ''}` +
+    `${parts ? ' (' + parts + ')' : ''}. ` +
+    `Kannst du mir Spezifikation, Preis und Alternativen nennen?`
+  chatDockOpen.value = true
+}
+
 // -------- Sidebar action buttons (grouped like Figma dropdownMenu) --------
 interface SidebarAction { label: string; icon: string; onClick: () => void; danger?: boolean }
 const sidebarGroups: SidebarAction[][] = [
@@ -176,17 +288,12 @@ const sidebarGroups: SidebarAction[][] = [
 <template>
   <div class="ds-page">
     <div class="ds-layout">
-      <!-- ================== Content column ================== -->
-      <div class="ds-content-shell">
-        <div class="ds-content">
-          <!-- Header band (grey): brand + product title + link + icon actions -->
-          <header class="ds-header">
+      <!-- Header spans the full layout width so sidebar & first section align -->
+      <div class="ds-header-shell">
+        <header class="ds-header">
             <div class="ds-brand">
               <span class="ds-logo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <circle cx="12" cy="12" r="11" fill="white" stroke="#c5c5c5" stroke-width="0.8"/>
-                  <text x="12" y="15.5" text-anchor="middle" font-family="Simplon BP, Geist, sans-serif" font-size="10" font-weight="500" fill="#3c3c3b">güntner</text>
-                </svg>
+                <img src="/icons/logo-black.svg" alt="" />
               </span>
               <div class="ds-title-wrap">
                 <h1 class="ds-title">
@@ -208,11 +315,37 @@ const sidebarGroups: SidebarAction[][] = [
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7V3h8v4M4 7h12v6h-3v4H7v-4H4z"/></svg>
               </button>
             </div>
-          </header>
+        </header>
+      </div>
 
-          <!-- Notification banners (white section, orange icon) -->
-          <section v-if="attentions.length" class="ds-section ds-attention-section">
-            <div v-for="(a, i) in attentions" :key="`att-${i}`" class="ds-attention-row">
+      <!-- ================== Content column ================== -->
+      <div class="ds-content-shell">
+        <div class="ds-content">
+          <!-- Failsafe: no live GPC.EU entry for this unit — the sections
+               below fall back to demo values, and we offer Günther as the
+               way to get real answers. -->
+          <section v-if="isLiveDataMissing" class="ds-section ds-ask-guenther-section">
+            <div class="ds-ask-guenther">
+              <div class="ds-ask-text">
+                <strong>Live datasheet data not available for {{ unitKey }}.</strong>
+                <span>The values below are demo defaults — Günther can look up the actual specification via GPC.EU.</span>
+              </div>
+              <button type="button" class="btn btn-primary btn-ask" @click="askGuentherAboutUnit">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 5h12v9H8l-4 4V5z"/>
+                </svg>
+                Ask Günther
+              </button>
+            </div>
+          </section>
+
+          <!-- Notification banners (one white card per warning, orange icon) -->
+          <section
+            v-for="(a, i) in attentions"
+            :key="`att-${i}`"
+            class="ds-section ds-attention-section"
+          >
+            <div class="ds-attention-row">
               <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="#C57B00" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3l8 14H2z"/><path d="M10 8v4"/><circle cx="10" cy="14.5" r="0.7" fill="#C57B00" stroke="none"/></svg>
               <span>{{ a }}</span>
             </div>
@@ -487,9 +620,9 @@ const sidebarGroups: SidebarAction[][] = [
       </aside>
     </div>
 
-    <details v-if="features" class="api-debug">
-      <summary>features from GPC.EU API</summary>
-      <pre>{{ JSON.stringify(features, null, 2).slice(0, 1200) }}</pre>
+    <details v-if="selectedApi" class="api-debug">
+      <summary>Live GPC.EU entry ({{ unitKey }})</summary>
+      <pre>{{ JSON.stringify(selectedApi, null, 2).slice(0, 1200) }}</pre>
     </details>
   </div>
 </template>
@@ -500,10 +633,34 @@ const sidebarGroups: SidebarAction[][] = [
 .ds-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 326px;
-  gap: var(--space-md);
+  grid-template-areas:
+    "header  header"
+    "content sidebar";
+  column-gap: var(--space-md);
+  row-gap: var(--space-xs);
   align-items: start;
 }
-@media (max-width: 1100px) { .ds-layout { grid-template-columns: 1fr; } }
+.ds-header-shell   {
+  grid-area: header;
+  display: flex;
+  justify-content: center;
+  /* Reserve the sidebar column so the 900px header centers within the
+     content column, keeping logo + title left-aligned with the warning cards. */
+  padding-right: calc(326px + var(--space-md));
+}
+.ds-header-shell .ds-header { width: 100%; max-width: 900px; }
+.ds-content-shell  { grid-area: content; }
+.ds-sidebar        { grid-area: sidebar; }
+@media (max-width: 1100px) {
+  .ds-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "content"
+      "sidebar";
+  }
+  .ds-header-shell { padding-right: 0; }
+}
 
 .ds-content-shell { display: flex; justify-content: center; min-width: 0; }
 .ds-content {
@@ -561,16 +718,49 @@ const sidebarGroups: SidebarAction[][] = [
   line-height: 15px;
 }
 .ds-attention-row svg { flex-shrink: 0; }
+
+/* Ask-Günther failsafe (no live entry for this unit) */
+.ds-ask-guenther {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 16px;
+  border: 1px solid var(--c-border);
+  border-left: 3px solid var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--c-brand-blue) 4%, white);
+}
+.ds-ask-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-value);
+  line-height: 1.5;
+}
+.ds-ask-text strong { font-weight: 500; }
+.ds-ask-text span   { color: var(--c-text-medium); }
+.btn-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 .ds-brand { display: flex; align-items: center; gap: var(--space-xs2); min-width: 0; }
 .ds-logo  {
   flex-shrink: 0;
-  width: 30px;
-  height: 24px;
+  width: 44px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
 }
-.ds-logo svg { display: block; }
+.ds-logo img,
+.ds-logo svg { display: block; width: 100%; height: 100%; object-fit: contain; }
 .ds-title-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ds-title {
   margin: 0;

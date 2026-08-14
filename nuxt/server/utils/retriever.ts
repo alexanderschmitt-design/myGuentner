@@ -1,6 +1,7 @@
 /**
  * Retriever — embeds the query, searches Supabase pgvector, returns chunks.
- * Port of rag/retriever.js.
+ * Zusätzlich zu document_chunks werden approvete Q&A-Pairs mit hoher
+ * Ähnlichkeit als eigene, höher gewichtete Quellen ergänzt.
  */
 
 import { embedOne } from './embeddings'
@@ -13,6 +14,9 @@ export interface RetrieveOptions {
   minScore?: number
   documentIds?: string[]
   filter?: Record<string, any> | null
+  includeQaPairs?: boolean
+  qaTopK?: number
+  qaMinScore?: number
 }
 
 export interface RetrievalResult {
@@ -23,20 +27,39 @@ export interface RetrievalResult {
   }>
   queryEmbeddingDims: number
   totalHits: number
+  qaHits: number
+}
+
+async function searchQaPairs(queryEmbedding: number[], topK: number, minScore: number) {
+  const sb = getSupabaseServiceClient()
+  const { data, error } = await sb.rpc('match_qa_pairs', {
+    query_embedding: queryEmbedding as any,
+    match_count: topK,
+    min_score: minScore
+  })
+  if (error) {
+    console.warn('[retriever] match_qa_pairs failed:', error.message)
+    return []
+  }
+  return (data || []) as Array<{ id: string; question: string; answer: string; source: string; similarity: number }>
 }
 
 export async function retrieve(query: string, opts: RetrieveOptions = {}): Promise<RetrievalResult> {
   const settings = await getRagSettings()
   const topK = opts.topK ?? settings.top_k ?? 5
   const minScore = opts.minScore ?? 0.05
+  const includeQa = opts.includeQaPairs !== false
+  const qaTopK = opts.qaTopK ?? 3
+  const qaMinScore = opts.qaMinScore ?? 0.7
 
   const queryEmbedding = await embedOne(query)
 
-  const hits = await searchChunks(queryEmbedding, {
-    topK,
-    minScore,
-    documentIds: opts.documentIds
-  })
+  const [hits, qaHits] = await Promise.all([
+    searchChunks(queryEmbedding, { topK, minScore, documentIds: opts.documentIds }),
+    includeQa && !opts.documentIds
+      ? searchQaPairs(queryEmbedding, qaTopK, qaMinScore)
+      : Promise.resolve([] as Array<{ id: string; question: string; answer: string; source: string; similarity: number }>)
+  ])
 
   // Enrich each chunk with the document row so metadata has documentName / dmsId / etc.
   const documentIds = Array.from(new Set(hits.map((h) => h.document_id)))
@@ -47,7 +70,7 @@ export async function retrieve(query: string, opts: RetrieveOptions = {}): Promi
     for (const d of data || []) docMap.set(d.id, d)
   }
 
-  const chunks = hits.map((h: StoredChunk) => {
+  const documentChunks = hits.map((h: StoredChunk) => {
     const doc = docMap.get(h.document_id) || {}
     const dms = doc.dms_metadata || {}
     return {
@@ -67,9 +90,27 @@ export async function retrieve(query: string, opts: RetrieveOptions = {}): Promi
     }
   })
 
+  // Q&A-Pairs zuerst — kuratiertes Wissen soll die Antwort primär formen.
+  // Score-Boost von +0.05, damit sie in gemischten Rankings vorne stehen.
+  const qaChunks = qaHits.map((q) => ({
+    text: `Kuratierte Antwort auf "${q.question}":\n${q.answer}`,
+    score: Math.min(1, q.similarity + 0.05),
+    metadata: {
+      documentId: `qa_${q.id}`,
+      documentName: 'Interne Wissensdatenbank (Q&A)',
+      chunkIndex: 0,
+      sourceKind: 'qa_pair',
+      qaId: q.id,
+      qaSource: q.source
+    }
+  }))
+
+  const chunks = [...qaChunks, ...documentChunks]
+
   return {
     chunks,
     queryEmbeddingDims: queryEmbedding.length,
-    totalHits: hits.length
+    totalHits: hits.length + qaHits.length,
+    qaHits: qaHits.length
   }
 }

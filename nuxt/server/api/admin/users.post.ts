@@ -1,22 +1,17 @@
 /**
  * POST /api/admin/users — Create a user via Supabase Admin API.
  *
- * Requires the caller to be authenticated AND (for now) any authenticated user
- * can create — no separate admin claim yet. In a next iteration we'll add a
- * `role` field to auth.users metadata and restrict this to admins.
+ * Auth: Admin-Rolle erforderlich (user_metadata.role === 'admin' oder
+ * Email in ADMIN_EMAILS-Allowlist).
  *
  * Body: { email, password, sendInvite? }
  */
 
-import { serverSupabaseUser } from '#supabase/server'
 import { getSupabaseServiceClient } from '../../utils/supabase'
+import { requireAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const caller = await serverSupabaseUser(event)
-  if (!caller) {
-    setResponseStatus(event, 401)
-    return { ok: false, error: 'Authentication required' }
-  }
+  await requireAdmin(event)
 
   const body = await readBody<any>(event).catch(() => ({}))
   const email = (body?.email || '').trim()

@@ -43,7 +43,7 @@ const currentStep = computed<string>(() => {
   if (route.path.endsWith('/unit-selection')) return 'unit'
   if (route.path.endsWith('/coil-geometry')) return 'coil'
   if (route.path.endsWith('/search')) return 'results'
-  if (route.path === '/gpc-details') return 'datasheet'
+  if (route.path === '/gpc-details' || route.path.endsWith('/coil-datasheet')) return 'datasheet'
   return 'category'
 })
 const currentIndex = computed(() => STEPS.value.findIndex(s => s.id === currentStep.value))

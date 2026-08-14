@@ -57,6 +57,12 @@ const cards: Card[] = [
     icon: 'M8 2v2 M8 12v2 M2 8h2 M12 8h2 M4 4l1.5 1.5 M10.5 10.5 12 12 M8 5.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5z'
   },
   {
+    to: '/admin/learn-review',
+    title: 'Wissen prüfen',
+    description: 'Learn-Notizen freigeben, Chat-Korrekturen in Q&A überführen, Wissensdatenbank pflegen.',
+    icon: 'M2 3h12v10H2z M4 6h8 M4 9h6 M4 12h4'
+  },
+  {
     to: '/admin/home-sections',
     title: 'Home Sections',
     description: 'Sichtbarkeit der Startseiten-Tabs pro Browser umschalten.',

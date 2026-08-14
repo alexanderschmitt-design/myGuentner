@@ -28,6 +28,13 @@ type ConfigStore = ReturnType<typeof useConfigStore>
 export interface GuidedContext {
   store: ConfigStore
   push: (path: string) => void
+  /**
+   * Mark a category slug as "defaults already applied" so
+   * `thermodynamics.vue`'s watcher doesn't clobber richer presets we just
+   * wrote to the store. Injected from useGuidedFlow — kept out of the flow
+   * data itself to avoid coupling to composable internals.
+   */
+  markCategoryDefaultsApplied?: (slug: string) => void
 }
 
 export interface GuidedSuggestion {
@@ -172,6 +179,7 @@ const homeApplicationFlow: GuidedFlow = {
             })
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'evaporator-dx'
+            ctx.markCategoryDefaultsApplied?.('evaporator-dx')
             ctx.push('/mygpc/0/thermodynamics')
             return true
           }
@@ -189,6 +197,7 @@ const homeApplicationFlow: GuidedFlow = {
             })
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'evaporator-dx'
+            ctx.markCategoryDefaultsApplied?.('evaporator-dx')
             ctx.push('/mygpc/0/thermodynamics')
             return true
           }
@@ -208,6 +217,7 @@ const homeApplicationFlow: GuidedFlow = {
             })
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'air-cooler'
+            ctx.markCategoryDefaultsApplied?.('air-cooler')
             ctx.push('/mygpc/2/thermodynamics')
             return true
           }
@@ -225,6 +235,7 @@ const homeApplicationFlow: GuidedFlow = {
             })
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'condenser'
+            ctx.markCategoryDefaultsApplied?.('condenser')
             ctx.push('/mygpc/3/thermodynamics')
             return true
           }
@@ -237,10 +248,12 @@ const homeApplicationFlow: GuidedFlow = {
               coolingCapacityKw: 180,
               refrigerant: 'R744',
               condensingTempC: 45,
-              airInletTempC: 32
+              airInletTempC: 32,
+              coolingPurpose: 'condensing'
             })
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'gas-cooler'
+            ctx.markCategoryDefaultsApplied?.('gas-cooler')
             ctx.push('/mygpc/10/thermodynamics')
             return true
           }

@@ -1,8 +1,10 @@
 import { updateRagSettings } from '../../utils/rag-settings'
+import { requireAdmin } from '../../utils/auth'
 
 const ALLOWED_FIELDS = ['embedding_mode', 'embedding_model', 'llm_provider', 'llm_model', 'chunk_size', 'chunk_overlap', 'top_k', 'system_prompt']
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
   const body = await readBody<any>(event).catch(() => ({}))
   const patch: Record<string, any> = {}
   for (const key of ALLOWED_FIELDS) {

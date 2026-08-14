@@ -8,11 +8,12 @@
  * lines. Our `/api/chat` endpoint sends single-line JSON in `data:`.
  *
  * Emitted events (see nuxt/server/api/chat.post.ts):
- *   sources  → { sources: RagSource[] }
- *   text     → { text: string }             (incremental token)
- *   thinking → { text: string }             (incremental thinking token)
- *   done     → { stopReason, usage, fullText, provider }
- *   error    → { error: string }
+ *   conversation → { conversationId: string }  (immer als erstes Event)
+ *   sources      → { sources: RagSource[] }
+ *   text         → { text: string }            (incremental token)
+ *   thinking     → { text: string }            (incremental thinking token)
+ *   done         → { stopReason, usage, fullText, provider }
+ *   error        → { error: string }
  */
 
 export interface RagSource {
@@ -37,6 +38,71 @@ export interface ChatDone {
   usage?: any
   fullText?: string
   provider?: string
+  messageId?: string | null
+}
+
+/**
+ * Tool-Use trace that the chat drawer renders as an inline chip.
+ * `input` is the JSON args Claude sent to the tool; `summary` is the
+ * short human-readable result ("8 units found") once the call returns.
+ */
+export interface ToolCall {
+  toolUseId: string
+  name: string
+  input: Record<string, unknown>
+  ok?: boolean
+  summary?: string
+  durationMs?: number
+  error?: string
+}
+
+/**
+ * UserContext — lightweight snapshot of the user's current wizard state that
+ * is shipped with every /api/chat request. Consumed server-side by
+ * `formatUserContext()` in `server/utils/llm.ts` and injected into the LLM
+ * userContent block (NOT the cached system block — see cache-boundary in
+ * plan file). Kept small on purpose: only fields that meaningfully change
+ * Günther's answers.
+ */
+export interface UserContext {
+  /** Current router path — e.g. "/mygpc/0/thermodynamics" */
+  route?: string
+  /** Numeric category id (0..10). Present in /mygpc/[catId]/… routes. */
+  catId?: number
+  /** Category slug — "evaporator-dx", "gas-cooler", … */
+  categorySlug?: string
+  /** Human category title — "Evaporator (DX)" */
+  categoryTitle?: string
+  /** 1 = complete unit, 2 = bare coil */
+  productSection?: 1 | 2
+  /** Guided-flow id if one is active — "home-application", "thermo-refrigerant", … */
+  guidedFlowId?: string
+  /** Human title of the guided flow */
+  guidedFlowTitle?: string
+  /** Label of the suggestion the user last picked in the guided flow
+   *  (e.g. "Cold storage (0…+5 °C)" for one of the 5 demo paths) */
+  guidedPathLabel?: string
+  /** Wizard step id — "category" | "thermodynamics" | "unit" | "coil" | "results" | "datasheet" */
+  wizardStep?: string
+  /** Home tab id when on / — "unit" | "application" | "spare-parts" | … */
+  homeTab?: string
+  /** Whitelisted subset of wizard parameters (only the semantically meaningful ones) */
+  params?: {
+    coolingCapacityKw?: number | null
+    refrigerant?: string | null
+    evaporatingTempC?: number | null
+    condensingTempC?: number | null
+    airInletTempC?: number | null
+    glycolType?: 'ethylene' | 'propylene' | 'water' | null
+    concentrationVolPct?: number | null
+    inletTempC?: number | null
+    outletTempC?: number | null
+    coolingPurpose?: string | null
+    defrostMethod?: string | null
+    unitSystem?: 'us' | 'si'
+  }
+  /** Currently selected unit key (Results / Datasheet steps) */
+  selectedUnitKey?: string | null
 }
 
 export interface ChatRequest {
@@ -51,15 +117,19 @@ export interface ChatRequest {
   history?: Array<{ role: 'user' | 'assistant'; content: string }>
   model?: string
   maxTokens?: number
+  conversationId?: string | null
+  userContext?: UserContext
 }
 
 export function useChatStream() {
   const text = ref('')
   const thinking = ref('')
   const sources = ref<RagSource[]>([])
+  const toolCalls = ref<ToolCall[]>([])
   const done = ref<ChatDone | null>(null)
   const error = ref<string | null>(null)
   const isStreaming = ref(false)
+  const conversationId = ref<string | null>(null)
 
   let controller: AbortController | null = null
 
@@ -67,6 +137,7 @@ export function useChatStream() {
     text.value = ''
     thinking.value = ''
     sources.value = []
+    toolCalls.value = []
     done.value = null
     error.value = null
   }
@@ -81,12 +152,15 @@ export function useChatStream() {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(req),
+        credentials: 'same-origin',
+        body: JSON.stringify({ ...req, conversationId: req.conversationId ?? conversationId.value ?? null }),
         signal: controller.signal
       })
 
       if (!res.ok || !res.body) {
-        error.value = `Chat request failed (${res.status})`
+        if (res.status === 401) error.value = 'Nicht angemeldet — bitte einloggen.'
+        else if (res.status === 429) error.value = 'Zu viele Anfragen — bitte kurz warten.'
+        else error.value = `Chat request failed (${res.status})`
         isStreaming.value = false
         return
       }
@@ -139,6 +213,9 @@ export function useChatStream() {
     }
 
     switch (evName) {
+      case 'conversation':
+        if (typeof payload.conversationId === 'string') conversationId.value = payload.conversationId
+        break
       case 'sources':
         sources.value = Array.isArray(payload.sources) ? payload.sources : []
         break
@@ -147,6 +224,48 @@ export function useChatStream() {
         break
       case 'thinking':
         if (typeof payload.text === 'string') thinking.value += payload.text
+        break
+      case 'tool_use':
+        // New tool call starts — reserve a slot so it can be shown as
+        // "pending" while the server executes the tool.
+        if (payload && typeof payload.toolUseId === 'string' && typeof payload.name === 'string') {
+          toolCalls.value = [
+            ...toolCalls.value,
+            {
+              toolUseId: payload.toolUseId,
+              name: payload.name,
+              input: payload.input && typeof payload.input === 'object' ? payload.input : {}
+            }
+          ]
+        }
+        break
+      case 'tool_result':
+        // Merge the result into the matching pending call. If the call was
+        // missed (unlikely, but defensive), synthesise it.
+        if (payload && typeof payload.toolUseId === 'string') {
+          const idx = toolCalls.value.findIndex((t) => t.toolUseId === payload.toolUseId)
+          const patch = {
+            ok: payload.ok === true,
+            summary: typeof payload.summary === 'string' ? payload.summary : undefined,
+            durationMs: typeof payload.durationMs === 'number' ? payload.durationMs : undefined,
+            error: typeof payload.error === 'string' ? payload.error : undefined
+          }
+          if (idx >= 0) {
+            const next = toolCalls.value.slice()
+            next[idx] = { ...next[idx], ...patch }
+            toolCalls.value = next
+          } else {
+            toolCalls.value = [
+              ...toolCalls.value,
+              {
+                toolUseId: payload.toolUseId,
+                name: typeof payload.name === 'string' ? payload.name : 'unknown',
+                input: {},
+                ...patch
+              }
+            ]
+          }
+        }
         break
       case 'done':
         done.value = payload as ChatDone
@@ -167,15 +286,23 @@ export function useChatStream() {
 
   onBeforeUnmount(() => abort())
 
+  function newConversation() {
+    conversationId.value = null
+    reset()
+  }
+
   return {
     text: text as Readonly<typeof text>,
     thinking: thinking as Readonly<typeof thinking>,
     sources: sources as Readonly<typeof sources>,
+    toolCalls: toolCalls as Readonly<typeof toolCalls>,
     done: done as Readonly<typeof done>,
     error: error as Readonly<typeof error>,
     isStreaming: isStreaming as Readonly<typeof isStreaming>,
+    conversationId: conversationId as Readonly<typeof conversationId>,
     send,
     abort,
-    reset
+    reset,
+    newConversation
   }
 }

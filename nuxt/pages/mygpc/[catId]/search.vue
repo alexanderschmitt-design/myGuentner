@@ -16,20 +16,40 @@ const store  = useConfigStore()
 const router = useRouter()
 const isCoil = computed(() => store.productSection === 2)
 
-const findRequest = computed(() => ({
-  languageID: 2,
-  capacity: store.parameters.coolingCapacityKw,
-  evaporatingTemperature: store.parameters.evaporatingTempC,
-  condensingTemperature: store.parameters.condensingTempC,
-  refrigerant: store.parameters.refrigerant,
-  airflow: store.parameters.airflowM3h
-}))
+// GPC.EU findUnits expects a fully-populated UnitInputData (222 fields).
+// The store's `payloadForFindUnits` getter merges the current wizard slice
+// with the empty-UnitInputData template so every field has a valid value,
+// even ones the wizard never touched. Watching the getter guarantees the
+// query re-runs whenever the user tweaks a parameter.
+const findPayload = computed(() => store.payloadForFindUnits)
 
-const { data: units, error, pending } = await useAsyncData(
+const { data: findResult, error, pending } = await useAsyncData(
   'mygps-output-findunits',
-  () => useGpceu().findUnits(findRequest.value as any).catch(() => null),
-  { default: () => null, watch: [findRequest] }
+  () => useGpceu().findUnits(findPayload.value).catch((err) => {
+    console.warn('[search] findUnits failed:', err)
+    return null
+  }),
+  { default: () => null, watch: [findPayload] }
 )
+
+// FindUnitsResult envelope → OutputData[]. Some historical mocks return a
+// bare array, so support both shapes defensively.
+const apiUnits = computed<any[]>(() => {
+  const r: any = findResult.value
+  if (!r) return []
+  if (Array.isArray(r)) return r
+  return Array.isArray(r.foundUnits) ? r.foundUnits : []
+})
+
+// True when the API responded but had zero matching units — vs. `error`
+// which is set when the network call itself failed. Drives the failsafe
+// "Ask Günther" banner. `findResult` is initially null before the async
+// data resolves, so we guard that too.
+const noApiHits = computed(() => {
+  if (pending.value || error.value) return false
+  if (findResult.value == null) return false
+  return apiUnits.value.length === 0
+})
 
 // -------- Row shape aligned to Figma columns --------
 interface ResultRow {
@@ -113,26 +133,35 @@ const demoCoilRows: ResultRow[] = [
 ]
 
 const rows = computed<ResultRow[]>(() => {
-  if (units.value && Array.isArray(units.value) && units.value.length > 0) {
-    return (units.value as any[]).map((u, i) => ({
-      id: String(u.id ?? `api-${i}`),
-      unitKey: String(u.typeDesignation ?? u.unitKey ?? u.name ?? '—'),
-      capacityKw: Number(u.capacity ?? u.capacityKw ?? 0),
-      surfaceReservePct: Number(u.surfaceReserve ?? 0),
-      surfaceM2: Number(u.surface ?? 0),
-      tubeVolumeL: Number(u.tubeVolume ?? 0),
-      pressureRefBar: Number(u.pressureRef ?? u.pressureDrop ?? 0),
-      pressureAirBar: Number(u.pressureAir ?? u.pressureDrop ?? 0),
-      airVolumeM3h: Number(u.airflowM3h ?? u.airflow ?? 0),
-      fanSpeedRpm: Number(u.fanSpeed ?? 1450),
-      motorTech: String(u.motorType ?? 'EC'),
-      dimensionsL: Number(u.length ?? u.dimensionsL ?? 0),
-      dimensionsW: Number(u.width  ?? u.dimensionsW ?? 0),
-      dimensionsH: Number(u.height ?? u.dimensionsH ?? 0),
-      deliveryWeeks: Number(u.deliveryWeeks ?? 4),
-      inWarehouse: Boolean(u.inWarehouse ?? false),
-      totalPriceEur: Number(u.price ?? 0)
-    }))
+  const list = apiUnits.value
+  if (list && list.length > 0) {
+    return list.map((u, i) => {
+      // GPC.EU thermalCapacity is in Watts; UI shows kW. All other numeric
+      // fields already match the UI scale (m³/h, °C, mbar, etc.).
+      const thermalW = Number(u.thermalCapacity ?? 0)
+      const capacityKw = thermalW > 100 ? thermalW / 1000 : thermalW // guard against pre-scaled mocks
+      const dimStr: string = String(u.overallDimensions ?? '')
+      const dimMatch = dimStr.match(/(\d+)[^\d]+(\d+)[^\d]+(\d+)/)
+      return {
+        id: String(u.unitKey ?? u.signature ?? `api-${i}`),
+        unitKey: String(u.unitKey ?? u.modelRange ?? '—'),
+        capacityKw,
+        surfaceReservePct: Number(u.surfaceReserve ?? 0),
+        surfaceM2: Number(u.surface ?? 0),
+        tubeVolumeL: Number(u.tubeVolume ?? 0),
+        pressureRefBar: Number(u.fluidPressureDrop ?? 0),
+        pressureAirBar: Number(u.airPressure ?? 0),
+        airVolumeM3h: Number(u.airVolumeFlow ?? 0),
+        fanSpeedRpm: Number(u.fanSpeed ?? u.rpm ?? 1450),
+        motorTech: u.motorTechnology === 2 ? 'EC' : u.motorTechnology === 1 ? 'AC' : String(u.motorTech ?? 'EC'),
+        dimensionsL: Number(u.length ?? u.dimensionsL ?? (dimMatch ? dimMatch[1] : 0)),
+        dimensionsW: Number(u.width  ?? u.dimensionsW ?? (dimMatch ? dimMatch[2] : 0)),
+        dimensionsH: Number(u.height ?? u.dimensionsH ?? (dimMatch ? dimMatch[3] : 0)),
+        deliveryWeeks: Number(u.deliveryWeeks ?? 4),
+        inWarehouse: Boolean(u.inWarehouse) || u.stockType === 'stock',
+        totalPriceEur: Number(u.price ?? u.totalPrice ?? 0)
+      }
+    })
   }
   return isCoil.value ? demoCoilRows : demoRows
 })
@@ -170,6 +199,28 @@ function goDatasheet(u?: ResultRow) {
 }
 function goBack() { router.push(isCoil.value ? coilGeometryUrl() : unitUrl()) }
 
+// --- Ask-Günther failsafe -------------------------------------------------
+// When findUnits returns 0 hits, we surface an in-page CTA that seeds the
+// chatbot with the user's current wizard parameters. Günther can then call
+// `gpc_search_units` with relaxed constraints and propose alternatives.
+const chatDockOpen    = useChatDockState()
+const chatDockPreload = useChatDockPreload()
+function askGuentherForAlternatives() {
+  const p = store.parameters
+  const parts = [
+    p.coolingCapacityKw != null ? `Kälteleistung ${p.coolingCapacityKw} kW` : null,
+    p.refrigerant                ? `Kältemittel ${p.refrigerant}` : null,
+    p.evaporatingTempC != null   ? `t₀ = ${p.evaporatingTempC} °C` : null,
+    p.condensingTempC != null    ? `t_c = ${p.condensingTempC} °C` : null,
+    p.airInletTempC != null      ? `Luft-Eintritt ${p.airInletTempC} °C` : null
+  ].filter(Boolean).join(', ')
+  chatDockPreload.value =
+    `Für meine Auswahl (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''}${parts ? ', ' + parts : ''}) ` +
+    `hat die Suche keine passenden Einheiten geliefert. Kannst du mir Alternativen vorschlagen — ` +
+    `z. B. mit gelockerten Parametern oder einer anderen Baureihe?`
+  chatDockOpen.value = true
+}
+
 // -------- Search & pagination --------
 const searchTerm = ref('')
 const pageSize   = ref<20 | 50 | 100>(20)
@@ -183,16 +234,15 @@ const filteredRows = computed(() => {
 })
 
 // -------- Hover preview card --------
-// The anchor is the Unit-Key cell (not the whole row) so the card floats
-// right next to the unit label, matching the Figma design. If the card
-// would overflow the viewport horizontally we flip it to the left side.
+// Triggered by hovering the Unit-Key cell specifically (not the whole row),
+// so the card only appears when the user is deliberately inspecting a unit.
+// Anchored to the cell's right edge; flips to the left if it would overflow.
 const hoveredRow  = ref<ResultRow | null>(null)
 const hoverAnchor = ref<{ x: number; y: number; leftEdge: number } | null>(null)
-function onRowEnter(r: ResultRow, e: MouseEvent) {
+function onCellKeyEnter(r: ResultRow, e: MouseEvent) {
   hoveredRow.value = r
-  const cell = (e.currentTarget as HTMLElement).querySelector('.cell-key') as HTMLElement | null
-  const anchor = cell ?? (e.currentTarget as HTMLElement)
-  const rect = anchor.getBoundingClientRect()
+  const cell = e.currentTarget as HTMLElement
+  const rect = cell.getBoundingClientRect()
   hoverAnchor.value = { x: rect.right + 8, y: rect.top, leftEdge: rect.left }
 }
 function onRowLeave() {
@@ -306,6 +356,25 @@ function ColCell(props: ColCellProps) {
     <div v-if="pending" class="alert alert-info">Querying /findunits…</div>
     <div v-if="error"   class="alert alert-error">Live query failed — showing demo rows.</div>
 
+    <!-- Failsafe: findUnits returned an empty foundUnits array. Rather than
+         quietly leave the user on the demo rows, we surface it explicitly
+         and offer Günther as a way forward. -->
+    <div v-if="noApiHits" class="ask-guenther">
+      <div class="ask-guenther-text">
+        <strong>No matching units in GPC.EU for the current parameters.</strong>
+        <span>
+          The rows below are demo data so the layout stays visible. Günther can
+          search with relaxed constraints and propose alternatives.
+        </span>
+      </div>
+      <button type="button" class="btn btn-primary btn-ask" @click="askGuentherForAlternatives">
+        <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 5h12v9H8l-4 4V5z"/>
+        </svg>
+        Ask Günther for alternatives
+      </button>
+    </div>
+
     <!-- ============ Table ============ -->
     <div class="table-wrap" :class="{ 'is-coil': isCoil }" @mouseleave="onRowLeave">
       <table class="results-table" :class="{ 'is-coil': isCoil }">
@@ -375,9 +444,14 @@ function ColCell(props: ColCellProps) {
             :class="{ 'is-selected': selectedId === r.unitKey, 'is-hover': hoveredRow?.id === r.id }"
             @click="pick(r)"
             @dblclick="goDatasheet(r)"
-            @mouseenter="!isCoil && onRowEnter(r, $event)"
           >
-            <td class="cell-key" :title="r.unitKey" @click.stop="goDatasheet(r)">{{ r.unitKey }}</td>
+            <td
+              class="cell-key"
+              :title="r.unitKey"
+              @click.stop="goDatasheet(r)"
+              @mouseenter="!isCoil && onCellKeyEnter(r, $event)"
+              @mouseleave="!isCoil && onRowLeave()"
+            >{{ r.unitKey }}</td>
             <template v-if="isCoil">
               <td class="num" :class="{ 'is-neg': r.surfaceReservePct < 0 }">{{ r.surfaceReservePct.toFixed(1) }}</td>
               <td class="num">{{ r.surfaceM2.toFixed(1) }}</td>
@@ -584,6 +658,38 @@ function ColCell(props: ColCellProps) {
 .alert { padding: 8px 12px; border-radius: var(--radius-xs); font-size: var(--font-3xs); }
 .alert-info  { background: color-mix(in srgb, var(--c-brand-blue) 8%, white); color: var(--c-brand-blue); }
 .alert-error { background: color-mix(in srgb, #B33A3A 12%, white); color: #B33A3A; }
+
+/* Ask-Günther failsafe banner — appears when findUnits returned zero hits. */
+.ask-guenther {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 16px;
+  border: 1px solid var(--c-border);
+  border-left: 3px solid var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, var(--c-brand-blue) 4%, white);
+}
+.ask-guenther-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-value);
+  line-height: 1.5;
+}
+.ask-guenther-text strong { font-weight: 500; }
+.ask-guenther-text span { color: var(--c-text-medium); }
+.btn-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 /* ---------- Table ---------- */
 .table-wrap {

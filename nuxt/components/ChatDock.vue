@@ -8,9 +8,10 @@
 import { computed, nextTick, ref, watch } from 'vue'
 import ChatMessage from './ChatMessage.vue'
 import ModalDialog from './ModalDialog.vue'
-import type { RagSource } from '~/composables/useChatStream'
+import type { RagSource, ToolCall, UserContext } from '~/composables/useChatStream'
 import type { GuidedStep } from '~/data/guidedFlows'
 import { LEARN_CATEGORIES, resolveElementMeta, type LearnCategory } from '~/composables/useLearnMode'
+import { getCategoryById } from '~/composables/useCategory'
 
 const isOpen = useChatDockState()
 const mode = useChatDockMode()
@@ -22,6 +23,9 @@ interface HistoryEntry {
   role: 'user' | 'assistant'
   content: string
   sources?: RagSource[]
+  messageId?: string | null
+  /** Tool-Use trace for this turn — rendered as inline chips above the text. */
+  toolCalls?: ToolCall[]
   /** When set, this turn is a scripted Guided-Pass step. The renderer
    *  shows suggestion buttons underneath it. */
   guidedStep?: GuidedStep
@@ -31,14 +35,92 @@ const history = ref<HistoryEntry[]>([])
 const stream = useChatStream()
 const guided = useGuidedFlow()
 const flags = useFeatureFlags()
+const configStore = useConfigStore()
+const homeTab = useHomeTab()
+const route = useRoute()
+const preload = useChatDockPreload()
+
+/**
+ * Derive the wizard-step id from the current route so Günther knows where
+ * the user stands. Kept as a small pure function — the mapping mirrors
+ * `TopStepNav.vue` (1..5) but uses semantic ids so the LLM can reason
+ * about it without knowing our numbering.
+ */
+function wizardStepFromPath(path: string): string {
+  if (path === '/') return 'category'
+  if (/^\/mygpc\/\d+\/thermodynamics$/.test(path)) return 'thermodynamics'
+  if (/^\/mygpc\/\d+\/unit-selection$/.test(path)) return 'unit'
+  if (/^\/mygpc\/\d+\/coil-geometry$/.test(path)) return 'coil'
+  if (/^\/mygpc\/\d+\/search$/.test(path)) return 'results'
+  if (path === '/gpc-details' || /^\/mygpc\/\d+\/coil-datasheet$/.test(path)) return 'datasheet'
+  return 'other'
+}
+
+/**
+ * Build the wire-format userContext from the reactive stores. Called once
+ * per chat submission so the snapshot reflects the state *at send time*
+ * rather than at component-mount time.
+ */
+function buildUserContext(): UserContext {
+  const ctx: UserContext = {
+    route: route.path,
+    wizardStep: wizardStepFromPath(route.path),
+    homeTab: homeTab.value,
+    productSection: configStore.productSection,
+    selectedUnitKey: configStore.selectedUnitKey
+  }
+
+  // Category (only if we're actually inside /mygpc/[catId]/… or the slug is set)
+  const catIdMatch = route.path.match(/^\/mygpc\/(\d+)\//)
+  const catId = catIdMatch ? parseInt(catIdMatch[1], 10) : null
+  if (catId !== null && !Number.isNaN(catId)) {
+    ctx.catId = catId
+    const cat = getCategoryById(catId)
+    if (cat) {
+      ctx.categorySlug = cat.slug
+      ctx.categoryTitle = cat.sublabel ? `${cat.title} (${cat.sublabel})` : cat.title
+    }
+  } else if (configStore.currentCategory) {
+    ctx.categorySlug = configStore.currentCategory
+  }
+
+  // Guided flow
+  if (guided.activeFlow.value) {
+    ctx.guidedFlowId = guided.activeFlow.value.id
+    ctx.guidedFlowTitle = guided.activeFlow.value.title
+  }
+  if (guided.pickedSuggestionLabel.value) {
+    ctx.guidedPathLabel = guided.pickedSuggestionLabel.value
+  }
+
+  // Parameter-Whitelist — nur die Werte, die die 5 Pfade wirklich unterscheiden
+  const p = configStore.parameters
+  ctx.params = {
+    coolingCapacityKw: p.coolingCapacityKw,
+    refrigerant: p.refrigerant,
+    evaporatingTempC: p.evaporatingTempC,
+    condensingTempC: p.condensingTempC,
+    airInletTempC: p.airInletTempC,
+    glycolType: p.glycolType,
+    concentrationVolPct: p.concentrationVolPct,
+    inletTempC: p.inletTempC,
+    outletTempC: p.outletTempC,
+    coolingPurpose: p.coolingPurpose,
+    defrostMethod: p.defrostMethod,
+    unitSystem: configStore.unitSystem
+  }
+
+  return ctx
+}
 
 // Live assistant message during streaming (built from stream refs)
 const liveAssistant = computed<HistoryEntry | null>(() => {
-  if (!stream.isStreaming.value && !stream.text.value) return null
+  if (!stream.isStreaming.value && !stream.text.value && stream.toolCalls.value.length === 0) return null
   return {
     role: 'assistant',
     content: stream.text.value,
-    sources: stream.sources.value
+    sources: stream.sources.value,
+    toolCalls: stream.toolCalls.value.length ? stream.toolCalls.value.slice() : undefined
   }
 })
 
@@ -202,6 +284,29 @@ const activeMeta = computed(() => {
   return resolveElementMeta(el)
 })
 
+/**
+ * Consume `useChatDockPreload()` — when other pages push a pre-formulated
+ * question into the ref (e.g. the "no matching units — Frag Günther" button
+ * on the Results page), we open the drawer if needed, drop the text into the
+ * textarea and auto-submit it. The ref is cleared after handling so the
+ * same prompt doesn't fire twice.
+ */
+watch(
+  [preload, isOpen],
+  async ([p, open]) => {
+    if (!p) return
+    if (!open) {
+      isOpen.value = true
+      // Wait one tick so the drawer mounts before we drive the textarea.
+      await nextTick()
+    }
+    inputValue.value = p
+    preload.value = null
+    await nextTick()
+    submit()
+  }
+)
+
 async function submit() {
   const q = inputValue.value.trim()
   if (!q || stream.isStreaming.value) return
@@ -220,7 +325,8 @@ async function submit() {
   await stream.send({
     query: q,
     language: 'en',
-    history: apiHistory
+    history: apiHistory,
+    userContext: buildUserContext()
   })
 
   // On stream done: commit the assistant turn to history
@@ -230,12 +336,27 @@ async function submit() {
       {
         role: 'assistant',
         content: stream.text.value,
-        sources: stream.sources.value.slice()
+        sources: stream.sources.value.slice(),
+        toolCalls: stream.toolCalls.value.length ? stream.toolCalls.value.slice() : undefined,
+        messageId: stream.done.value?.messageId ?? null
       }
     ]
   }
   stream.reset()
   scrollToEnd()
+}
+
+async function onFeedback(payload: import('./ChatMessage.vue').FeedbackPayload) {
+  try {
+    await fetch(`/api/chat/messages/${payload.messageId}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
+      body: JSON.stringify({ rating: payload.rating, correctionText: payload.correctionText })
+    })
+  } catch (err) {
+    console.warn('[ChatDock] feedback send failed:', err)
+  }
 }
 
 function toggle() {
@@ -449,12 +570,36 @@ function pickPreset(p: PresetIntent) {
             </div>
           </div>
           <template v-for="(msg, i) in transcript" :key="i">
+            <!-- Tool-Use chips — one per GPC.EU call Günther made this turn -->
+            <div v-if="msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length" class="tool-chips">
+              <span
+                v-for="tc in msg.toolCalls"
+                :key="tc.toolUseId"
+                class="tool-chip"
+                :class="{
+                  'tool-chip-pending': tc.ok === undefined,
+                  'tool-chip-ok': tc.ok === true,
+                  'tool-chip-err': tc.ok === false
+                }"
+                :title="tc.error || tc.summary || 'Working…'"
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor"
+                     stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M6 4l-3 3 3 3M10 4l3 3-3 3"/>
+                </svg>
+                <span class="tool-chip-name">{{ tc.name.replace(/^gpc_/, 'GPC.EU · ') }}</span>
+                <span v-if="tc.summary" class="tool-chip-summary">→ {{ tc.summary }}</span>
+                <span v-else-if="tc.ok === undefined" class="tool-chip-summary tool-chip-pending-dots">…</span>
+              </span>
+            </div>
             <ChatMessage
               :role="msg.role"
               :content="msg.content"
               :sources="msg.sources"
+              :message-id="msg.messageId"
               :streaming="i === transcript.length - 1 && stream.isStreaming.value && msg.role === 'assistant'"
               @open-source="openSource"
+              @feedback="onFeedback"
             />
             <!-- Guided-Pass suggestion strip. Rendered only under the
                  last message if that message is the currently-active
@@ -886,6 +1031,50 @@ function pickPreset(p: PresetIntent) {
 .chat-drawer-leave-active { transition: transform 0.24s ease, opacity 0.24s ease; }
 .chat-drawer-enter-from,
 .chat-drawer-leave-to { transform: translateX(20px); opacity: 0; }
+
+/* Tool-Use chips — one per GPC.EU tool call in an assistant turn.
+   Pending calls pulse; success is a solid teal; errors go red-tinted. */
+.tool-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 4px 0 6px;
+}
+.tool-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+.tool-chip-name { font-family: 'DM Mono', monospace; }
+.tool-chip-summary { color: var(--c-text-medium); font-weight: 400; }
+.tool-chip-pending {
+  background: color-mix(in srgb, var(--c-brand-blue) 6%, white);
+  border-color: color-mix(in srgb, var(--c-brand-blue) 25%, transparent);
+  color: var(--c-brand-blue);
+}
+.tool-chip-pending-dots {
+  animation: chip-dots 1s infinite steps(1);
+}
+@keyframes chip-dots {
+  0%, 100% { opacity: 0.3 }
+  50% { opacity: 1 }
+}
+.tool-chip-ok {
+  background: color-mix(in srgb, var(--c-success, #2E7D4F) 8%, white);
+  border-color: color-mix(in srgb, var(--c-success, #2E7D4F) 30%, transparent);
+  color: var(--c-success, #2E7D4F);
+}
+.tool-chip-err {
+  background: color-mix(in srgb, var(--c-error, #B33A3A) 8%, white);
+  border-color: color-mix(in srgb, var(--c-error, #B33A3A) 30%, transparent);
+  color: var(--c-error, #B33A3A);
+}
 
 /* Guided Pass — suggestion strip beneath a scripted assistant turn. Each
    suggestion is a 2-line button with a strong label + optional detail. */

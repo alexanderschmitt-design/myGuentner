@@ -3,7 +3,7 @@
  * Port of rag/llm-gemini.js. Same async-generator signature as Bella.
  */
 
-import { formatContext, composeSystemPrompt, type LlmEvent, type AskOptions } from './llm'
+import { formatContext, composeSystemPrompt, formatUserContext, type LlmEvent, type AskOptions } from './llm'
 
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta'
 
@@ -79,6 +79,7 @@ export async function* askGemini(query: string, chunks: any[], options: AskOptio
   }
 
   const userText =
+    formatUserContext(options.userContext) +
     '=== KONTEXT AUS DER WISSENSDATENBANK ===\n\n' +
     contextBlock +
     '\n\n=== FRAGE ===\n\n' +

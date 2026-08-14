@@ -29,9 +29,22 @@ export interface DocumentRow {
   error: string | null
   source: string
   dms_metadata: any
+  dms_id: string | null
+  dms_version: string | null
   uploaded_by: string | null
   uploaded_at: string
   processed_at: string | null
+}
+
+/**
+ * Findet ein bereits importiertes DMS-Dokument. Basis für Dedup —
+ * `documents_dms_id_unique_idx` garantiert maximal eine Row pro dmsId.
+ */
+export async function findByDmsId(dmsId: string): Promise<DocumentRow | null> {
+  const sb = getSupabaseServiceClient()
+  const { data, error } = await sb.from('documents').select('*').eq('dms_id', dmsId).maybeSingle()
+  if (error) throw new Error(`findByDmsId: ${error.message}`)
+  return data as DocumentRow | null
 }
 
 export async function listDocuments(): Promise<DocumentRow[]> {

@@ -111,7 +111,12 @@ export default defineNuxtConfig({
       // Im Browser sichtbar — relativ, gleiches Origin wie die Nuxt-App.
       apiBase: '/api',
       // Supabase publishable key ist per Definition browser-safe (RLS schützt die Daten).
-      supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || ''
+      supabasePublishableKey: process.env.SUPABASE_PUBLISHABLE_KEY || '',
+      // Admin-Email-Allowlist (kommasepariert). Auch client-sichtbar, weil
+      // die Middleware auf /admin/* diese Liste zur schnellen UI-Weiterleitung
+      // braucht. Die eigentliche Autorisierung passiert server-seitig
+      // (`requireAdmin` in nuxt/server/utils/auth.ts).
+      adminEmails: process.env.ADMIN_EMAILS || ''
     }
   },
 

@@ -24,39 +24,139 @@ const viewMode = useViewMode()
 const isLiquid = computed(() => current.value.mediumType === 'liquid')
 // Bare-coil flow (MPD-6929): productSection=2 swaps Step 3 to Coil Geometry.
 const isCoil = computed(() => store.productSection === 2)
+// Category-level flag: refrigerant-inlet dew-point vs mean radio group.
+// False = radios rendered but disabled (Evaporator DX has no meaningful choice).
+const dewPointModeAvailable = computed(() => current.value.dewPointModeAvailable !== false)
+
+// Apply category-specific parameter defaults the first time this category is
+// entered in the current session. Session-scoped so persisted user edits from
+// previous sessions get reset to sensible defaults on next load, but
+// intra-session category jumps preserve any tweaks the user made.
+//
+// The guard set is shared with data/guidedFlows.ts — when a guided-flow
+// suggestion pre-loads richer presets (e.g. Cold storage sets air inlet to
+// +2 °C), it adds the slug to this set so the more generic category default
+// doesn't clobber the preset here on mount.
+const appliedDefaultsFor = useCategoryDefaultsGuard()
+watch(
+  () => current.value.slug,
+  (slug) => {
+    if (!slug) return
+    store.currentCategory = slug
+    if (appliedDefaultsFor.value.has(slug)) return
+    appliedDefaultsFor.value.add(slug)
+    const defaults = current.value.paramDefaults
+    if (defaults && Object.keys(defaults).length > 0) {
+      store.updateParameters(defaults)
+    }
+  },
+  { immediate: true }
+)
 
 useHead({ title: `myGPC — Thermodynamics (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
-// Live API lookups (only fluids matter for the refrigerant variant)
-const { data: fluids, error: fluidsError } = await useAsyncData(
+interface FluidOption {
+  value: string
+  label: string
+  /** Set from the GPC.EU `hasImpact` field — drives the green Impact° icon. */
+  hasImpact: boolean
+}
+
+// Live API lookups (only fluids matter for the refrigerant variant).
+// The API returns AvailableFluid[] with { fluidID, fluidName, hasImpact, … };
+// see nuxt/types/gpceu.d.ts. Response is wrapped in { content: [...] } so we
+// unwrap either shape defensively.
+const { data: fluidsResp, error: fluidsError } = await useAsyncData(
   'mygpc-thermo-fluids',
   () => gpceu.fluids(current.value.id).catch(() => null),
   { default: () => null, watch: [() => current.value.id] }
 )
 
-const fluidOptions = computed(() => {
-  if (!fluidsError.value && Array.isArray(fluids.value)) {
-    return (fluids.value as any[]).map(f => ({
-      value: String(f.refrigerantCode ?? f.id ?? f.name),
-      label: String(f.name ?? f.refrigerantCode ?? f.id)
-    }))
+/**
+ * Curated fallback list. Ordered natural-first (so the impact-labelled
+ * refrigerants are on top) then HFO, HFC blends, and legacy HFCs. Labels
+ * mirror the GPC.EU `fluidName` format from the API screenshot:
+ *   "<name> (<code>) (GWP <n> | <safety>)".
+ * `hasImpact` gates the green icon per Güntner's Impact° criterion (natural
+ * refrigerants and HFOs with very low GWP). This is only used when the API
+ * response is unavailable.
+ */
+const REFRIGERANT_FALLBACK: readonly FluidOption[] = [
+  // Naturals (Impact° label)
+  { value: 'R744',  label: 'CO2 (R744) (GWP 1 | A1)',           hasImpact: true },
+  { value: 'R717',  label: 'NH3 (R717) (GWP 0 | B2L)',          hasImpact: true },
+  { value: 'R170',  label: 'Ethane (R170) (GWP 6 | A3)',        hasImpact: true },
+  { value: 'R290',  label: 'Propane (R290) (GWP 3 | A3)',       hasImpact: true },
+  { value: 'R600',  label: 'Butane (R600) (GWP 4 | A3)',        hasImpact: true },
+  { value: 'R600a', label: 'Isobutane (R600a) (GWP 3 | A3)',    hasImpact: true },
+  { value: 'R1270', label: 'Propene (R1270) (GWP 2 | A3)',      hasImpact: true },
+  { value: 'R1150', label: 'Ethylene (R1150) (GWP 4 | A3)',     hasImpact: true },
+  { value: 'R718',  label: 'Water (R718) (GWP 0 | A1)',         hasImpact: true },
+  // HFOs — low GWP but not natural. Güntner treats R1234ze/yf as no-icon per screenshot 3.
+  { value: 'R1234yf', label: 'R1234yf (GWP 4 | A2L)',           hasImpact: false },
+  { value: 'R1234ze', label: 'R1234ze (GWP 7 | A2L)',           hasImpact: false },
+  { value: 'R1233zd', label: 'R1233zd (GWP 4 | A1)',            hasImpact: false },
+  // HFC/HFO blends (mid GWP)
+  { value: 'R448A', label: 'R448A (GWP 1273 | A1)',             hasImpact: false },
+  { value: 'R449A', label: 'R449A (GWP 1282 | A1)',             hasImpact: false },
+  { value: 'R452A', label: 'R452A (GWP 1945 | A1)',             hasImpact: false },
+  { value: 'R452B', label: 'R452B (GWP 676 | A2L)',             hasImpact: false },
+  { value: 'R454A', label: 'R454A (GWP 238 | A2L)',             hasImpact: false },
+  { value: 'R454B', label: 'R454B (GWP 466 | A2L)',             hasImpact: false },
+  { value: 'R454C', label: 'R454C (GWP 148 | A2L)',             hasImpact: false },
+  { value: 'R455A', label: 'R455A (GWP 148 | A2L)',             hasImpact: false },
+  { value: 'R513A', label: 'R513A (GWP 631 | A1)',              hasImpact: false },
+  { value: 'R515B', label: 'R515B (GWP 293 | A1)',              hasImpact: false },
+  // Legacy HFC single-component & blends (high GWP — often phase-out)
+  { value: 'R32',   label: 'R32 (GWP 675 | A2L)',               hasImpact: false },
+  { value: 'R134a', label: 'R134a (GWP 1430 | A1)',             hasImpact: false },
+  { value: 'R404A', label: 'R404A (GWP 3922 | A1)',             hasImpact: false },
+  { value: 'R407A', label: 'R407A (GWP 2107 | A1)',             hasImpact: false },
+  { value: 'R407C', label: 'R407C (GWP 1774 | A1)',             hasImpact: false },
+  { value: 'R407F', label: 'R407F (GWP 1825 | A1)',             hasImpact: false },
+  { value: 'R410A', label: 'R410A (GWP 2088 | A1)',             hasImpact: false },
+  { value: 'R469A', label: 'R469A (GWP 1357 | A1)',             hasImpact: false },
+  { value: 'R502',  label: 'R502 (GWP 4595 | A1)',              hasImpact: false },
+  { value: 'R507A', label: 'R507A (GWP 3985 | A1)',             hasImpact: false },
+  { value: 'R508B', label: 'R508B (GWP 13400 | A1)',            hasImpact: false }
+]
+
+const LIQUID_FALLBACK: readonly FluidOption[] = [
+  { value: 'ethylene',   label: 'Ethylene glycol',   hasImpact: false },
+  { value: 'propylene',  label: 'Propylene glycol',  hasImpact: false },
+  { value: 'water',      label: 'Water',             hasImpact: true },
+  { value: 'brineNaCl',  label: 'Brine (NaCl)',      hasImpact: false },
+  { value: 'brineCaCl2', label: 'Brine (CaCl₂)',     hasImpact: false },
+  { value: 'methanol',   label: 'Methanol / water',  hasImpact: false }
+]
+
+const fluidOptions = computed<FluidOption[]>(() => {
+  // GPC.EU response is wrapped in { success, message, content: AvailableFluid[] }
+  // — see AvailableFluidListResultWithValidationInfo in gpceu.d.ts.
+  const raw: any = fluidsResp.value
+  const list: any[] | null =
+    Array.isArray(raw?.content) ? raw.content :
+    Array.isArray(raw)          ? raw :
+    null
+
+  if (!fluidsError.value && list && list.length > 0) {
+    return list
+      .map((f: any): FluidOption | null => {
+        const label = String(f.fluidName ?? f.name ?? f.refrigerantCode ?? f.id ?? '').trim()
+        if (!label) return null
+        // Derive `value` — prefer refrigerant code from the label ("… (R744) …")
+        // so store.parameters.refrigerant stays a stable string across sessions.
+        const codeMatch = label.match(/\((R\d{2,4}[A-Za-z]?)\)/)
+        const value = codeMatch ? codeMatch[1] : String(f.fluidID ?? label)
+        return {
+          value,
+          label,
+          hasImpact: Boolean(f.hasImpact)
+        }
+      })
+      .filter((x): x is FluidOption => x !== null)
   }
-  if (isLiquid.value) {
-    return [
-      { value: 'ethylene',  label: 'Ethylene glycol' },
-      { value: 'propylene', label: 'Propylene glycol' },
-      { value: 'water',     label: 'Water' }
-    ]
-  }
-  return [
-    { value: 'R448A', label: 'R448A' },
-    { value: 'R449A', label: 'R449A' },
-    { value: 'R452A', label: 'R452A' },
-    { value: 'R134a', label: 'R134a' },
-    { value: 'R744',  label: 'CO₂ (R744) (GWP 1 | A1)' },
-    { value: 'R717',  label: 'NH₃ (R717)' },
-    { value: 'R290',  label: 'Propane (R290)' }
-  ]
+  return isLiquid.value ? [...LIQUID_FALLBACK] : [...REFRIGERANT_FALLBACK]
 })
 
 const calculationModeOptions = [
@@ -139,10 +239,16 @@ function goNext() { if (canProceed.value) router.push(step3Url()) }
 function goBack() { router.push('/') }
 function resetToDefaults() { store.resetWizard() }
 
-// Detect "natural" refrigerant leaves for the medium dropdown
-const isNaturalRefrigerant = computed(() =>
-  ['R744', 'R717', 'R290'].includes(refrigerant.value as string)
-)
+// Unified fluid v-model — picks the right store binding based on the
+// category's medium type. Refrigerant categories write to `refrigerant`;
+// liquid categories write to `glycolType`. Consumed by <ImpactSelect>.
+const fluidValue = computed<string>({
+  get: () => (isLiquid.value ? glycolMedium.value : refrigerant.value) as string,
+  set: (v: string) => {
+    if (isLiquid.value) glycolMedium.value = v
+    else refrigerant.value = v
+  }
+})
 </script>
 
 <template>
@@ -231,17 +337,11 @@ const isNaturalRefrigerant = computed(() =>
         <template v-if="isLiquid">
           <div class="field" data-learn-id="thermo-medium" data-field-name="Medium (Kühlflüssigkeit)" data-api-param="fluidID">
             <label>Medium</label>
-            <div class="medium-select">
-              <button type="button" class="impact-icon impact-icon-leading" aria-label="Impact° label — learn more" @click="impactModalOpen = true">
-                <img src="/icons/icon_impact.svg" alt="" />
-              </button>
-              <select v-model="glycolMedium">
-                <option v-for="o in fluidOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-              <button type="button" class="impact-icon impact-icon-trailing" aria-label="Impact° label — learn more" @click="impactModalOpen = true">
-                <img src="/icons/icon_impact.svg" alt="" />
-              </button>
-            </div>
+            <ImpactSelect
+              v-model="fluidValue"
+              :options="fluidOptions"
+              @impact-info="impactModalOpen = true"
+            />
           </div>
 
           <div class="field">
@@ -285,29 +385,11 @@ const isNaturalRefrigerant = computed(() =>
         <template v-else>
           <div class="field" data-learn-id="thermo-refrigerant" data-field-name="Kältemittel" data-api-param="fluidID">
             <label>Refrigerant</label>
-            <div class="medium-select">
-              <button
-                v-if="isNaturalRefrigerant"
-                type="button"
-                class="impact-icon impact-icon-leading"
-                aria-label="Impact° label — learn more"
-                @click="impactModalOpen = true"
-              >
-                <img src="/icons/icon_impact.svg" alt="" />
-              </button>
-              <select v-model="refrigerant">
-                <option v-for="o in fluidOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-              <button
-                v-if="isNaturalRefrigerant"
-                type="button"
-                class="impact-icon impact-icon-trailing"
-                aria-label="Impact° label — learn more"
-                @click="impactModalOpen = true"
-              >
-                <img src="/icons/icon_impact.svg" alt="" />
-              </button>
-            </div>
+            <ImpactSelect
+              v-model="fluidValue"
+              :options="fluidOptions"
+              @impact-info="impactModalOpen = true"
+            />
           </div>
 
           <div class="field" data-learn-id="thermo-evap-temp" data-field-name="Verdampfungstemperatur t₀" data-api-param="fluidTempInlet">
@@ -316,12 +398,12 @@ const isNaturalRefrigerant = computed(() =>
           </div>
 
           <div v-if="viewMode.isExpert.value" class="radio-group">
-            <label class="radio" :class="{ disabled: isCoil }">
-              <input type="radio" value="dew-point" v-model="dewPointMode" :disabled="isCoil" />
+            <label class="radio" :class="{ disabled: isCoil || !dewPointModeAvailable }">
+              <input type="radio" value="dew-point" v-model="dewPointMode" :disabled="isCoil || !dewPointModeAvailable" />
               Dew point at inlet (DIN EN328)
             </label>
-            <label class="radio" :class="{ disabled: isCoil }">
-              <input type="radio" value="mean" v-model="dewPointMode" :disabled="isCoil" />
+            <label class="radio" :class="{ disabled: isCoil || !dewPointModeAvailable }">
+              <input type="radio" value="mean" v-model="dewPointMode" :disabled="isCoil || !dewPointModeAvailable" />
               Mean
             </label>
           </div>
@@ -664,45 +746,7 @@ const isNaturalRefrigerant = computed(() =>
   margin: 0;
 }
 
-/* Medium dropdown with Impact° label icons — one absolutely-positioned
-   inside the input at left, one as a standalone trailing button next
-   to the input. Both open the same explanatory modal on click. */
-.medium-select {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: var(--space-a8);
-}
-.medium-select select {
-  flex: 1;
-  padding-left: 36px;
-}
-.impact-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: none;
-  background: transparent;
-  cursor: pointer;
-  border-radius: 4px;
-  transition: background 0.15s;
-}
-.impact-icon:hover { background: color-mix(in srgb, var(--c-impact-green) 12%, transparent); }
-.impact-icon:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-impact-green) 25%, transparent); }
-.impact-icon img { width: 18px; height: 18px; display: block; }
-.impact-icon-leading {
-  position: absolute;
-  left: 8px;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 1;
-  width: 26px; height: 26px;
-}
-.impact-icon-trailing {
-  width: 26px; height: 26px;
-  flex-shrink: 0;
-}
+/* Fluid dropdown moved to ImpactSelect component (nuxt/components/ImpactSelect.vue). */
 
 /* Options button inline with input — stretches to the input's height
    so the button visually pairs with the field. Uses the shared

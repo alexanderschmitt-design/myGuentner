@@ -2,8 +2,10 @@ import { getSupabaseServiceClient } from '../../../utils/supabase'
 import { getDocument, deleteChunksForDocument, insertChunks, updateDocumentStatus } from '../../../utils/vector-store'
 import { extractText, chunkText } from '../../../utils/document-processor'
 import { getRagSettings } from '../../../utils/rag-settings'
+import { requireAdmin } from '../../../utils/auth'
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
   const id = getRouterParam(event, 'id')
   if (!id) { setResponseStatus(event, 400); return { ok: false, error: 'id is required' } }
 

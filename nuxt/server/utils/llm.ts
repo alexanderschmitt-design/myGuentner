@@ -8,13 +8,49 @@ import { askBella, bellaHealthCheck, bellaConfig } from './llm-bella'
 import { askGemini, geminiHealthCheck, geminiConfig } from './llm-gemini'
 
 export interface LlmEvent {
-  type: 'sources' | 'text_delta' | 'thinking_delta' | 'done' | 'error'
+  type: 'sources' | 'text_delta' | 'thinking_delta' | 'tool_use' | 'tool_result' | 'done' | 'error'
   sources?: any[]
   text?: string
   fullText?: string
   stopReason?: string
   usage?: any
   error?: string
+  /** Tool-use payload — emitted when Claude decides to call a tool. */
+  toolUse?: {
+    toolUseId: string
+    name: string
+    input: Record<string, unknown>
+  }
+  /** Tool-result payload — emitted after we execute the tool locally. */
+  toolResult?: {
+    toolUseId: string
+    name: string
+    ok: boolean
+    summary: string
+    durationMs?: number
+    error?: string
+  }
+}
+
+/**
+ * Snapshot of the user's wizard state, shipped with every /api/chat request.
+ * See `useChatStream.ts` for the client-side counterpart. Must stay in sync.
+ * Sanitized in `chat.post.ts` before it reaches the LLM (whitelist + primitive
+ * coercion) so injected strings can't hijack the prompt.
+ */
+export interface UserContext {
+  route?: string
+  catId?: number
+  categorySlug?: string
+  categoryTitle?: string
+  productSection?: 1 | 2
+  guidedFlowId?: string
+  guidedFlowTitle?: string
+  guidedPathLabel?: string
+  wizardStep?: string
+  homeTab?: string
+  params?: Record<string, string | number | boolean | null>
+  selectedUnitKey?: string | null
 }
 
 export interface AskOptions {
@@ -25,6 +61,7 @@ export interface AskOptions {
   history?: Array<{ role: string; content: string }>
   model?: string
   detailedMode?: boolean
+  userContext?: UserContext
 }
 
 export type AskFunction = (query: string, chunks: any[], opts?: AskOptions) => AsyncIterable<LlmEvent>
@@ -52,6 +89,68 @@ export function getActiveLlm(overrideProvider?: string): LlmAdapter {
     healthCheck: bellaHealthCheck,
     config: bellaConfig()
   }
+}
+
+/**
+ * Formats the wizard-state snapshot into a deterministic Markdown block that
+ * the LLM can reference verbatim ("user is on the Deep-freeze path with
+ * R744 selected"). Returns an empty string if the context carries no
+ * meaningful signal — the calling formatter should then omit the block
+ * entirely so cache-warm requests still hit.
+ *
+ * Kept in the variable (non-cached) userContent block on purpose; putting it
+ * in the cached systemBlocks would tank the cache hit rate.
+ */
+export function formatUserContext(ctx: UserContext | undefined | null): string {
+  if (!ctx) return ''
+
+  const lines: string[] = []
+
+  if (ctx.route) lines.push(`- Route: ${ctx.route}`)
+  if (ctx.wizardStep) lines.push(`- Wizard step: ${ctx.wizardStep}`)
+  if (ctx.homeTab && ctx.route === '/') lines.push(`- Home tab: ${ctx.homeTab}`)
+  if (ctx.categoryTitle || ctx.categorySlug) {
+    const catBits = [
+      ctx.categoryTitle,
+      ctx.categorySlug ? `(${ctx.categorySlug})` : null,
+      ctx.catId != null ? `catId=${ctx.catId}` : null,
+      ctx.productSection === 2 ? 'bare coil' : ctx.productSection === 1 ? 'unit' : null
+    ].filter(Boolean).join(' ')
+    lines.push(`- Category: ${catBits}`)
+  }
+  if (ctx.guidedFlowId || ctx.guidedFlowTitle) {
+    const flowBits = [ctx.guidedFlowTitle, ctx.guidedFlowId ? `(${ctx.guidedFlowId})` : null].filter(Boolean).join(' ')
+    lines.push(`- Guided flow: ${flowBits}`)
+  }
+  if (ctx.guidedPathLabel) {
+    lines.push(`- Chosen path: ${ctx.guidedPathLabel}`)
+  }
+  if (ctx.selectedUnitKey) {
+    lines.push(`- Selected unit: ${ctx.selectedUnitKey}`)
+  }
+
+  if (ctx.params && typeof ctx.params === 'object') {
+    const paramLines: string[] = []
+    for (const [k, v] of Object.entries(ctx.params)) {
+      if (v === null || v === undefined || v === '') continue
+      // Coerce to primitive for safety — nested objects should never reach here
+      // but if they do, they get stringified via JSON.
+      const val = typeof v === 'object' ? JSON.stringify(v) : String(v)
+      paramLines.push(`  - ${k}: ${val}`)
+    }
+    if (paramLines.length > 0) {
+      lines.push('- Parameters:')
+      lines.push(...paramLines)
+    }
+  }
+
+  if (lines.length === 0) return ''
+
+  return '=== AKTUELLER KONFIGURATIONS-KONTEXT ===\n\n' +
+    lines.join('\n') +
+    '\n\nDer User befindet sich gerade in diesem Zustand. Beziehe dich in deiner Antwort ' +
+    'konkret auf diese Werte, wenn die Frage sie betrifft. Widersprich, wenn die aktuelle ' +
+    'Auswahl technisch problematisch ist.\n\n'
 }
 
 /** Formats RAG chunks into a numbered context block + sources list (shared shape). */

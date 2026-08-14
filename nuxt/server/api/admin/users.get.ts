@@ -3,15 +3,11 @@
  * Requires the caller to be authenticated.
  */
 
-import { serverSupabaseUser } from '#supabase/server'
 import { getSupabaseServiceClient } from '../../utils/supabase'
+import { requireAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
-  const caller = await serverSupabaseUser(event)
-  if (!caller) {
-    setResponseStatus(event, 401)
-    return { ok: false, error: 'Authentication required' }
-  }
+  await requireAdmin(event)
   const sb = getSupabaseServiceClient()
   const { data, error } = await sb.auth.admin.listUsers({ perPage: 200 })
   if (error) {

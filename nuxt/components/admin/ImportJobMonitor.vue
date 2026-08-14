@@ -1,9 +1,11 @@
 <script setup lang="ts">
 /**
- * ImportJobMonitor — poll GET /api/dms/import/[jobId] and render a
- * progress bar until the job reaches a terminal status.
+ * ImportJobMonitor — pollt GET /api/dms/import/[jobId], zeigt Fortschritt,
+ * und triggert selbst POST /api/dms/import/[jobId]/continue solange
+ * status='running' UND es unbearbeitete IDs gibt. So läuft ein async
+ * DMS-Import auf Vercel-Serverless durch, ohne den 60s-Timeout zu reißen.
  */
-import { onMounted, watch } from 'vue'
+import { onMounted, watch, computed, ref } from 'vue'
 
 interface ImportJob {
   id: string
@@ -11,13 +13,19 @@ interface ImportJob {
   total_count: number
   processed_count: number
   failed_count: number
+  pending_index?: number
+  dms_ids?: string[]
   started_at?: string
   finished_at?: string | null
   errors?: Array<{ dmsId: string; error: string }> | null
+  items?: Array<{ dmsId: string; status: string; error?: string; reason?: string }>
 }
 
 const props = defineProps<{ jobId: string }>()
 const emit = defineEmits<{ (e: 'done', job: ImportJob): void }>()
+
+const continueInFlight = ref(false)
+const continueError = ref<string | null>(null)
 
 const { job, error, isPolling, start } = useJobPoller<ImportJob>({
   urlFor: (id) => `/api/dms/import/${id}`,
@@ -25,23 +33,39 @@ const { job, error, isPolling, start } = useJobPoller<ImportJob>({
   intervalMs: 1500
 })
 
-// The server returns { ok, job }, not the job directly — wrap.
 onMounted(() => {
   if (props.jobId) start(props.jobId)
 })
 watch(() => props.jobId, (id) => { if (id) start(id) })
 
-// Emit `done` when we reach a terminal status
-watch(job, (j) => {
-  if (j && j.status !== 'pending' && j.status !== 'running') emit('done', j)
-})
-
-// The poller stores the raw response ({ ok, job }); adapt getter
 const jobData = computed<ImportJob | null>(() => (job.value as any)?.job || (job.value as any) || null)
 const percent = computed(() => {
   const j = jobData.value
   if (!j || !j.total_count) return 0
   return Math.round((j.processed_count / j.total_count) * 100)
+})
+
+// Auto-continue: solange running und pending_index < total_count, feuere die
+// nächste Batch. Ohne diese Kette bliebe der Job bei Batch 1 stehen.
+watch(jobData, async (j) => {
+  if (!j) return
+  if (j.status !== 'running') {
+    if (j.status !== 'pending') emit('done', j)
+    return
+  }
+  const remaining = j.total_count - (j.pending_index ?? j.processed_count ?? 0)
+  if (remaining <= 0) return
+  if (continueInFlight.value) return
+
+  continueInFlight.value = true
+  continueError.value = null
+  try {
+    await $fetch(`/api/dms/import/${props.jobId}/continue`, { method: 'POST', body: {} })
+  } catch (err: any) {
+    continueError.value = err?.data?.error || err?.message || 'continue failed'
+  } finally {
+    continueInFlight.value = false
+  }
 })
 </script>
 
@@ -61,7 +85,9 @@ const percent = computed(() => {
       <div class="import-monitor-counts">
         <span>{{ jobData.processed_count }} / {{ jobData.total_count }} verarbeitet</span>
         <span v-if="jobData.failed_count"> · {{ jobData.failed_count }} Fehler</span>
+        <span v-if="continueInFlight" class="import-monitor-batch"> · nächste Batch läuft…</span>
       </div>
+      <div v-if="continueError" class="import-monitor-error">Batch-Fehler: {{ continueError }}</div>
       <details v-if="jobData.errors && jobData.errors.length" class="import-monitor-errors">
         <summary>Fehler-Details</summary>
         <ul>
@@ -119,7 +145,8 @@ const percent = computed(() => {
   font-size: var(--font-4xs);
 }
 .import-monitor-empty { color: var(--c-text-light2); }
-.import-monitor-error { color: var(--c-error, #B33A3A); }
+.import-monitor-error { color: var(--c-error, #B33A3A); margin-top: 4px; }
+.import-monitor-batch { color: var(--c-brand-blue); font-style: italic; }
 .import-monitor-errors { margin-top: 8px; }
 .import-monitor-errors ul { margin: 4px 0 0; padding-left: 18px; }
 .import-monitor-errors code { font-family: 'DM Mono', monospace; font-size: var(--font-4xs); }

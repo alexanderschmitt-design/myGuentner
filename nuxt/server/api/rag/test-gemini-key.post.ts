@@ -1,4 +1,7 @@
+import { requireAdmin } from '../../utils/auth'
+
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
   const body = await readBody<any>(event).catch(() => ({}))
   const apiKey = (body?.apiKey || '').trim()
   const model = (body?.model || 'gemini-2.5-flash').trim()

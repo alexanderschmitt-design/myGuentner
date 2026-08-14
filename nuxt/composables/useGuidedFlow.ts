@@ -20,6 +20,11 @@ const targetEl = ref<HTMLElement | null>(null)
 /** Guides that the user has manually dismissed on this route — remain
  *  suppressed until the route changes or reset() is called. */
 const dismissedFlowIds = ref<Set<string>>(new Set())
+/** Label of the last suggestion the user picked in the current flow — used
+ *  to identify which of the 5 demo paths (Cold storage, Deep freeze, …)
+ *  the user chose, so the chatbot can reference it in answers. Cleared
+ *  when the active flow id changes. */
+const pickedSuggestionLabel = ref<string | null>(null)
 
 let installed = false
 
@@ -81,7 +86,10 @@ export function useGuidedFlow() {
         }
         const changed = !activeFlow.value || activeFlow.value.id !== next.id
         activeFlow.value = next
-        if (changed) stepIndex.value = 0
+        if (changed) {
+          stepIndex.value = 0
+          pickedSuggestionLabel.value = null
+        }
         resolveTarget(next.steps[stepIndex.value]?.targetLearnId)
       },
       { immediate: true }
@@ -106,10 +114,18 @@ export function useGuidedFlow() {
     }
   }
 
+  const appliedDefaultsFor = useCategoryDefaultsGuard()
+
   function applySuggestion(sugg: GuidedSuggestion) {
+    // Remember which of the guided-path shortcuts the user picked so the
+    // chatbot's userContext can say "user is on the Deep-freeze path".
+    pickedSuggestionLabel.value = sugg.label
     const result = sugg.apply({
       store,
-      push: (path: string) => router.push(path)
+      push: (path: string) => router.push(path),
+      markCategoryDefaultsApplied: (slug: string) => {
+        appliedDefaultsFor.value.add(slug)
+      }
     })
     // Suggestions that returned `true` want us to auto-advance. Suggestions
     // that navigate to another route will re-trigger the route watcher, which
@@ -128,6 +144,7 @@ export function useGuidedFlow() {
   function reset() {
     dismissedFlowIds.value.clear()
     stepIndex.value = 0
+    pickedSuggestionLabel.value = null
     if (flags.isOn('guided_pass')) {
       const next = findFlowForRoute(route, store, homeTab.value)
       activeFlow.value = next
@@ -147,6 +164,7 @@ export function useGuidedFlow() {
     stepIndex: computed(() => stepIndex.value),
     targetEl: computed(() => targetEl.value),
     isFinished,
+    pickedSuggestionLabel: computed(() => pickedSuggestionLabel.value),
     advance,
     applySuggestion,
     dismiss,

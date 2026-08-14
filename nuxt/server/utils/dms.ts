@@ -163,6 +163,29 @@ export interface DmsSearchParams {
   pageSize?: number
 }
 
+// ObjectDefinition-Label-Cache (5-Minuten-TTL). Nitro-Cold-Start invalidiert
+// automatisch; das ist okay, weil ObjDefs sich fast nie ändern.
+let _objDefLabelCache: { at: number; map: Record<string, string> } | null = null
+const OBJDEF_TTL_MS = 5 * 60 * 1000
+
+async function getObjectDefinitionLabels(): Promise<Record<string, string>> {
+  if (_objDefLabelCache && (Date.now() - _objDefLabelCache.at) < OBJDEF_TTL_MS) {
+    return _objDefLabelCache.map
+  }
+  try {
+    const defs = await getObjectDefinitions()
+    const map: Record<string, string> = {}
+    for (const d of defs as any[]) {
+      if (d.id) map[d.id] = d.displayName || d.name || d.id
+    }
+    _objDefLabelCache = { at: Date.now(), map }
+    return map
+  } catch (err: any) {
+    console.warn('[dms] getObjectDefinitionLabels failed:', err.message)
+    return _objDefLabelCache?.map || {}
+  }
+}
+
 export async function searchDocuments(params: DmsSearchParams = {}) {
   const cfg = getDmsConfig()
   const qs = new URLSearchParams()
@@ -194,13 +217,54 @@ export async function searchDocuments(params: DmsSearchParams = {}) {
 
   const path = `/dms/r/${cfg.repositoryId}/srm/?${qs.toString()}`
   const data = await dmsFetchJson(path)
-  const items = Array.isArray(data.items) ? data.items.map(normalizeSearchHit) : []
+  const rawItems = Array.isArray(data.items) ? data.items.map(normalizeSearchHit) : []
+
+  // Enrichment: sourceCategories in Human-Readable-Labels auflösen,
+  // Standard-Properties zu strukturierten Feldern extrahieren.
+  const labelMap = await getObjectDefinitionLabels()
+  const items = rawItems.map((hit: any) => enrichHit(hit, labelMap))
+
   return {
     items,
     page: data.page || params.page || 1,
     links: data._links || {},
     nextHref: data._links?.next?.href || null,
     rawCount: items.length
+  }
+}
+
+function findPropValue(props: any[], keys: string[]): string | null {
+  for (const p of props || []) {
+    const key = p.key || p.id
+    if (!keys.includes(key)) continue
+    const v = Array.isArray(p.values) ? p.values[0] : p.value
+    if (typeof v === 'string' && v.trim()) return v
+  }
+  return null
+}
+
+function enrichHit(hit: any, labelMap: Record<string, string>) {
+  const categories = hit.sourceCategories || []
+  const categoryId = categories[0] || null
+  const props = hit.sourceProperties || []
+
+  return {
+    ...hit,
+    categoryId,
+    categoryLabel: categoryId ? (labelMap[categoryId] || categoryId) : null,
+    // Häufig gebrauchte Standard-Properties bereits extrahiert
+    filename: findPropValue(props, ['property_filename']) || null,
+    caption: findPropValue(props, ['property_caption']) || null,
+    documentId: findPropValue(props, ['property_document_id', 'property_document_number']) || hit.dmsId,
+    fileType: findPropValue(props, ['property_filetype']) || null,
+    state: findPropValue(props, ['property_state']) || null,
+    modifiedAt: findPropValue(props, ['property_last_modified_date']) || null,
+    createdAt: findPropValue(props, ['property_creation_date']) || null,
+    sizeBytes: (() => {
+      const s = findPropValue(props, ['property_size'])
+      const n = s ? parseInt(s, 10) : NaN
+      return Number.isFinite(n) ? n : null
+    })()
   }
 }
 

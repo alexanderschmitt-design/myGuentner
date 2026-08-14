@@ -18,6 +18,20 @@
 
 export type MediumType = 'refrigerant' | 'liquid'
 
+/**
+ * Category-specific overrides for the wizard parameter store. Only applied
+ * when the user first enters a category's thermodynamics page — user edits
+ * are not touched on subsequent visits.
+ */
+export interface CategoryParamDefaults {
+  airInletTempC?: number
+  evaporatingTempC?: number
+  condensingTempC?: number
+  refrigerant?: string
+  superheatingK?: number
+  subcoolingK?: number
+}
+
 export interface CategoryDef {
   id: number
   slug: string
@@ -28,6 +42,11 @@ export interface CategoryDef {
                            // 'liquid'      = Air cooler Coolant / Dry cooler / Oil cooler
   icon: string
   image: string
+  /** Optional per-category overrides for wizard param defaults. */
+  paramDefaults?: CategoryParamDefaults
+  /** When false, the dew-point/mean radio group on the Thermodynamics
+   *  Medium card is rendered but disabled. Defaults to true. */
+  dewPointModeAvailable?: boolean
 }
 
 // Medium-type mapping — drives which Thermodynamics field-set is shown
@@ -37,7 +56,9 @@ export interface CategoryDef {
 //   node 2328:7386 (Air cooler Coolant) / 2328:7825 (Dry cooler) /
 //   2328:7827 (this Figma node) / 2328:8703 (Oil cooler)  → liquid fields
 export const CATEGORIES: CategoryDef[] = [
-  { id: 0,  slug: 'evaporator-dx',   title: 'Evaporator', sublabel: 'DX',        productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_dx.svg',   image: '/images/Evaporator-dx.png' },
+  { id: 0,  slug: 'evaporator-dx',   title: 'Evaporator', sublabel: 'DX',        productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_dx.svg',   image: '/images/Evaporator-dx.png',
+    paramDefaults: { airInletTempC: 0 },
+    dewPointModeAvailable: false },
   { id: 1,  slug: 'evaporator-pump', title: 'Evaporator', sublabel: 'Pump',      productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_pump.svg', image: '/images/Evaporator-Pump.png' },
   { id: 2,  slug: 'air-cooler',      title: 'Air cooler', sublabel: 'Coolant',   productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_aircooler.svg',       image: '/images/Aircooler.png' },
   { id: 3,  slug: 'condenser',       title: 'Condenser',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_condenser.svg',       image: '/images/Condenser.png' },

@@ -18,6 +18,8 @@
     "build-gpc-parameters": "node rag/build-gpc-parameters.js",
     "create-user": "node scripts/create-user.mjs",
     "migrate-local-to-supabase": "node scripts/migrate-local-to-supabase.mjs",
+    "migrate": "node scripts/run-migration.mjs",
+    "verify-tables": "node scripts/verify-tables.mjs",
     "smoke": "node -e \"const base=process.env.SMOKE_BASE||'https://myguentner.vercel.app';(async()=>{for(const p of ['/login','/api/dms/health','/api/gpc-eu/health']){try{const r=await fetch(base+p);console.log('['+r.status+'] '+p);}catch(e){console.log('[ERR] '+p,e.message);}}})();\""
   },
   "keywords": [
@@ -33,5 +35,8 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.110.2",
     "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "pg": "^8.13.1"
   }
 }

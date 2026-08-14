@@ -1,6 +1,8 @@
 import { testEmbeddingKey } from '../../utils/embeddings'
+import { requireAdmin } from '../../utils/auth'
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event)
   const body = await readBody<any>(event).catch(() => ({}))
   const apiKey = (body?.apiKey || '').trim()
   if (!apiKey) {

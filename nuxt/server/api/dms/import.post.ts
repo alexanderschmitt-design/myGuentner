@@ -1,32 +1,31 @@
 /**
- * POST /api/dms/import — Trigger a DMS document import.
+ * POST /api/dms/import — DMS-Batch-Import starten.
  *
- * Body: { dmsIds: string[] }
+ * Body: { dmsIds: string[], force?: boolean, batchSize?: number }
  *
- * Creates an `import_jobs` row, then synchronously imports each requested
- * DMS document (fetch metadata + content → upload to Supabase Storage →
- * upsert into `documents` → chunk + embed → insert into `document_chunks`).
- * Returns { ok, jobId, imported: string[], failed: [{dmsId, error}] } once
- * all documents are processed. The client can display in-flight progress
- * by polling GET /api/dms/import/[jobId] — for small batches the response
- * arrives near-instantly.
+ * Legt einen `import_jobs`-Eintrag mit allen dmsIds in der Queue an und
+ * verarbeitet die erste Batch (Default 3 Docs) synchron. Client pollt
+ * GET /api/dms/import/[jobId] und ruft POST /api/dms/import/[jobId]/continue,
+ * bis `status ∈ { completed, completed_with_errors, failed }`.
  *
- * Serverless-friendly: no fire-and-forget. If you need a large batch,
- * split it across multiple POSTs.
+ * Response: { ok, jobId, status, processedInBatch, remaining, job }
  */
 
 import { randomUUID } from 'node:crypto'
 import { getSupabaseServiceClient } from '../../utils/supabase'
-import { getCurrentVersionMetadata, getObject, downloadContent } from '../../utils/dms'
-import { upsertDocument, insertChunks } from '../../utils/vector-store'
-import { extractText, chunkText } from '../../utils/document-processor'
-import { getRagSettings } from '../../utils/rag-settings'
+import { requireAdmin } from '../../utils/auth'
+import { processImportBatch, DEFAULT_BATCH_SIZE } from '../../utils/dms-import'
 
 export default defineEventHandler(async (event) => {
+  const user = await requireAdmin(event)
   const body = await readBody<any>(event).catch(() => ({}))
+
   const dmsIds: string[] = Array.isArray(body?.dmsIds)
     ? body.dmsIds.filter((x: any) => typeof x === 'string' && x.trim())
     : []
+  const force = body?.force === true
+  const batchSize = Number.isInteger(body?.batchSize) ? Math.max(1, Math.min(10, body.batchSize)) : DEFAULT_BATCH_SIZE
+
   if (!dmsIds.length) {
     setResponseStatus(event, 400)
     return { ok: false, error: 'dmsIds (non-empty string array) is required' }
@@ -36,99 +35,34 @@ export default defineEventHandler(async (event) => {
   const jobId = randomUUID()
   const startedAt = new Date().toISOString()
 
-  // 1. Create the job row
   const { error: jobErr } = await sb.from('import_jobs').insert({
     id: jobId,
+    source: 'dms',
     status: 'running',
     total_count: dmsIds.length,
     processed_count: 0,
     failed_count: 0,
     started_at: startedAt,
-    dms_ids: dmsIds
+    dms_ids: dmsIds,
+    pending_index: 0,
+    items: [],
+    created_by: user.id
   })
   if (jobErr) {
     setResponseStatus(event, 500)
     return { ok: false, error: `Failed to create import job: ${jobErr.message}` }
   }
 
-  const settings = await getRagSettings()
-  const imported: string[] = []
-  const failed: Array<{ dmsId: string; error: string }> = []
-
-  for (const dmsId of dmsIds) {
-    try {
-      const [obj, currentVersion] = await Promise.all([
-        getObject(dmsId).catch(() => null),
-        getCurrentVersionMetadata(dmsId)
-      ])
-      // downloadContent reads mainContentUrl / mainblobcontent link off the
-      // currentVersion (falls back to `obj` if only that has the link)
-      const download = await downloadContent(currentVersion || obj)
-      const filename = download.filename || obj?.filename || `${dmsId}.bin`
-      const contentType = download.contentType || 'application/octet-stream'
-      const buffer = download.buffer
-      const ext = filename.split('.').pop()?.toLowerCase() || 'bin'
-      const localId = `dms_${dmsId}`
-      const storagePath = `${localId}.${ext}`
-
-      // Upload to storage (upsert so re-imports overwrite)
-      const { error: uploadErr } = await sb.storage
-        .from('documents')
-        .upload(storagePath, buffer, { contentType, upsert: true })
-      if (uploadErr) throw new Error(`Storage upload failed: ${uploadErr.message}`)
-
-      const displayName = (obj?.filename || filename).replace(/\.[^.]+$/, '')
-      await upsertDocument({
-        id: localId,
-        name: displayName,
-        original_name: filename,
-        filename: storagePath,
-        type: ext,
-        size_bytes: buffer.length,
-        chunk_count: 0,
-        status: 'processing',
-        source: 'dms',
-        dms_metadata: {
-          dmsId,
-          dmsFilename: filename,
-          contentType,
-          version: currentVersion?.version || null,
-          mainContentUrl: currentVersion?.mainContentUrl || null,
-          object: obj
-        },
-        error: null
-      })
-
-      const text = await extractText(buffer, contentType, filename)
-      const chunks = chunkText(text, {
-        chunkSize: settings.chunk_size,
-        chunkOverlap: settings.chunk_overlap
-      })
-      await insertChunks(localId, chunks)
-
-      imported.push(localId)
-      await sb.from('import_jobs')
-        .update({ processed_count: imported.length + failed.length })
-        .eq('id', jobId)
-    } catch (err: any) {
-      failed.push({ dmsId, error: err?.message || String(err) })
-      await sb.from('import_jobs')
-        .update({
-          processed_count: imported.length + failed.length,
-          failed_count: failed.length
-        })
-        .eq('id', jobId)
-    }
+  try {
+    const result = await processImportBatch(jobId, batchSize, force)
+    return { ok: true, jobId, ...result }
+  } catch (err: any) {
+    // Job existiert bereits; das Fehler-Feld nachtragen, damit Client den Job
+    // als 'failed' sieht und nicht endlos pollt.
+    await sb.from('import_jobs')
+      .update({ status: 'failed', error: err.message, finished_at: new Date().toISOString() })
+      .eq('id', jobId)
+    setResponseStatus(event, 500)
+    return { ok: false, jobId, error: err.message }
   }
-
-  const finalStatus = failed.length === 0 ? 'completed' : imported.length === 0 ? 'failed' : 'completed_with_errors'
-  await sb.from('import_jobs').update({
-    status: finalStatus,
-    finished_at: new Date().toISOString(),
-    processed_count: imported.length + failed.length,
-    failed_count: failed.length,
-    errors: failed.length ? failed : null
-  }).eq('id', jobId)
-
-  return { ok: true, jobId, imported, failed, status: finalStatus }
 })

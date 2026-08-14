@@ -6,21 +6,16 @@
  *   • `data-learn-id="my-field"` on the element (preferred, refactor-safe)
  *   • otherwise a CSS path from the nearest landmark ancestor (best-effort)
  *
- * All storage is localStorage-only for now; a Supabase backend can plug in
- * later without changing the consumer API. Notes are per-browser.
+ * Persistenz: Supabase `learn_notes`-Tabelle via /api/learn/notes.
+ * localStorage bleibt nur als Offline-Fallback für den aktuellen Tab —
+ * beim nächsten erfolgreichen fetch wird der Server als Wahrheit übernommen.
  */
 import { ref, computed } from 'vue'
 
 const STORAGE_KEY = 'mygpc_learn_notes'
 
-/**
- * Category classifies what kind of information a note holds. Surfaced as a
- * radio group in the LearnBody editor.
- *   element  — info about this specific field / control
- *   relations — how this element interacts with other config values
- *   product  — product-specific facts (models, part numbers, options)
- */
 export type LearnCategory = 'element' | 'relations' | 'product'
+export type LearnStatus = 'draft' | 'approved' | 'rejected'
 
 export const LEARN_CATEGORIES: ReadonlyArray<{ id: LearnCategory; label: string; hint: string }> = [
   { id: 'element',   label: 'Element',      hint: 'What does this field do?' },
@@ -29,48 +24,81 @@ export const LEARN_CATEGORIES: ReadonlyArray<{ id: LearnCategory; label: string;
 ]
 
 export interface LearnNote {
-  id: string
+  id: string                  // Client-Key: elementLearnId(el) — nicht die DB-UUID
+  serverId?: string           // Supabase UUID (fehlt bei rein lokalen, noch nicht synchronisierten Notes)
   title: string
   body: string
   category: LearnCategory
+  status?: LearnStatus
+  ownedByMe?: boolean
   updatedAt: string
 }
 
-// Module-scoped state — one store per browser tab
 const notes = ref<Record<string, LearnNote>>({})
 const activeElement = ref<HTMLElement | null>(null)
 const activeId = ref<string | null>(null)
-let hydrated = false
+let hydratedLocal = false
+let hydratedServer = false
+let hydratePromise: Promise<void> | null = null
 
 function readFromStorage() {
-  if (typeof window === 'undefined' || hydrated) return
+  if (typeof window === 'undefined' || hydratedLocal) return
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY)
     if (raw) {
       const parsed = JSON.parse(raw) as Record<string, LearnNote>
-      // Legacy notes (pre-category) get 'element' as default
       for (const key of Object.keys(parsed)) {
         if (!parsed[key].category) parsed[key].category = 'element'
       }
       notes.value = parsed
     }
   } catch { /* ignore corrupt storage */ }
-  hydrated = true
+  hydratedLocal = true
 }
 
-function persist() {
+function persistLocal() {
   if (typeof window === 'undefined') return
   try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(notes.value)) } catch { /* quota */ }
 }
 
-/**
- * Compute a stable id for the given element.
- *   Priority: closest [data-learn-id] ancestor → id attribute → CSS-path
- *
- * Walking up to the closest tagged ancestor is critical — when the user
- * clicks a raw <input>, the tag lives on its `.field` wrapper, and without
- * the walk-up we'd fall through to the fragile CSS-path fallback.
- */
+async function hydrateFromServer() {
+  if (typeof window === 'undefined') return
+  if (hydratedServer) return
+  if (hydratePromise) return hydratePromise
+
+  hydratePromise = (async () => {
+    try {
+      const pageUrl = window.location.pathname
+      const res = await fetch(`/api/learn/notes?pageUrl=${encodeURIComponent(pageUrl)}`, {
+        credentials: 'same-origin'
+      })
+      if (!res.ok) return // 401/403 → wir bleiben bei localStorage
+      const payload = await res.json() as { ok: boolean; notes: any[] }
+      if (!payload.ok) return
+
+      const map: Record<string, LearnNote> = {}
+      for (const row of payload.notes || []) {
+        const key = row.data_learn_id || row.css_path
+        if (!key) continue
+        map[key] = {
+          id: key,
+          serverId: row.id,
+          title: row.title || '',
+          body: row.description || '',
+          category: (row.category || 'element') as LearnCategory,
+          status: row.status as LearnStatus,
+          ownedByMe: false,   // wird nachgeführt, wenn wir den eigenen User erkennen
+          updatedAt: row.updated_at
+        }
+      }
+      notes.value = { ...notes.value, ...map }
+      persistLocal()
+      hydratedServer = true
+    } catch { /* offline → localStorage bleibt maßgeblich */ }
+  })()
+  await hydratePromise
+}
+
 export function elementLearnId(el: HTMLElement): string {
   const anchor = el.closest<HTMLElement>('[data-learn-id]')
   if (anchor) return `data:${anchor.dataset.learnId}`
@@ -83,7 +111,6 @@ export function elementLearnId(el: HTMLElement): string {
     let seg = cur.tagName.toLowerCase()
     const cls = Array.from(cur.classList).filter((c) => !c.startsWith('router-link')).slice(0, 2).join('.')
     if (cls) seg += '.' + cls
-    // Include nth-of-type to disambiguate siblings
     const parent = cur.parentElement
     if (parent) {
       const same = Array.from(parent.children).filter((c) => c.tagName === cur!.tagName)
@@ -99,11 +126,6 @@ export function elementLearnId(el: HTMLElement): string {
   return `path:${window.location.pathname}${path.join('>')}`
 }
 
-/**
- * Resolved metadata for a picked element — surfaced by the Learn Mode
- * editor so users see a friendly field name + API-parameter name instead
- * of the raw ID string.
- */
 export interface LearnElementMeta {
   fieldName: string
   apiParam: string | null
@@ -115,13 +137,10 @@ export function resolveElementMeta(el: HTMLElement): LearnElementMeta {
   const apiParam = anchor.dataset.apiParam || null
   let fieldName = anchor.dataset.fieldName || ''
   if (!fieldName) {
-    // Prefer the first <label> INSIDE the anchor (typical .field pattern:
-    // <div class="field"><label>…</label><input/></div>)
     const label = anchor.querySelector('label')
     fieldName = label?.textContent?.trim() || ''
   }
   if (!fieldName) {
-    // Last-resort fallback so untagged clicks still show something readable
     fieldName = anchor.tagName.toLowerCase()
   }
   return {
@@ -131,32 +150,113 @@ export function resolveElementMeta(el: HTMLElement): LearnElementMeta {
   }
 }
 
-export function useLearnMode() {
-  if (typeof window !== 'undefined' && !hydrated) readFromStorage()
+function extractDataLearnId(key: string): string | null {
+  return key.startsWith('data:') ? key.slice(5) : null
+}
+function extractCssPath(key: string): string | null {
+  return key.startsWith('data:') ? null : key
+}
 
-  function saveNote(id: string, patch: { title: string; body: string; category: LearnCategory }) {
-    notes.value = {
-      ...notes.value,
-      [id]: {
-        id,
-        title: patch.title,
-        body: patch.body,
-        category: patch.category,
-        updatedAt: new Date().toISOString()
-      }
+export function useLearnMode() {
+  if (typeof window !== 'undefined' && !hydratedLocal) readFromStorage()
+  if (typeof window !== 'undefined' && !hydratedServer) void hydrateFromServer()
+
+  async function saveNote(id: string, patch: { title: string; body: string; category: LearnCategory }) {
+    const now = new Date().toISOString()
+    const existing = notes.value[id]
+    const optimistic: LearnNote = {
+      id,
+      serverId: existing?.serverId,
+      title: patch.title,
+      body: patch.body,
+      category: patch.category,
+      status: existing?.status,
+      ownedByMe: existing?.ownedByMe ?? true,
+      updatedAt: now
     }
-    persist()
+    notes.value = { ...notes.value, [id]: optimistic }
+    persistLocal()
+
+    // Server-Sync — best effort. Fehler blockieren nicht die UI.
+    try {
+      const pageUrl = window.location.pathname
+      if (existing?.serverId) {
+        const res = await fetch(`/api/learn/notes/${existing.serverId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            title: patch.title,
+            description: patch.body,
+            category: patch.category
+          })
+        })
+        if (res.ok) {
+          const payload = await res.json() as { ok: boolean; note: any }
+          if (payload.ok && payload.note) {
+            notes.value = {
+              ...notes.value,
+              [id]: {
+                ...optimistic,
+                serverId: payload.note.id,
+                status: payload.note.status,
+                updatedAt: payload.note.updated_at
+              }
+            }
+            persistLocal()
+          }
+        }
+      } else {
+        const res = await fetch('/api/learn/notes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({
+            pageUrl,
+            dataLearnId: extractDataLearnId(id),
+            cssPath: extractCssPath(id),
+            title: patch.title,
+            description: patch.body,
+            category: patch.category
+          })
+        })
+        if (res.ok) {
+          const payload = await res.json() as { ok: boolean; note: any }
+          if (payload.ok && payload.note) {
+            notes.value = {
+              ...notes.value,
+              [id]: {
+                ...optimistic,
+                serverId: payload.note.id,
+                status: payload.note.status,
+                ownedByMe: true,
+                updatedAt: payload.note.updated_at
+              }
+            }
+            persistLocal()
+          }
+        }
+      }
+    } catch { /* offline OK */ }
   }
 
-  function deleteNote(id: string) {
+  async function deleteNote(id: string) {
+    const existing = notes.value[id]
     const { [id]: _, ...rest } = notes.value
     notes.value = rest
-    persist()
+    persistLocal()
+
+    if (existing?.serverId) {
+      try {
+        await fetch(`/api/learn/notes/${existing.serverId}`, {
+          method: 'DELETE',
+          credentials: 'same-origin'
+        })
+      } catch { /* ignore */ }
+    }
   }
 
   function pick(el: HTMLElement) {
-    // Re-target to the closest tagged ancestor so annotations always live
-    // on the field wrapper, not on the raw input the user happened to click.
     const target = el.closest<HTMLElement>('[data-learn-id]') || el
     activeElement.value = target
     activeId.value = elementLearnId(target)
@@ -182,6 +282,7 @@ export function useLearnMode() {
     saveNote,
     deleteNote,
     pick,
-    clearPick
+    clearPick,
+    refresh: hydrateFromServer
   }
 }

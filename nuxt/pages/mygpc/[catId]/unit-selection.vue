@@ -33,6 +33,54 @@ const SERIES: SeriesCard[] = [
 const selectedSeries = ref<Set<string>>(new Set(['gacc-cx', 'gacv-cx']))
 const activeTab = ref<'search' | 'single'>('search')
 
+// ---- Calculate Single Unit tab state (Figma-referenced UI) ----
+// Short series codes for the single-unit filter dropdown — a light form of
+// the full SERIES list above, keyed by the family prefix used in Güntner
+// part numbers (GAMC, GASC, GADC, GACC, GACV, GADP).
+const SINGLE_SERIES_OPTIONS = [
+  { value: 'GAMC', label: 'GAMC' },
+  { value: 'GASC', label: 'GASC' },
+  { value: 'GADC', label: 'GADC' },
+  { value: 'GACC', label: 'GACC' },
+  { value: 'GACV', label: 'GACV' },
+  { value: 'GADP', label: 'GADP' }
+]
+const singleSeries    = ref<string>('GACC')
+const modelFilterRaw  = ref<string>('031.1/1XN/DHE7A')
+/** Committed filter — copies from modelFilterRaw when the user clicks Apply.
+ *  The "suitable units" list is derived from this so free typing doesn't
+ *  spam the model with per-keystroke changes. */
+const modelFilterApplied = ref<string>('031.1/1XN/DHE7A')
+const singleSelectedUnit = ref<string | null>('031.1/1XN/DHE7A')
+const singlePasses       = ref<number>(32)
+
+const SINGLE_PASSES_OPTIONS = [4, 6, 8, 12, 16, 24, 32, 48, 64]
+
+/**
+ * Filter the demo unit list by the applied model filter. In production this
+ * would call GPC.EU `findunits` scoped to the selected series + filter string,
+ * but for the dialog demo we synthesise a list from the filter itself so
+ * the panel always has one match to show.
+ */
+const suitableSingleUnits = computed<string[]>(() => {
+  const f = modelFilterApplied.value.trim()
+  if (!f) return []
+  return [`${singleSeries.value} ${f}`.trim(), f]
+    // Dedupe while preserving order
+    .filter((v, i, a) => a.indexOf(v) === i)
+    .slice(0, 1)
+})
+
+function applyModelFilter() {
+  modelFilterApplied.value = modelFilterRaw.value.trim()
+  singleSelectedUnit.value = suitableSingleUnits.value[0] ?? null
+}
+function clearModelFilter() {
+  modelFilterRaw.value = ''
+  modelFilterApplied.value = ''
+  singleSelectedUnit.value = null
+}
+
 function toggleSeries(id: string) {
   const s = SERIES.find(x => x.id === id)
   if (!s || s.status === 'unavailable') return
@@ -184,15 +232,15 @@ const powerSupplyOptions = [
 ]
 const motorTechnologyOptionsFull = [
   { value: -1, label: 'All' },
-  { value: -2, label: 'Energy optimised' },
+  { value: -2, label: 'Energy optimised',                 hasImpact: true },
   { value: -3, label: 'Cost optimised' },
   { value: 1,  label: 'AC' },
-  { value: 2,  label: 'EC (electronically commutated)' }
+  { value: 2,  label: 'EC (electronically commutated)',   hasImpact: true }
 ]
 const minEnergyClassOptions = [
   { value: 0, label: 'No' },
-  { value: 1, label: 'ErP compliant' },
-  { value: 2, label: 'Best efficiency class' }
+  { value: 1, label: 'ErP compliant',                     hasImpact: true },
+  { value: 2, label: 'Best efficiency class',             hasImpact: true }
 ]
 const maxOperatingPressureOptions = [
   { value: 0,  label: 'Standard' },
@@ -216,11 +264,19 @@ const airBlowDirectionOptions = [
   { value: 345, label: '45° down' },
   { value: 4, label: 'Vertically down' }
 ]
+// Defrost methods — extended to mirror the reference dropdown from
+// test.myguntner.com. hasImpact marks the eco-friendly variants (air,
+// hot gas, warm brine — no electric heating, lower energy footprint).
+// Note: the old value 4 ("Water defrost") is dropped in favour of the
+// more common "Warm brine defrost" (8). Existing user configs with
+// `defrostingType: 4` fall back to the default (1) via the select.
 const defrostingOptions = [
-  { value: 1, label: 'Air defrost' },
-  { value: 2, label: 'Electric defrost' },
-  { value: 3, label: 'Hot gas defrost' },
-  { value: 4, label: 'Water defrost' }
+  { value: 1, label: 'Air defrost',                                    hasImpact: true },
+  { value: 2, label: 'El. defrost mounted and wired at factory' },
+  { value: 5, label: 'Electric defrost kit to be installed by customer' },
+  { value: 3, label: 'Hotgas defrost',                                 hasImpact: true },
+  { value: 7, label: 'User-defined' },
+  { value: 8, label: 'Warm brine defrost',                             hasImpact: true }
 ]
 const airVelocityOptions = [
   { value: 0, label: 'All' },
@@ -252,6 +308,26 @@ const legsMaterialOptions = [
   { value: 'galv', label: 'Galv. Steel' },
   { value: 'ss',   label: 'Stainless steel' }
 ]
+
+// Impact° explainer modal — shared by all three ImpactSelects on this page.
+const impactModalOpen = ref(false)
+
+// Defrosting sub-options modal — triggered from the OPTIONS button next
+// to the Defrosting ImpactSelect. Applies only to Hot-gas (3) and Warm-brine
+// (8) methods; other defrost types don't expose additional controls.
+const defrostOptionsOpen = ref(false)
+const defrostOpts = reactive({
+  hotGasEndTempC:      6,      // Air temperature at which hot-gas cycle terminates
+  hotGasMinDurationMin: 3,     // Minimum cycle duration
+  drainPanHeater:      true,   // Heated drain pan during defrost
+  warmBrineTempC:      35,     // Warm-brine supply temperature
+  warmBrineFlowLpm:    30      // Warm-brine flow rate
+})
+const defrostOptionsHint = computed(() => {
+  if (opts.defrostingType === 3) return 'Hot-gas defrost sub-options'
+  if (opts.defrostingType === 8) return 'Warm-brine defrost sub-options'
+  return 'Method-specific defrost options — no extra settings for the selected method.'
+})
 
 const canProceed = computed(() => selectedSeries.value.size > 0)
 
@@ -359,7 +435,7 @@ function resetConfig() {
           <button class="tab" :class="{ 'is-active': activeTab === 'single' }" @click="activeTab = 'single'">Calculate Single Unit</button>
         </div>
 
-        <ul class="series-list">
+        <ul v-if="activeTab === 'search'" class="series-list">
           <li
             v-for="s in SERIES"
             :key="s.id"
@@ -379,6 +455,69 @@ function resetConfig() {
             </svg>
           </li>
         </ul>
+
+        <!-- ============ Calculate Single Unit ============ -->
+        <div v-else class="single-unit">
+          <div class="field">
+            <label>Series list:</label>
+            <select v-model="singleSeries" class="full-select">
+              <option v-for="o in SINGLE_SERIES_OPTIONS" :key="o.value" :value="o.value">{{ o.label }}</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>model filter:</label>
+            <div class="model-filter-row">
+              <input
+                v-model="modelFilterRaw"
+                type="text"
+                class="full-input"
+                placeholder="e.g. 031.1/1XN/DHE7A"
+                @keydown.enter="applyModelFilter"
+              />
+              <button type="button" class="btn btn-primary btn-apply" @click="applyModelFilter">APPLY</button>
+              <button
+                type="button"
+                class="btn-clear"
+                aria-label="Clear filter"
+                :disabled="!modelFilterRaw && !modelFilterApplied"
+                @click="clearModelFilter"
+              >
+                <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="8" cy="8" r="6" />
+                  <path d="M5.5 5.5l5 5M10.5 5.5l-5 5" />
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Current selection panel -->
+          <div class="cur-selection">
+            <div class="cur-selection-head">CURRENT SELECTION {{ modelFilterApplied || '—' }}</div>
+            <ul class="cur-selection-list">
+              <li
+                v-for="u in suitableSingleUnits"
+                :key="u"
+                class="cur-selection-item"
+                :class="{ 'is-selected': u === singleSelectedUnit }"
+                @click="singleSelectedUnit = u"
+              >
+                {{ u }}
+              </li>
+              <li v-if="!suitableSingleUnits.length" class="cur-selection-empty">
+                No units matching the filter.
+              </li>
+            </ul>
+            <div class="cur-selection-loaded">SUITABLE UNITS LOADED: ({{ suitableSingleUnits.length }})</div>
+          </div>
+
+          <div class="field">
+            <label>Passes:</label>
+            <select v-model.number="singlePasses" class="full-select">
+              <option v-for="p in SINGLE_PASSES_OPTIONS" :key="p" :value="p">{{ p }}</option>
+            </select>
+          </div>
+        </div>
       </section>
 
       <!-- ============ RIGHT: Unit Details ============ -->
@@ -628,17 +767,21 @@ function resetConfig() {
             </div>
 
             <div class="field">
-              <label>Motor technology <img src="/icons/icon_impact.svg" alt="" class="impact-leaf" /></label>
-              <select v-model.number="opts.motorTechnology" class="full-select">
-                <option v-for="o in motorTechnologyOptionsFull" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
+              <label>Motor technology</label>
+              <ImpactSelect
+                v-model="opts.motorTechnology"
+                :options="motorTechnologyOptionsFull"
+                @impact-info="impactModalOpen = true"
+              />
             </div>
 
             <div class="field">
-              <label>Minimum energy efficiency class <img src="/icons/icon_impact.svg" alt="" class="impact-leaf" /></label>
-              <select v-model.number="opts.minimumEnergyEfficiencyClass" class="full-select">
-                <option v-for="o in minEnergyClassOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
+              <label>Minimum energy efficiency class</label>
+              <ImpactSelect
+                v-model="opts.minimumEnergyEfficiencyClass"
+                :options="minEnergyClassOptions"
+                @impact-info="impactModalOpen = true"
+              />
             </div>
 
             <div class="field">
@@ -663,10 +806,20 @@ function resetConfig() {
             </div>
 
             <div class="field">
-              <label>Defrosting <img src="/icons/icon_impact.svg" alt="" class="impact-leaf" /></label>
-              <select v-model.number="opts.defrostingType" class="full-select">
-                <option v-for="o in defrostingOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
+              <label>Defrosting</label>
+              <div class="defrost-row">
+                <ImpactSelect
+                  v-model="opts.defrostingType"
+                  :options="defrostingOptions"
+                  @impact-info="impactModalOpen = true"
+                />
+                <button type="button" class="btn btn-outline btn-options" @click="defrostOptionsOpen = true">
+                  <span>OPTIONS</span>
+                  <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+                    <path d="M6 3v10M6 3L4 5M6 3l2 2M10 13V3M10 13l-2-2M10 13l2-2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
             </div>
 
             <label class="checkbox" :class="{ 'is-disabled': opts.defrostingType !== 3 }">
@@ -872,6 +1025,91 @@ function resetConfig() {
       </section>
     </div>
 
+    <!-- Defrost sub-options modal — trigger is the OPTIONS button next to the
+         Defrosting ImpactSelect. Content is method-specific: Hot-gas needs
+         end-temperature + minimum-duration + drain-pan heater; Warm-brine
+         needs supply-temp + flow rate. Any other selected method just gets
+         an explanatory hint. -->
+    <Teleport to="body">
+      <div v-if="defrostOptionsOpen" class="modal-backdrop" @click.self="defrostOptionsOpen = false">
+        <div class="modal defrost-modal" role="dialog" aria-labelledby="defrost-modal-title">
+          <header class="modal-head">
+            <h3 id="defrost-modal-title">Defrost options</h3>
+            <button type="button" class="modal-close" aria-label="Close" @click="defrostOptionsOpen = false">
+              <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </header>
+          <div class="modal-body">
+            <p class="defrost-hint">{{ defrostOptionsHint }}</p>
+
+            <template v-if="opts.defrostingType === 3">
+              <div class="field">
+                <label>Hot-gas end temperature</label>
+                <div class="input-unit">
+                  <input type="number" v-model.number="defrostOpts.hotGasEndTempC" />
+                  <span class="unit-badge">°C</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Minimum cycle duration</label>
+                <div class="input-unit">
+                  <input type="number" v-model.number="defrostOpts.hotGasMinDurationMin" />
+                  <span class="unit-badge">min</span>
+                </div>
+              </div>
+              <label class="checkbox">
+                <input type="checkbox" v-model="defrostOpts.drainPanHeater" />
+                Heat drain pan during defrost
+              </label>
+            </template>
+
+            <template v-else-if="opts.defrostingType === 8">
+              <div class="field">
+                <label>Warm-brine supply temperature</label>
+                <div class="input-unit">
+                  <input type="number" v-model.number="defrostOpts.warmBrineTempC" />
+                  <span class="unit-badge">°C</span>
+                </div>
+              </div>
+              <div class="field">
+                <label>Brine flow rate</label>
+                <div class="input-unit">
+                  <input type="number" v-model.number="defrostOpts.warmBrineFlowLpm" />
+                  <span class="unit-badge">L/min</span>
+                </div>
+              </div>
+            </template>
+          </div>
+          <footer class="modal-foot">
+            <button type="button" class="btn btn-text" @click="defrostOptionsOpen = false">Cancel</button>
+            <button type="button" class="btn btn-primary" @click="defrostOptionsOpen = false">Save</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
+
+    <!-- Impact° label explainer — reachable from any ImpactSelect's
+         trailing button on this page. -->
+    <Teleport to="body">
+      <div v-if="impactModalOpen" class="modal-backdrop" @click.self="impactModalOpen = false">
+        <div class="modal impact-modal" role="dialog" aria-labelledby="impact-modal-title">
+          <header class="modal-head">
+            <h3 id="impact-modal-title">Impact° label</h3>
+            <button type="button" class="modal-close" aria-label="Close" @click="impactModalOpen = false">
+              <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+            </button>
+          </header>
+          <div class="modal-body">
+            <p>Fluids, motors and defrost methods with this icon have a low/no GWP, high energy efficiency, or reduced environmental footprint.</p>
+            <p>Look out for the Impact° label to select the products and system components that offer optimum sustainability and energy-efficient technology within the Güntner portfolio.</p>
+          </div>
+          <footer class="modal-foot">
+            <button type="button" class="btn btn-text" @click="impactModalOpen = false">Close</button>
+          </footer>
+        </div>
+      </div>
+    </Teleport>
+
     <!-- Bottom nav -->
     <div class="bottom-nav">
       <button class="btn btn-text" @click="goBack">
@@ -1039,6 +1277,112 @@ function resetConfig() {
   margin-top: 2px;
 }
 .check { color: var(--c-primary); flex-shrink: 0; }
+
+/* ============ Calculate Single Unit ============ */
+.single-unit {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+.model-filter-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--space-xs2);
+  align-items: stretch;
+}
+.full-input {
+  padding: 9px 12px;
+  border: 1px solid var(--c-border-input);
+  border-radius: var(--radius-xs);
+  background: white;
+  font-family: 'DM Mono', var(--font-ui);
+  font-size: var(--font-xs);
+  color: var(--c-text-value);
+  outline: none;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  transition: border-color 0.15s;
+}
+.full-input:focus { border-color: var(--c-brand-blue); }
+.btn-apply {
+  padding: 0 var(--space-md);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+}
+.btn-clear {
+  width: 36px;
+  height: 100%;
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid var(--c-brand-blue);
+  color: var(--c-brand-blue);
+  border-radius: var(--radius-xs);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.btn-clear:hover:not(:disabled) { background: color-mix(in srgb, var(--c-brand-blue) 6%, white); }
+.btn-clear:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.cur-selection {
+  border: 1px solid var(--c-border-card);
+  border-radius: var(--radius-xs);
+  overflow: hidden;
+  background: var(--c-bg);
+}
+.cur-selection-head {
+  padding: 8px 12px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-medium2);
+  background: color-mix(in srgb, var(--c-border-card) 60%, white);
+  border-bottom: 1px solid var(--c-border-card);
+}
+.cur-selection-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: white;
+}
+.cur-selection-item {
+  padding: 10px 12px;
+  font-family: 'DM Mono', var(--font-ui);
+  font-size: var(--font-2xs);
+  color: var(--c-text-value);
+  cursor: pointer;
+  border-bottom: 1px solid var(--c-border-card);
+  transition: background 0.12s;
+}
+.cur-selection-item:last-child { border-bottom: none; }
+.cur-selection-item:hover { background: color-mix(in srgb, var(--c-brand-blue) 4%, white); }
+.cur-selection-item.is-selected {
+  background: color-mix(in srgb, var(--c-brand-blue) 10%, white);
+  font-weight: 500;
+}
+.cur-selection-empty {
+  padding: 14px 12px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-light2);
+  font-style: italic;
+  text-align: center;
+}
+.cur-selection-loaded {
+  padding: 8px 12px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--c-text-medium2);
+  border-top: 1px solid var(--c-border-card);
+  background: color-mix(in srgb, var(--c-border-card) 60%, white);
+}
 
 /* Accordion */
 .accordion { border-bottom: 1px solid var(--c-border-card); }
@@ -1362,6 +1706,24 @@ function resetConfig() {
 }
 .opts-body .field label .impact-leaf { margin-left: 4px; }
 
+/* Defrost row: ImpactSelect on the left + OPTIONS button on the right.
+   Kept ImpactSelect flexible so the trailing icon stays close to the combo. */
+.defrost-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-xs2);
+  align-items: stretch;
+}
+.defrost-row .btn-options {
+  padding: 0 var(--space-xs);
+  font-size: var(--font-2xs);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs3);
+  white-space: nowrap;
+}
+.defrost-row .btn-options svg { flex-shrink: 0; }
+
 /* Bottom nav */
 .bottom-nav {
   margin-top: var(--space-md);
@@ -1370,5 +1732,133 @@ function resetConfig() {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+</style>
+
+<!--
+  Impact° modal is teleported to <body> so its styles must be non-scoped.
+  Kept in a second style block; scoped styles above stay isolated.
+-->
+<style>
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(28, 26, 33, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 24px;
+}
+.modal {
+  background: white;
+  border-radius: var(--radius-md, 8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--c-border-card, #e6e4ea);
+}
+.modal-head h3 {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-md, 18px);
+  font-weight: 500;
+  color: var(--c-text-value, #262326);
+}
+.modal-close {
+  border: none;
+  background: transparent;
+  padding: 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--c-text-medium, #676377);
+  display: inline-flex;
+}
+.modal-close:hover { background: var(--c-border-card, #e6e4ea); }
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm, 19px);
+  overflow-y: auto;
+}
+.modal-body p {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  line-height: 1.5;
+  color: var(--c-text-value, #262326);
+}
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 12px 20px 20px;
+  border-top: 1px solid var(--c-border-card, #e6e4ea);
+}
+
+/* Defrost-options modal — reuse the .field / .input-unit patterns from
+   scoped CSS but resurface them here for the teleported markup. */
+.defrost-modal .field { display: flex; flex-direction: column; gap: 4px; }
+.defrost-modal .field label {
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-light2, #878391);
+  letter-spacing: 0.1px;
+}
+.defrost-modal .input-unit {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--c-border-input, #a6a3ad);
+  border-radius: var(--radius-xs, 4px);
+  overflow: hidden;
+  background: white;
+}
+.defrost-modal .input-unit input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 8px;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-ui);
+  font-size: var(--font-xs, 15.69px);
+  color: var(--c-text-value, #262326);
+}
+.defrost-modal .unit-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 8px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-light2, #878391);
+  background: var(--c-bg, #f5f4f0);
+  border-left: 1px solid var(--c-border-card, #e6e4ea);
+  white-space: nowrap;
+}
+.defrost-modal .checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  color: var(--c-text-value, #262326);
+}
+.defrost-modal .defrost-hint {
+  margin: 0 0 4px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-light2, #878391);
+  line-height: 1.4;
 }
 </style>

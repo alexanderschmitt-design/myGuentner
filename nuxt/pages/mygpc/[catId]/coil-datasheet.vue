@@ -13,6 +13,7 @@ useHead({ title: 'myGPC — Coil Datasheet' })
 
 const store  = useConfigStore()
 const router = useRouter()
+const gpceu  = useGpceu()
 const { current, searchUrl, thermoUrl } = useCategory()
 
 const coilTitle = 'Evaporator coil'
@@ -21,75 +22,159 @@ const coilKey = computed(() => {
   return k.startsWith('GCO ') ? k : `GCO ${k}`
 })
 
+// Pull the CoilInputData template for this product category so findCoils has
+// a valid, fully-populated payload. We can't reuse payloadForFindUnits — the
+// bare-coil endpoints take a completely different schema (CoilInputData vs.
+// UnitInputData).
+const { data: coilResult } = await useAsyncData(
+  'mygpc-coil-findcoils',
+  async () => {
+    try {
+      const defaults = await gpceu.defaultCoilInputData(current.value.id)
+      if (!defaults) return null
+      return await gpceu.findCoils(defaults)
+    } catch (err) {
+      console.warn('[coil-datasheet] findCoils failed:', err)
+      return null
+    }
+  },
+  { default: () => null, watch: [() => current.value.id] }
+)
+
+/** GCOOutputData entry matching the user's picked coil, or the first result
+ *  if nothing was picked. Null when the API is unavailable or empty. */
+const selectedCoil = computed<any | null>(() => {
+  const r: any = coilResult.value
+  const list: any[] = Array.isArray(r) ? r : Array.isArray(r?.gcoOutputList) ? r.gcoOutputList : []
+  if (!list.length) return null
+  const bareKey = (store.selectedUnitKey || '').replace(/^GCO\s+/, '')
+  const hit = bareKey ? list.find((c: any) => c.coilKey === bareKey || c.coilKey === store.selectedUnitKey) : null
+  return hit ?? list[0]
+})
+
 interface DataRow { label: string; a?: string }
 
+// ---- Formatters shared across the derived rows ----
+function fmtN(v: unknown, digits = 1, unit = ''): string {
+  if (v == null || v === '') return '—'
+  const n = Number(v)
+  if (!Number.isFinite(n)) return String(v)
+  return `${n.toFixed(digits)}${unit ? ' ' + unit : ''}`
+}
+function fmtSigned(v: unknown, digits = 1, unit = ''): string {
+  if (v == null || v === '') return '—'
+  const n = Number(v)
+  if (!Number.isFinite(n)) return String(v)
+  const s = n >= 0 ? '+' : '−'
+  return `${s}${Math.abs(n).toFixed(digits)}${unit ? ' ' + unit : ''}`
+}
+function fmtStr(v: unknown, fallback = '—'): string {
+  return v == null || v === '' ? fallback : String(v)
+}
+function materialCodeLabel(code: unknown, fallback: string): string {
+  // The GPC.EU material fields are numeric codes; without a translation
+  // table we fall back to the human-friendly demo value.
+  if (code == null || code === '') return fallback
+  return fallback
+}
+
 // -------- Performance / Construction --------
-const perfLeft: DataRow[]  = [
-  { label: 'Capacity',        a: '5.0 kW (1)(2)' },
-  { label: 'Surface',         a: '9.6 m²' },
-  { label: 'Rqrd. surface',   a: '17.0 m²' },
-  { label: 'Surface reserve', a: '−43.6 %' }
-]
-const perfRight: DataRow[] = [
-  { label: 'Construction for', a: 'Casing' },
-  { label: 'Connections',      a: 'right side' },
-  { label: 'Tube pattern',     a: 'staggered' },
-  { label: 'Frost thickness',  a: '0.0 mm' }
-]
+const perfLeft = computed<DataRow[]>(() => {
+  const c = selectedCoil.value
+  return [
+    { label: 'Capacity',        a: fmtN(c?.capacity, 1, 'kW') + (c ? '' : ' (1)(2)') },
+    { label: 'Surface',         a: fmtN(c?.surface, 1, 'm²') },
+    { label: 'Rqrd. surface',   a: '17.0 m²' },
+    { label: 'Surface reserve', a: fmtSigned(c?.surfaceReserve, 1, '%') }
+  ]
+})
+const perfRight = computed<DataRow[]>(() => {
+  const cg = store.coilGeometry
+  return [
+    { label: 'Construction for', a: cg?.constructionFor === 'duct' ? 'Duct' : 'Casing' },
+    { label: 'Connections',      a: 'right side' },
+    { label: 'Tube pattern',     a: 'staggered' },
+    { label: 'Frost thickness',  a: fmtN(store.parameters.frostThicknessMm, 1, 'mm') }
+  ]
+})
 
 // -------- Air (Inlet/Outlet) + Refrigerant --------
-const airRows = [
-  { label: 'Volume flow', inlet: '—',      outlet: '5000 m³/h' },
-  { label: 'Temperature', inlet: '0.0 °C', outlet: '−2.4 °C' }
-]
-const airExtras: DataRow[] = [
-  { label: 'Air pressure',  a: '1013 mbar' },
-  { label: 'Pressure drop', a: '36 Pa' }
-]
-const refrigerantRows: DataRow[] = [
-  { label: 'Refrigerant',        a: 'R22 (3)' },
-  { label: 'Evaporation temp.',  a: '−8.0 °C' },
-  { label: 'Superheating',       a: '5.0 K' },
-  { label: 'Condensation temp.', a: '35.0 °C' },
-  { label: 'Subcooled temp.',    a: '34.0 °C' },
-  { label: 'Pressure drop',      a: '0.024 bar / 0.18 K' }
-]
+const airRows = computed(() => {
+  const c = selectedCoil.value
+  return [
+    {
+      label: 'Volume flow',
+      inlet:  c?.airInletVolumeFlow  != null ? fmtN(c.airInletVolumeFlow,  0, 'm³/h') : '—',
+      outlet: c?.airOutletVolumeFlow != null ? fmtN(c.airOutletVolumeFlow, 0, 'm³/h') : '5000 m³/h'
+    },
+    {
+      label: 'Temperature',
+      inlet:  fmtN(c?.airInletTemperature  ?? store.parameters.airInletTempC, 1, '°C'),
+      outlet: fmtN(c?.airOutletTemperature ?? -2.4, 1, '°C')
+    }
+  ]
+})
+const airExtras = computed<DataRow[]>(() => {
+  const c = selectedCoil.value
+  return [
+    { label: 'Air pressure',  a: fmtN(c?.airPressure ?? store.parameters.airPressureMbar, 0, 'mbar') },
+    { label: 'Pressure drop', a: fmtN(c?.airPressureDrop ?? 36, 0, 'Pa') }
+  ]
+})
+const refrigerantRows = computed<DataRow[]>(() => {
+  const c = selectedCoil.value
+  const p = store.parameters
+  return [
+    { label: 'Refrigerant',        a: `${p.refrigerant ?? 'R22'} (3)` },
+    { label: 'Evaporation temp.',  a: fmtN(c?.evaporationTemperature ?? p.evaporatingTempC, 1, '°C') },
+    { label: 'Superheating',       a: fmtN(p.superheatingK ?? 5, 1, 'K') },
+    { label: 'Condensation temp.', a: fmtN(p.condensingTempC ?? 35, 1, '°C') },
+    { label: 'Subcooled temp.',    a: '34.0 °C' },
+    { label: 'Pressure drop',      a: `${fmtN(c?.fluidPressureDrop ?? 0.024, 3)} bar / ${fmtN(p.maxPressureDropK ?? 0.18, 2)} K` }
+  ]
+})
 
 // -------- Construction / Materials --------
-const constructionLeft: DataRow[] = [
-  { label: 'Tube volume',            a: '2.1 l' },
-  { label: 'Fin spacing',            a: '4.00 mm' },
-  { label: 'Empty weight',           a: '13.8 kg' },
-  { label: 'Finned length',          a: '1000 mm' },
-  { label: 'Finned height',          a: '400 mm' },
-  { label: 'Total length',           a: '1158 mm' },
-  { label: 'Frame length',           a: '1100 mm' },
-  { label: 'Frame height',           a: '500 mm' },
-  { label: 'Frame depth',            a: '150 mm' },
-  { label: 'Tube rows in depth',     a: '2' },
-  { label: 'Max. operating pressure', a: '32.0 bar' },
-  { label: 'Inlet connection',       a: '16 × 1.00 mm' },
-  { label: 'Outlet header',          a: '18 × 1.00 mm' },
-  { label: 'Outlet connection',      a: '16 × 1.00 mm' }
-]
-const constructionRight: DataRow[] = [
-  { label: 'Tubes',             a: 'Copper (4)' },
-  { label: 'Distributor',       a: 'Brass' },
-  { label: 'Capillary tubes',   a: 'Copper' },
-  { label: 'Fins',              a: 'Aluminium (4)' },
-  { label: 'Outlet header',     a: 'Copper' },
-  { label: 'Outlet connection', a: 'Copper' },
-  { label: 'Frame',             a: 'Galv. Steel' },
-  { label: 'Circuits',          a: '1N' },
-  { label: 'Passes',            a: '4' },
-  { label: 'Distributions',     a: '4' },
-  { label: 'Support tubes',     a: '4' },
-  { label: 'PED classification', a: 'Art. 4(3) (5)' },
-  { label: 'Capillaries',       a: '4.0 × 0.75 mm' },
-  { label: 'Length',            a: '500 mm' },
-  { label: 'Distr. press. drop', a: '1.5 bar' },
-  { label: 'Part of total',     a: '16 %' }
-]
+const constructionLeft = computed<DataRow[]>(() => {
+  const c = selectedCoil.value
+  return [
+    { label: 'Tube volume',             a: fmtN(c?.tubeVolume, 1, 'l') },
+    { label: 'Fin spacing',             a: fmtN(c?.finSpacing, 2, 'mm') },
+    { label: 'Empty weight',            a: fmtN(c?.coilWeightDry, 1, 'kg') },
+    { label: 'Finned length',           a: fmtN(c?.finnedLength ?? 1000, 0, 'mm') },
+    { label: 'Finned height',           a: fmtN(c?.finnedHeight ?? 400, 0, 'mm') },
+    { label: 'Total length',            a: fmtN(c?.totalLength ?? 1158, 0, 'mm') },
+    { label: 'Frame length',            a: fmtN(c?.frameLength ?? 1100, 0, 'mm') },
+    { label: 'Frame height',            a: fmtN(c?.frameHeight ?? 500,  0, 'mm') },
+    { label: 'Frame depth',             a: fmtN(c?.frameDepth  ?? 150,  0, 'mm') },
+    { label: 'Tube rows in depth',      a: fmtStr(c?.tubeRowsInDepth, '2') },
+    { label: 'Max. operating pressure', a: fmtN(c?.maxOperatingPressure ?? 32, 1, 'bar') },
+    { label: 'Inlet connection',        a: fmtStr(c?.inletConnectionText, '16 × 1.00 mm') },
+    { label: 'Outlet header',           a: fmtStr(c?.outletHeaderText,    '18 × 1.00 mm') },
+    { label: 'Outlet connection',       a: fmtStr(c?.outletConnectionText, '16 × 1.00 mm') }
+  ]
+})
+const constructionRight = computed<DataRow[]>(() => {
+  const c = selectedCoil.value
+  return [
+    { label: 'Tubes',             a: materialCodeLabel(c?.coreTubeMaterial, 'Copper (4)') },
+    { label: 'Distributor',       a: 'Brass' },
+    { label: 'Capillary tubes',   a: 'Copper' },
+    { label: 'Fins',              a: materialCodeLabel(c?.finMaterial, 'Aluminium (4)') },
+    { label: 'Outlet header',     a: 'Copper' },
+    { label: 'Outlet connection', a: 'Copper' },
+    { label: 'Frame',             a: materialCodeLabel(c?.frameMaterial, 'Galv. Steel') },
+    { label: 'Circuits',          a: '1N' },
+    { label: 'Passes',            a: fmtStr(c?.passesCount, '4') },
+    { label: 'Distributions',     a: '4' },
+    { label: 'Support tubes',     a: fmtStr(c?.supportTubesCount, '4') },
+    { label: 'PED classification', a: 'Art. 4(3) (5)' },
+    { label: 'Capillaries',       a: `${fmtStr(c?.capillaryDiameter, '4.0')} × 0.75 mm` },
+    { label: 'Length',            a: '500 mm' },
+    { label: 'Distr. press. drop', a: '1.5 bar' },
+    { label: 'Part of total',     a: '16 %' }
+  ]
+})
 
 // -------- Accessories + Terms --------
 const accessories = [{ description: 'Cover and bottom plates beaded with drain hole', pieces: 1 }]
@@ -133,6 +218,25 @@ const footnotes = [
 // -------- Actions --------
 function copyKey() { navigator.clipboard?.writeText(coilKey.value) }
 
+// --- Ask-Günther failsafe -------------------------------------------------
+// Mirrors the pattern in gpc-details.vue: whenever the datasheet is being
+// rendered on demo values, expose a CTA to hand the query off to the bot.
+const isLiveDataMissing = computed(() => selectedCoil.value == null)
+const chatDockOpen    = useChatDockState()
+const chatDockPreload = useChatDockPreload()
+function askGuentherAboutCoil() {
+  const p = store.parameters
+  const parts = [
+    p.coolingCapacityKw != null ? `Kälteleistung ${p.coolingCapacityKw} kW` : null,
+    p.refrigerant                ? `Kältemittel ${p.refrigerant}` : null,
+    p.evaporatingTempC != null   ? `t₀ = ${p.evaporatingTempC} °C` : null
+  ].filter(Boolean).join(', ')
+  chatDockPreload.value =
+    `Ich möchte Details zu Coil ${coilKey.value}${parts ? ' für ' + parts : ''}. ` +
+    `Kannst du die passende Coil-Geometrie und Alternativen bestimmen?`
+  chatDockOpen.value = true
+}
+
 // -------- Sidebar (reduced set for Coil) --------
 function goBack() { router.push(searchUrl()) }
 interface SidebarAction { label: string; icon: string; onClick: () => void }
@@ -156,17 +260,12 @@ const sidebarGroups: SidebarAction[][] = [
 <template>
   <div class="ds-page">
     <div class="ds-layout">
-      <!-- ================== Content column ================== -->
-      <div class="ds-content-shell">
-        <div class="ds-content">
-          <!-- Header band (grey): brand + product title + coil-key + icon actions -->
-          <header class="ds-header">
+      <!-- Header spans the full layout width so sidebar & first section align -->
+      <div class="ds-header-shell">
+        <header class="ds-header">
             <div class="ds-brand">
               <span class="ds-logo" aria-hidden="true">
-                <svg viewBox="0 0 24 24" width="28" height="28" fill="none">
-                  <circle cx="12" cy="12" r="11" fill="white" stroke="#c5c5c5" stroke-width="0.8"/>
-                  <text x="12" y="15.5" text-anchor="middle" font-family="Simplon BP, Geist, sans-serif" font-size="10" font-weight="500" fill="#3c3c3b">güntner</text>
-                </svg>
+                <img src="/icons/logo-black.svg" alt="" />
               </span>
               <div class="ds-title-wrap">
                 <h1 class="ds-title">
@@ -188,7 +287,27 @@ const sidebarGroups: SidebarAction[][] = [
                 <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7V3h8v4M4 7h12v6h-3v4H7v-4H4z"/></svg>
               </button>
             </div>
-          </header>
+        </header>
+      </div>
+
+      <!-- ================== Content column ================== -->
+      <div class="ds-content-shell">
+        <div class="ds-content">
+          <!-- Failsafe: no live GPC.EU coil for this configuration. -->
+          <section v-if="isLiveDataMissing" class="ds-section">
+            <div class="ds-ask-guenther">
+              <div class="ds-ask-text">
+                <strong>Live coil data not available for {{ coilKey }}.</strong>
+                <span>The datasheet shows demo values — Günther can look up the actual specification via GPC.EU findCoils.</span>
+              </div>
+              <button type="button" class="btn btn-primary btn-ask" @click="askGuentherAboutCoil">
+                <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M4 5h12v9H8l-4 4V5z"/>
+                </svg>
+                Ask Günther
+              </button>
+            </div>
+          </section>
 
           <!-- Performance / Construction (2 col) -->
           <section class="ds-section">
@@ -395,10 +514,34 @@ const sidebarGroups: SidebarAction[][] = [
 .ds-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 326px;
-  gap: var(--space-md);
+  grid-template-areas:
+    "header  header"
+    "content sidebar";
+  column-gap: var(--space-md);
+  row-gap: var(--space-xs);
   align-items: start;
 }
-@media (max-width: 1100px) { .ds-layout { grid-template-columns: 1fr; } }
+.ds-header-shell   {
+  grid-area: header;
+  display: flex;
+  justify-content: center;
+  /* Reserve the sidebar column so the 900px header centers within the
+     content column, keeping logo + title left-aligned with content cards. */
+  padding-right: calc(326px + var(--space-md));
+}
+.ds-header-shell .ds-header { width: 100%; max-width: 900px; }
+.ds-content-shell  { grid-area: content; }
+.ds-sidebar        { grid-area: sidebar; }
+@media (max-width: 1100px) {
+  .ds-layout {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "content"
+      "sidebar";
+  }
+  .ds-header-shell { padding-right: 0; }
+}
 
 .ds-content-shell { display: flex; justify-content: center; min-width: 0; }
 .ds-content {
@@ -445,7 +588,8 @@ const sidebarGroups: SidebarAction[][] = [
 .ds-copy-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 12%, transparent); }
 
 .ds-brand { display: flex; align-items: center; gap: var(--space-xs2); min-width: 0; }
-.ds-logo  { flex-shrink: 0; width: 30px; height: 24px; display: inline-flex; align-items: center; justify-content: center; }
+.ds-logo  { flex-shrink: 0; width: 44px; height: 36px; display: inline-flex; align-items: center; justify-content: center; }
+.ds-logo img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .ds-title-wrap { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .ds-title {
   margin: 0;
@@ -483,6 +627,37 @@ const sidebarGroups: SidebarAction[][] = [
   color: var(--c-text-medium);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Ask-Günther failsafe (no live coil for this configuration) */
+.ds-ask-guenther {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: 12px 16px;
+  border-left: 3px solid var(--c-brand-blue);
+  background: color-mix(in srgb, var(--c-brand-blue) 4%, white);
+  border-radius: var(--radius-xs);
+}
+.ds-ask-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-value);
+  line-height: 1.5;
+}
+.ds-ask-text strong { font-weight: 500; }
+.ds-ask-text span   { color: var(--c-text-medium); }
+.btn-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 /* Two-col layout */
