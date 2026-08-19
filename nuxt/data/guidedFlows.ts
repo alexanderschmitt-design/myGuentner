@@ -21,6 +21,7 @@
 import type { RouteLocationNormalized } from 'vue-router'
 import type { useConfigStore } from '~/stores/configuration'
 import type { HomeTabId } from '~/composables/useHomeTab'
+import { HOME_ENTRY_FLOWS } from './homeEntryFlows'
 
 type ConfigStore = ReturnType<typeof useConfigStore>
 
@@ -56,14 +57,41 @@ export interface GuidedStep {
   readonly suggestions?: readonly GuidedSuggestion[]
   /** Show a "Weiter" button when there are no suggestions (default: yes) */
   readonly showAdvance?: boolean
+  /**
+   * Special-step-Rendering. Wenn gesetzt, rendert die ChatDock den Step
+   * mit einer alternativen Karte:
+   *   - `recommendations` → Template-Empfehlungs-Karte mit bis zu 3
+   *     Templates aus der DB, gematched gegen die aktuelle Store-Config.
+   */
+  readonly kind?: 'recommendations'
+  /**
+   * Context für Special-Steps. Bei kind='recommendations' liefert
+   * `resolveTarget(store)` die Ziel-Kategorie (catId + slug), gegen die
+   * Templates gefiltert werden. `finalize(ctx)` ist der Fallback wenn
+   * User keinen Vorschlag annimmt (Standard-Navigation ohne Template).
+   */
+  readonly recommendationCtx?: {
+    resolveTarget: (store: ConfigStore) => { catId: number; slug: string }
+    finalize: (ctx: GuidedContext) => void
+  }
 }
 
 export interface GuidedFlow {
   readonly id: string
   /** Human label — surfaced in the drawer header when a flow is active */
   readonly title: string
-  /** Predicate: does this flow apply to the current route/store/tab state? */
-  readonly match: (route: RouteLocationNormalized, store: ConfigStore, homeTab: HomeTabId) => boolean
+  /**
+   * Predicate: does this flow apply to the current route/store/tab state?
+   * `entryId` reflects the last Home-Karten-Klick (via useGuidedFlow.setEntry())
+   * — entry-driven Q&A-Flows nutzen den, um sich nur bei genau ihrer Karte zu
+   * aktivieren.
+   */
+  readonly match: (
+    route: RouteLocationNormalized,
+    store: ConfigStore,
+    homeTab: HomeTabId,
+    entryId: string | null
+  ) => boolean
   readonly steps: readonly GuidedStep[]
 }
 
@@ -264,6 +292,15 @@ const homeApplicationFlow: GuidedFlow = {
 }
 
 // ============================================================================
+// Home — Entry-driven Q&A: Application + Refrigerant Karten
+// ----------------------------------------------------------------------------
+// Die pro-Karte Q&A-Flows werden aus deklarativen Configs generiert. Zum
+// Anpassen der Fragen/Antworten: nuxt/data/homeEntryFlows.ts editieren.
+// ============================================================================
+
+// (import at top of file — siehe Registry unten)
+
+// ============================================================================
 // Thermodynamics — refrigerant side (DX / Pump / Condenser / Subcooler / GC)
 // ============================================================================
 
@@ -416,8 +453,11 @@ function isLiquidCategory(slug: string | null | undefined): boolean {
   return !!slug && LIQUID_CATEGORY_SLUGS.has(slug)
 }
 
-/** Ordered registry — first match wins. */
+/** Ordered registry — first match wins. Entry-driven Q&A-Flows (aus den
+ *  homeEntryFlows-Configs generiert) stehen vor ihren generischen
+ *  Geschwistern, damit ein gesetzter pickedEntryId immer gewinnt. */
 export const GUIDED_FLOWS: readonly GuidedFlow[] = [
+  ...HOME_ENTRY_FLOWS,
   homeUnitFlow,
   homeApplicationFlow,
   thermoLiquidFlow,
@@ -427,10 +467,11 @@ export const GUIDED_FLOWS: readonly GuidedFlow[] = [
 export function findFlowForRoute(
   route: RouteLocationNormalized,
   store: ConfigStore,
-  homeTab: HomeTabId
+  homeTab: HomeTabId,
+  entryId: string | null = null
 ): GuidedFlow | null {
   for (const flow of GUIDED_FLOWS) {
-    if (flow.match(route, store, homeTab)) return flow
+    if (flow.match(route, store, homeTab, entryId)) return flow
   }
   return null
 }

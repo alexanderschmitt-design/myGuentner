@@ -239,6 +239,34 @@ function goNext() { if (canProceed.value) router.push(step3Url()) }
 function goBack() { router.push('/') }
 function resetToDefaults() { store.resetWizard() }
 
+// Templates modal + Auto-Apply Private-Default (Etappe 3)
+const templatesOpen = ref(false)
+const toast = useToast()
+function onTemplateApplied(t: { name: string }) {
+  toast.success(`Template "${t.name}" applied`)
+}
+// Auto-Apply Private-Default beim ersten Öffnen einer Kategorie in dieser
+// Session. sessionStorage-Flag verhindert dass wir bei jeder Navigation
+// zurück in die Kategorie den Default reinladen und User-Edits clobbern.
+// resetWizard() im Store löscht alle gpc:autoApplied:* Flags, sodass der
+// nächste Category-Open den Default wieder greift.
+onMounted(async () => {
+  const slug = current.value?.slug
+  if (!slug || typeof window === 'undefined') return
+  const flagKey = `gpc:autoApplied:${slug}`
+  if (window.sessionStorage.getItem(flagKey)) return
+  try {
+    const res = await $fetch<{ ok: boolean; templates: any[]; defaultId: string | null }>(`/api/templates?category=${encodeURIComponent(slug)}`)
+    if (!res.ok || !res.defaultId) return
+    const def = res.templates.find(t => t.id === res.defaultId)
+    if (def) {
+      store.applyTemplate(def.configuration)
+      window.sessionStorage.setItem(flagKey, '1')
+      toast.info(`Loaded your default template for ${slug}`)
+    }
+  } catch { /* not authenticated or offline — silently skip */ }
+})
+
 // Unified fluid v-model — picks the right store binding based on the
 // category's medium type. Refrigerant categories write to `refrigerant`;
 // liquid categories write to `glycolType`. Consumed by <ImpactSelect>.
@@ -262,7 +290,8 @@ const fluidValue = computed<string>({
         Back
       </button>
       <button class="btn btn-outline" @click="resetToDefaults">Reset</button>
-      <button class="btn btn-outline" type="button">Templates</button>
+      <button class="btn btn-outline" type="button" @click="templatesOpen = true">Templates</button>
+      <TemplatesModal v-model:open="templatesOpen" :category-slug="current.slug" @applied="onTemplateApplied" />
 
       <span class="spacer"></span>
 
@@ -292,7 +321,7 @@ const fluidValue = computed<string>({
               <option v-for="m in calculationModeOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
             </select>
           </div>
-          <div class="field" data-learn-id="thermo-capacity" data-field-name="Kälteleistung" data-api-param="thermalCapacity">
+          <div class="field" data-learn-id="thermo-capacity" data-field-name="Cooling Capacity" data-api-param="thermalCapacity">
             <label>Capacity</label>
             <UnitValueInput v-model="capacityKw" quantity="power" unit="kW" :step="0.1" />
           </div>
@@ -335,7 +364,7 @@ const fluidValue = computed<string>({
 
         <!-- Liquid variant (Figma node 2328:7827) -->
         <template v-if="isLiquid">
-          <div class="field" data-learn-id="thermo-medium" data-field-name="Medium (Kühlflüssigkeit)" data-api-param="fluidID">
+          <div class="field" data-learn-id="thermo-medium" data-field-name="Medium (Coolant)" data-api-param="fluidID">
             <label>Medium</label>
             <ImpactSelect
               v-model="fluidValue"
@@ -359,7 +388,7 @@ const fluidValue = computed<string>({
             </select>
           </div>
 
-          <div class="field" data-learn-id="thermo-inlet-temp" data-field-name="Vorlauftemperatur (Medium)" data-api-param="fluidTempInlet">
+          <div class="field" data-learn-id="thermo-inlet-temp" data-field-name="Inlet Temperature (Medium)" data-api-param="fluidTempInlet">
             <label>Inlet temp.</label>
             <UnitValueInput v-model="inletTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
@@ -383,7 +412,7 @@ const fluidValue = computed<string>({
 
         <!-- Refrigerant variant (DX / Condenser / Gas cooler) -->
         <template v-else>
-          <div class="field" data-learn-id="thermo-refrigerant" data-field-name="Kältemittel" data-api-param="fluidID">
+          <div class="field" data-learn-id="thermo-refrigerant" data-field-name="Refrigerant" data-api-param="fluidID">
             <label>Refrigerant</label>
             <ImpactSelect
               v-model="fluidValue"
@@ -392,7 +421,7 @@ const fluidValue = computed<string>({
             />
           </div>
 
-          <div class="field" data-learn-id="thermo-evap-temp" data-field-name="Verdampfungstemperatur t₀" data-api-param="fluidTempInlet">
+          <div class="field" data-learn-id="thermo-evap-temp" data-field-name="Evaporating Temperature t₀" data-api-param="fluidTempInlet">
             <label>Evaporation temp.</label>
             <UnitValueInput v-model="evapTempC" quantity="temperature" unit="C" :step="0.5" />
           </div>
@@ -445,7 +474,7 @@ const fluidValue = computed<string>({
       <section class="card air-card">
         <h3 class="card-title">Air</h3>
 
-        <div class="field" data-learn-id="thermo-air-inlet" data-field-name="Luft-Eintrittstemperatur" data-api-param="airTemperature">
+        <div class="field" data-learn-id="thermo-air-inlet" data-field-name="Air Inlet Temperature" data-api-param="airTemperature">
           <label>Inlet temp.</label>
           <UnitValueInput v-model="airInletTempC" quantity="temperature" unit="C" :step="0.5" />
         </div>

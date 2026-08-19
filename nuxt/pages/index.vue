@@ -12,11 +12,13 @@
  * becomes hidden, we fall back to the first still-visible tab.
  */
 
+import { GUIDED_ENTRY_IDS } from '~/data/homeEntryFlows'
+
 useHead({ title: 'myGPC — Home' })
 
 const { visibility } = useSectionVisibility()
 
-type TabId = 'unit' | 'coil' | 'mygps' | 'application' | 'api-services'
+type TabId = 'unit' | 'coil' | 'mygps' | 'application' | 'refrigerant' | 'api-services'
 
 const activeTab = useHomeTab()
 
@@ -26,6 +28,7 @@ const visibleTabs = computed<TabId[]>(() => {
   if (v.units)          t.push('unit')
   if (v.coils)          t.push('coil')
   if (v.application)    t.push('application')
+  if (v.refrigerant)    t.push('refrigerant')
   if (v['api-services']) t.push('api-services')
   if (v.mygps)          t.push('mygps')
   return t
@@ -41,6 +44,25 @@ watchEffect(() => {
 
 const router = useRouter()
 const store = useConfigStore()
+const guided = useGuidedFlow()
+const chatDockOpen = useChatDockState()
+
+/**
+ * Q&A-Flow für Home-Karten aktivieren: statt direkt in den Wizard zu
+ * springen, wird ein Multi-Step-Guided-Flow gestartet (siehe
+ * nuxt/data/homeEntryFlows.ts). Der Flow entscheidet nach seinen Fragen
+ * welche Kategorie geladen wird.
+ *
+ * Die `GUIDED_ENTRY_CARDS`-Menge wird aus den Q&A-Configs in
+ * homeEntryFlows.ts abgeleitet — will man eine neue Karte mit Q&A ausstatten,
+ * fügt man einfach eine Config dort hinzu.
+ */
+const GUIDED_ENTRY_CARDS = GUIDED_ENTRY_IDS
+
+function startGuidedEntry(entryId: string) {
+  guided.setEntry(entryId)
+  chatDockOpen.value = true
+}
 
 // Direct navigation into Step 2 (Thermodynamics) with the numeric category ID
 // in the URL. Matches the pattern from reference screenshots:
@@ -52,10 +74,37 @@ const store = useConfigStore()
 //   1 = Unit  (Units + By Category + By Application accordions)
 //   2 = Coil  (Bare Coils accordion) — drives TopStepNav to show
 //              "Coil Geometry" as step 3 instead of "Unit Selection"
-function goToWizard(catId: number, categorySlug: string, productSection: 1 | 2 = 1) {
+//
+// `prefill` (optional): patches store.parameters BEFORE navigating so the
+// wizard opens with sensible defaults (used by the By-Application and
+// By-Refrigerant teaser cards — each has an implicit refrigerant / purpose).
+async function goToWizard(catId: number, categorySlug: string, productSection: 1 | 2 = 1, prefill?: Record<string, unknown>) {
   store.setProductSection(productSection)
   store.currentCategory = categorySlug
   store.currentSubcategory = null
+
+  // 1) Fallback-Prefill (Hardcoded-Signature-Wert der Home-Karte)
+  if (prefill && Object.keys(prefill).length) {
+    store.updateParameters(prefill as any)
+  }
+
+  // 2) Wenn User ein Template für diese Kategorie hat, überschreibt es den Prefill.
+  //    Bei anonymen Usern (401) oder ohne Template still fallen wir auf den Prefill zurück.
+  try {
+    const res = await $fetch<{ ok: boolean; templates: any[]; defaultId: string | null }>(`/api/templates?category=${encodeURIComponent(categorySlug)}`)
+    if (res.ok) {
+      const match = res.templates.find(t => t.id === res.defaultId) ?? res.templates[0]
+      if (match) {
+        store.applyTemplate(match.configuration)
+        // sessionStorage-Flag setzen, damit der Auto-Apply-Hook in thermodynamics.vue
+        // nicht nochmal drüberrennt und ein bereits geladenes Template neu lädt.
+        if (typeof window !== 'undefined') {
+          window.sessionStorage.setItem(`gpc:autoApplied:${categorySlug}`, '1')
+        }
+      }
+    }
+  } catch { /* nicht authentifiziert oder kein Template — Prefill bleibt */ }
+
   router.push(`/mygpc/${catId}/thermodynamics`)
 }
 
@@ -79,11 +128,57 @@ const MYGPS_CATS = [
   { slug: 'data-center',   title: 'Data Center',          image: '/images/Datacenter.jpg',      icon: null, options: ['Data Center'] }
 ]
 
-// APPLICATION cards
+// APPLICATION cards — each pre-fills the wizard with the typical product
+// category + a signature parameter for the application, so the user lands
+// on a config that already reflects their use case.
 const APPLICATIONS = [
-  { slug: 'food-retail',    title: 'Food Retail',            image: '/images/Food-Retail.png', cta: 'DX' },
-  { slug: 'food',           title: 'Food Processing',        image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=600&h=300&fit=crop', cta: 'Pump' },
-  { slug: 'industrial',     title: 'Industrial Refrigeration', image: 'https://images.unsplash.com/photo-1504328345606-18bbc8c9d7d1?w=600&h=300&fit=crop', cta: 'Coolant' }
+  {
+    slug: 'commercial-hvac', title: 'Commercial HVAC',
+    image: '/images/Commercial-Refrigeration_Commercial-Refrigeration.webp', cta: 'Explore',
+    catId: 2,  // Air cooler (Coolant) — Chiller-fed cooling coils
+    prefill: { glycolType: 'ethylene', coolingPurpose: 'air-conditioning' }
+  },
+  {
+    slug: 'industrial-refrigeration', title: 'Industrial Refrigeration',
+    image: '/images/IndustrialRefrigeration.webp', cta: 'Explore',
+    catId: 1,  // Evaporator Pump — industry standard
+    prefill: { refrigerant: 'R717', coolingPurpose: 'industrial' }
+  },
+  {
+    slug: 'energy-process-cooling', title: 'Energy & Process Cooling',
+    image: '/images/Energy%20process%20cooling.webp', cta: 'Explore',
+    catId: 4,  // Dry cooler — closed-loop process cooling
+    prefill: { glycolType: 'ethylene', coolingPurpose: 'industrial' }
+  },
+  {
+    slug: 'data-center', title: 'Data Center',
+    image: '/images/Data_Center_ThermalPerformance.webp', cta: 'Explore',
+    catId: 4,  // Dry cooler with data-center purpose (glycol/water secondary loop)
+    prefill: { glycolType: 'ethylene', coolingPurpose: 'data-center' }
+  }
+]
+
+// REFRIGERANT teaser cards — signature refrigerant per family so the
+// user lands on the correct fluid-family in Step 2.
+const REFRIGERANTS = [
+  {
+    slug: 'natural-refrigerants', title: 'Natural Refrigerants',
+    image: '/images/natural_refrigerant.png', cta: 'Explore',
+    catId: 0,  // Evaporator DX
+    prefill: { refrigerant: 'R717' }   // NH₃ — most common natural refrigerant in industrial
+  },
+  {
+    slug: 'brine', title: 'Brine',
+    image: '/images/brine_refrigerant.png', cta: 'Explore',
+    catId: 2,  // Air cooler (Coolant) — brine loops are secondary/coolant systems
+    prefill: { glycolType: 'ethylene' }
+  },
+  {
+    slug: 'synthetic-refrigerants', title: 'Synthetic Refrigerants',
+    image: '/images/synthetic_refrigerant.png', cta: 'Explore',
+    catId: 0,  // Evaporator DX
+    prefill: { refrigerant: 'R448A' } // HFO blend — Güntner's typical retrofit recommendation
+  }
 ]
 
 // BARE COILS (productSection=2)
@@ -128,6 +223,14 @@ const COILS = [
           @click="activeTab = 'application'"
         >BY APPLICATION</button>
         <button
+          v-if="visibility.refrigerant"
+          role="tab"
+          :aria-selected="activeTab === 'refrigerant'"
+          class="tab-btn"
+          :class="{ active: activeTab === 'refrigerant' }"
+          @click="activeTab = 'refrigerant'"
+        >BY REFRIGERANT</button>
+        <button
           v-if="visibility['api-services']"
           role="tab"
           :aria-selected="activeTab === 'api-services'"
@@ -147,7 +250,7 @@ const COILS = [
 
       <!-- UNIT -->
       <div v-if="activeTab === 'unit' && visibility.units" role="tabpanel" class="tab-panel">
-        <div class="cat-grid" data-learn-id="home-unit-grid" data-field-name="Produktkategorie (Unit)" data-api-param="productCategory">
+        <div class="cat-grid" data-learn-id="home-unit-grid" data-field-name="Product Category (Unit)" data-api-param="productCategory">
           <ProductCategoryCard
             v-for="u in UNITS"
             :key="u.slug"
@@ -209,15 +312,29 @@ const COILS = [
 
       <!-- BY APPLICATION -->
       <div v-else-if="activeTab === 'application' && visibility.application" role="tabpanel" class="tab-panel">
-        <div class="cat-grid">
+        <div class="cat-grid" data-learn-id="home-application-grid" data-field-name="Application" data-api-param="coolingPurpose">
           <ProductCategoryCard
             v-for="a in APPLICATIONS"
             :key="a.slug"
             :image="a.image"
             :title="a.title"
             :cta-label="a.cta"
-            :on-cta="() => goToWizard(0, a.slug)"
+            :on-cta="() => GUIDED_ENTRY_CARDS.has(a.slug) ? startGuidedEntry(a.slug) : goToWizard(a.catId, a.slug, 1, a.prefill)"
             last-config="DCHD 213.1 1x5/08RA-1500L/02P.M"
+          />
+        </div>
+      </div>
+
+      <!-- BY REFRIGERANT -->
+      <div v-else-if="activeTab === 'refrigerant' && visibility.refrigerant" role="tabpanel" class="tab-panel">
+        <div class="cat-grid" data-learn-id="home-refrigerant-grid" data-field-name="Refrigerant Family" data-api-param="refrigerant">
+          <ProductCategoryCard
+            v-for="r in REFRIGERANTS"
+            :key="r.slug"
+            :image="r.image"
+            :title="r.title"
+            :cta-label="r.cta"
+            :on-cta="() => GUIDED_ENTRY_CARDS.has(r.slug) ? startGuidedEntry(r.slug) : goToWizard(r.catId, r.slug, 1, r.prefill)"
           />
         </div>
       </div>

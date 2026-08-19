@@ -6,14 +6,27 @@
  * sources as clickable numbered chips.
  */
 import { computed, nextTick, ref, watch } from 'vue'
+import { marked } from 'marked'
+import DOMPurify from 'dompurify'
 import ChatMessage from './ChatMessage.vue'
 import ModalDialog from './ModalDialog.vue'
 import type { RagSource, ToolCall, UserContext } from '~/composables/useChatStream'
 import type { GuidedStep } from '~/data/guidedFlows'
 import { LEARN_CATEGORIES, resolveElementMeta, type LearnCategory } from '~/composables/useLearnMode'
-import { getCategoryById } from '~/composables/useCategory'
+import { getCategoryById, getCategoryBySlug } from '~/composables/useCategory'
+
+/** Render Markdown → sanitized HTML for the config-question card message.
+ *  Mirrors ChatMessage's setup so ** bold **, lists, and inline formatting
+ *  work in guided-step messages. */
+marked.setOptions({ breaks: true, gfm: true })
+function renderStepMarkdown(content: string): string {
+  const raw = marked.parse(content || '') as string
+  if (typeof window === 'undefined') return raw
+  return DOMPurify.sanitize(raw)
+}
 
 const isOpen = useChatDockState()
+const { layout: chatLayout, toggle: toggleChatLayout } = useChatDockLayout()
 const mode = useChatDockMode()
 const inputValue = ref('')
 const inputRef = ref<HTMLTextAreaElement | null>(null)
@@ -39,6 +52,20 @@ const configStore = useConfigStore()
 const homeTab = useHomeTab()
 const route = useRoute()
 const preload = useChatDockPreload()
+const toast = useToast()
+
+// Chatbot-Tool gpc_apply_template — Watcher wendet das Template auf den
+// Store an sobald das SSE-Event `template_apply` reingekommen ist. Zusätzlich
+// wird der Auto-Apply-Session-Flag gesetzt, damit thermodynamics.vue nicht
+// hinterher nochmal drüberrennt.
+watch(() => stream.templateApply.value, (ev) => {
+  if (!ev) return
+  configStore.applyTemplate(ev.configuration)
+  if (typeof window !== 'undefined' && ev.categorySlug) {
+    window.sessionStorage.setItem(`gpc:autoApplied:${ev.categorySlug}`, '1')
+  }
+  toast.success(`Günther applied template "${ev.templateName}"`)
+})
 
 /**
  * Derive the wizard-step id from the current route so Günther knows where
@@ -153,6 +180,18 @@ watch([() => stream.text.value, () => transcript.value.length], scrollToEnd)
 // but user turns and free-form Günther replies stay in place.
 // --------------------------------------------------------------------------
 const guidedEnabled = computed(() => flags.isOn('guided_pass'))
+/** True wenn der aktive Guided-Flow einer der Home-Karten-Q&A-Flows ist
+ *  (byapplication/byrefrigerant). Steuert nur das Header-Label der Card:
+ *    - true  → "CONFIGURATION QUESTION"
+ *    - false → "CONFIGURATION GUIDANCE"
+ *  Beide Varianten nutzen dieselbe Card-Optik (Choices mit Icon + Label +
+ *  Detail + Chevron); das Design-Sprachbild bleibt konsistent. */
+const isHomeEntryFlow = computed(() =>
+  !!guided.activeFlow.value?.id?.startsWith('home-entry-')
+)
+const guidedCardLabel = computed(() =>
+  isHomeEntryFlow.value ? 'CONFIGURATION QUESTION' : 'CONFIGURATION GUIDANCE'
+)
 
 function commitGuidedStep(step: GuidedStep | null) {
   // Drop the previous trailing guided turn if there was one, so we don't
@@ -206,6 +245,151 @@ function onSuggestion(sugg: import('~/data/guidedFlows').GuidedSuggestion, step:
 function onAdvanceGuided() {
   guided.advance()
 }
+
+// ============================================================
+// Template-Recommendation-Step (kind='recommendations')
+// ------------------------------------------------------------
+// Wenn der aktive Guided-Step die kind='recommendations'-Marker
+// trägt, fetchen wir Templates für die resolved-Kategorie und
+// zeigen bis zu 3 Vorschläge. Klick auf einen Vorschlag lädt das
+// Template + navigiert + triggert den Flash-Banner. „Skip"
+// navigiert ohne Template (existing finalize()).
+// ============================================================
+interface RecommendationTemplate {
+  id: string
+  name: string
+  categorySlug: string
+  isDefaultForCategory: boolean
+  isSystem: boolean
+  isOwn: boolean
+  configuration: any
+  updatedAt: string
+  paramCount: number
+}
+const recTargetSlug = ref<string | null>(null)
+const recTargetCatId = ref<number | null>(null)
+const recTemplates = ref<RecommendationTemplate[]>([])
+const recLoading = ref(false)
+const recAutoSkipped = ref(false)
+const { trigger: triggerFlash } = useTemplateFlash()
+
+function countConfigParams(cfg: any): number {
+  if (!cfg?.parameters) return 0
+  let n = 0
+  for (const [, v] of Object.entries(cfg.parameters)) {
+    if (v === null || v === undefined || v === '') continue
+    if (typeof v === 'number' && !Number.isFinite(v)) continue
+    n++
+  }
+  return n
+}
+
+async function loadRecommendationsForStep(step: GuidedStep) {
+  if (step.kind !== 'recommendations' || !step.recommendationCtx) return
+  recTemplates.value = []
+  recAutoSkipped.value = false
+
+  const target = step.recommendationCtx.resolveTarget(configStore)
+  recTargetSlug.value = target.slug
+  recTargetCatId.value = target.catId
+
+  recLoading.value = true
+  try {
+    const res = await $fetch<{ ok: boolean; templates: any[] }>(`/api/templates?category=${encodeURIComponent(target.slug)}`)
+    if (res.ok && Array.isArray(res.templates)) {
+      // System-Templates zuerst, dann private (API sortiert schon so, aber
+      // wir stellen sicher dass die Top-3 möglichst gemischt sind).
+      recTemplates.value = res.templates
+        .slice(0, 3)
+        .map((t: any) => ({
+          id: t.id,
+          name: t.name,
+          categorySlug: t.categorySlug,
+          isDefaultForCategory: t.isDefaultForCategory,
+          isSystem: t.isSystem === true,
+          isOwn: t.isOwn === true,
+          configuration: t.configuration,
+          updatedAt: t.updatedAt,
+          paramCount: countConfigParams(t.configuration)
+        }))
+    }
+  } catch (err: any) {
+    console.warn('[recommendations] fetch failed:', err?.message || err)
+  } finally {
+    recLoading.value = false
+  }
+
+  // Wenn keine Templates da sind, überspringen wir die Empfehlungs-Karte
+  // und laufen direkt in den Wizard weiter (via finalize).
+  if (!recTemplates.value.length) {
+    recAutoSkipped.value = true
+    runRecommendationFinalize(step)
+  }
+}
+
+function runRecommendationFinalize(step: GuidedStep) {
+  if (!step.recommendationCtx) return
+  step.recommendationCtx.finalize({
+    store: configStore,
+    push: (path: string) => useRouter().push(path)
+  })
+}
+
+async function onRecommendationPick(t: RecommendationTemplate, step: GuidedStep) {
+  // 1) Template applien (existing store action aus Templates-Feature)
+  configStore.applyTemplate(t.configuration)
+
+  // 2) Sicherstellen dass die Ziel-Kategorie gesetzt ist (Template kann
+  //    unterschiedliche Kategorie tragen — wir nehmen die vom Template).
+  const targetSlug = t.categorySlug || recTargetSlug.value || configStore.currentCategory
+  const cat = targetSlug ? getCategoryBySlug(targetSlug) : null
+  const catId = cat ? cat.id : (recTargetCatId.value ?? 0)
+  configStore.setProductSection(1)
+  configStore.currentCategory = targetSlug || null
+
+  // 3) sessionStorage-Flag setzen damit der thermodynamics-Auto-Apply-Hook
+  //    unser Template nicht überschreibt.
+  if (typeof window !== 'undefined' && targetSlug) {
+    window.sessionStorage.setItem(`gpc:autoApplied:${targetSlug}`, '1')
+  }
+
+  // 4) Transcript-Eintrag als User-Turn (damit der Chat es „bestätigt")
+  history.value = [
+    ...history.value,
+    { role: 'user', content: `Load template: ${t.name}` }
+  ]
+
+  // 5) Flash-Banner triggern
+  triggerFlash({
+    templateName: t.name,
+    paramCount: t.paramCount,
+    categoryTitle: cat?.title
+  })
+
+  // 6) Navigieren
+  await useRouter().push(`/mygpc/${catId}/thermodynamics`)
+  void step
+}
+
+function onRecommendationSkip(step: GuidedStep) {
+  history.value = [
+    ...history.value,
+    { role: 'user', content: 'Skip — configure from scratch' }
+  ]
+  runRecommendationFinalize(step)
+}
+
+// Watcher: sobald der aktive Step ein Recommendation-Step ist → Templates laden
+watch(
+  () => guided.currentStep.value,
+  (step) => {
+    if (step?.kind === 'recommendations') {
+      loadRecommendationsForStep(step)
+    } else {
+      recTemplates.value = []
+    }
+  }
+)
 
 function onDismissGuided() {
   guided.dismiss()
@@ -491,6 +675,30 @@ function pickPreset(p: PresetIntent) {
                 </svg>
               </button>
             </div>
+            <!-- Layout-Toggle: Overlay (schwebt) ↔ Push (nebenan). Persistiert
+                 in localStorage via useChatDockLayout(). Wechselt sofort ohne
+                 Reload; die Klasse .with-chat-push auf .site-main sitzt in
+                 layouts/default.vue. -->
+            <button
+              type="button"
+              class="chat-drawer-icon-btn"
+              :title="chatLayout === 'overlay' ? 'Currently: Overlay — click to switch to Push (side-by-side)' : 'Currently: Push — click to switch to Overlay (floating)'"
+              :aria-pressed="chatLayout === 'push'"
+              @click="toggleChatLayout"
+            >
+              <!-- Overlay-Icon: zwei überlappende Rechtecke -->
+              <svg v-if="chatLayout === 'overlay'" viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
+                   stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="9" height="9" rx="1"/>
+                <rect x="5" y="5" width="9" height="9" rx="1"/>
+              </svg>
+              <!-- Push-Icon: zwei Rechtecke nebeneinander -->
+              <svg v-else viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
+                   stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="3" width="6" height="10" rx="1"/>
+                <rect x="9" y="3" width="5" height="10" rx="1"/>
+              </svg>
+            </button>
             <button
               v-if="mode === 'chat' && history.length"
               type="button"
@@ -592,7 +800,132 @@ function pickPreset(p: PresetIntent) {
                 <span v-else-if="tc.ok === undefined" class="tool-chip-summary tool-chip-pending-dots">…</span>
               </span>
             </div>
+            <!-- Guided-Pass turn: rendered as "Konfigurationsfrage"-Card
+                 (blue-tinted panel + choice cards) statt der Standard-
+                 Chat-Bubble. Nur für den AKTUELLEN Step — historische
+                 guided-Turns würden hier nichts mehr rendern, sind aber
+                 durch commitGuidedStep bereits aus der Transkript-Liste
+                 entfernt worden. -->
+            <template v-if="msg.guidedStep
+                            && guidedEnabled
+                            && guided.currentStep.value?.id === msg.guidedStep.id
+                            && msg.guidedStep.kind === 'recommendations'">
+              <!-- Template-Empfehlungs-Karte — grüner Akzent, distinctive
+                   vom Q&A-Blau, damit User erkennt: neuer Schritt-Typ. -->
+              <div class="rec-card">
+                <div class="rec-card-head">
+                  <svg class="rec-card-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M8 1l1.6 4.6L14 7l-4.4 1.4L8 13 6.4 8.4 2 7l4.4-1.4L8 1z"/>
+                  </svg>
+                  <span class="rec-card-label">TEMPLATE SUGGESTIONS</span>
+                </div>
+                <div class="rec-card-body" v-html="renderStepMarkdown(msg.content)"></div>
+
+                <div v-if="recLoading" class="rec-loading">Searching matching templates…</div>
+
+                <div v-else-if="recTemplates.length" class="rec-choice-list">
+                  <button
+                    v-for="t in recTemplates"
+                    :key="t.id"
+                    type="button"
+                    class="rec-choice"
+                    :class="{ 'rec-choice-system': t.isSystem }"
+                    @click="onRecommendationPick(t, msg.guidedStep!)"
+                  >
+                    <span class="rec-choice-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2.5 3.5h11v9h-11zM2.5 6h11M5 3.5v9"/>
+                      </svg>
+                    </span>
+                    <span class="rec-choice-body">
+                      <span class="rec-choice-label">
+                        {{ t.name }}
+                        <span v-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated system template">★ SYSTEM</span>
+                        <span v-else-if="t.isDefaultForCategory" class="rec-star" title="Your default template for this category">★</span>
+                      </span>
+                      <span class="rec-choice-detail">
+                        {{ t.paramCount }} parameter{{ t.paramCount === 1 ? '' : 's' }} pre-filled
+                      </span>
+                    </span>
+                    <span class="rec-choice-chevron" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 3l5 5-5 5"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+
+                <div v-else-if="!recAutoSkipped" class="rec-empty">
+                  No saved templates for this category yet — you'll configure from scratch.
+                </div>
+
+                <div class="rec-card-actions">
+                  <button
+                    type="button"
+                    class="config-action-btn"
+                    @click="onRecommendationSkip(msg.guidedStep!)"
+                  >Skip — configure from scratch →</button>
+                </div>
+              </div>
+            </template>
+            <template v-else-if="msg.guidedStep
+                            && guidedEnabled
+                            && guided.currentStep.value?.id === msg.guidedStep.id">
+              <!-- Guided-Pass Card — für ALLE Guided-Flows: Home-Entry-Q&A
+                   ("CONFIGURATION QUESTION") und Wizard-Guidance
+                   ("CONFIGURATION GUIDANCE"). Nur das Header-Label
+                   unterscheidet die zwei Kontexte, die Card-Struktur ist
+                   identisch (Choices mit Icon+Label+Detail+Chevron). -->
+              <div class="config-question-card">
+                <div class="config-question-head">
+                  <svg class="config-question-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M8 1l1.3 3.7L13 6l-3.7 1.3L8 11 6.7 7.3 3 6l3.7-1.3L8 1zM13 10l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7L13 10z"/>
+                  </svg>
+                  <span class="config-question-label">{{ guidedCardLabel }}</span>
+                </div>
+                <div class="config-question-body" v-html="renderStepMarkdown(msg.content)"></div>
+                <div v-if="msg.guidedStep.suggestions && msg.guidedStep.suggestions.length" class="config-choice-list">
+                  <button
+                    v-for="s in msg.guidedStep.suggestions"
+                    :key="s.label"
+                    type="button"
+                    class="config-choice"
+                    @click="onSuggestion(s, msg.guidedStep!)"
+                  >
+                    <span class="config-choice-icon" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2.5" y="3.5" width="11" height="9" rx="1.5"/>
+                        <path d="M2.5 6.5h11"/>
+                      </svg>
+                    </span>
+                    <span class="config-choice-body">
+                      <span class="config-choice-label">{{ s.label }}</span>
+                      <span v-if="s.detail" class="config-choice-detail">{{ s.detail }}</span>
+                    </span>
+                    <span class="config-choice-chevron" aria-hidden="true">
+                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M6 3l5 5-5 5"/>
+                      </svg>
+                    </span>
+                  </button>
+                </div>
+                <div class="config-question-actions">
+                  <button
+                    v-if="msg.guidedStep.showAdvance !== false && !guided.isFinished.value"
+                    type="button"
+                    class="config-action-btn"
+                    @click="onAdvanceGuided"
+                  >Skip</button>
+                  <button
+                    type="button"
+                    class="config-action-btn config-action-btn-muted"
+                    @click="onDismissGuided"
+                  >Exit guided mode</button>
+                </div>
+              </div>
+            </template>
             <ChatMessage
+              v-else
               :role="msg.role"
               :content="msg.content"
               :sources="msg.sources"
@@ -601,45 +934,6 @@ function pickPreset(p: PresetIntent) {
               @open-source="openSource"
               @feedback="onFeedback"
             />
-            <!-- Guided-Pass suggestion strip. Rendered only under the
-                 last message if that message is the currently-active
-                 guided step (i.e. the user hasn't picked yet). -->
-            <div
-              v-if="msg.guidedStep
-                    && i === transcript.length - 1
-                    && guidedEnabled
-                    && guided.currentStep.value?.id === msg.guidedStep.id"
-              class="guided-suggestions"
-            >
-              <button
-                v-for="s in msg.guidedStep.suggestions"
-                :key="s.label"
-                type="button"
-                class="guided-suggestion"
-                @click="onSuggestion(s, msg.guidedStep!)"
-              >
-                <span class="guided-suggestion-label">{{ s.label }}</span>
-                <span v-if="s.detail" class="guided-suggestion-detail">{{ s.detail }}</span>
-              </button>
-
-              <div class="guided-actions">
-                <button
-                  v-if="msg.guidedStep.showAdvance !== false && !guided.isFinished.value"
-                  type="button"
-                  class="guided-action-btn"
-                  @click="onAdvanceGuided"
-                >
-                  Skip
-                </button>
-                <button
-                  type="button"
-                  class="guided-action-btn guided-action-btn-muted"
-                  @click="onDismissGuided"
-                >
-                  Exit guided mode
-                </button>
-              </div>
-            </div>
           </template>
           <p v-if="stream.error.value" class="chat-drawer-error">
             {{ stream.error.value }}
@@ -1133,6 +1427,278 @@ function pickPreset(p: PresetIntent) {
 .guided-action-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 8%, transparent); }
 .guided-action-btn-muted { color: var(--c-text-medium); }
 .guided-action-btn-muted:hover { background: var(--c-bg); color: var(--c-text); }
+
+/* ============================================================
+   Config-Question Card — ersetzt die Chat-Bubble für Guided-
+   Pass-Turns. Vier Zonen:
+     1) Header: Sparkle-Icon + Label "CONFIGURATION QUESTION"
+     2) Body:   Frage-Text (Markdown, bold)
+     3) Choices: klickbare Karten mit Icon + Label + Chevron
+     4) Actions: Skip / Exit guided mode
+   ============================================================ */
+.config-question-card {
+  margin: 6px 0 14px;
+  padding: 14px 14px 12px;
+  background: color-mix(in srgb, var(--c-brand-blue) 7%, white);
+  border: 1px solid color-mix(in srgb, var(--c-brand-blue) 20%, transparent);
+  border-left: 4px solid var(--c-brand-blue);
+  border-radius: var(--radius-md, 8px);
+}
+.config-question-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c-brand-blue);
+  margin-bottom: 8px;
+}
+.config-question-icon { flex-shrink: 0; }
+.config-question-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-4xs, 11.58px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.config-question-body {
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  font-weight: 600;
+  color: var(--c-text-value);
+  line-height: 1.4;
+  margin-bottom: 12px;
+}
+.config-question-body :deep(p) { margin: 0 0 6px; }
+.config-question-body :deep(p:last-child) { margin-bottom: 0; }
+.config-question-body :deep(strong) { font-weight: 700; }
+
+.config-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.config-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid var(--c-border, #cfcdd6);
+  border-radius: var(--radius-xs, 4px);
+  text-align: left;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.06s;
+}
+.config-choice:hover {
+  border-color: var(--c-brand-blue);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--c-brand-blue) 12%, transparent);
+}
+.config-choice:active { transform: translateY(1px); }
+.config-choice-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-xs, 4px);
+  background: color-mix(in srgb, var(--c-brand-blue) 10%, white);
+  color: var(--c-brand-blue);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.config-choice-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.config-choice-label {
+  font-size: var(--font-2xs, 14.17px);
+  font-weight: 600;
+  color: var(--c-text-value);
+  line-height: 1.3;
+}
+.config-choice-detail {
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-medium);
+  line-height: 1.4;
+}
+.config-choice-chevron {
+  flex-shrink: 0;
+  color: var(--c-text-medium);
+  display: inline-flex;
+  transition: transform 0.12s, color 0.12s;
+}
+.config-choice:hover .config-choice-chevron {
+  color: var(--c-brand-blue);
+  transform: translateX(2px);
+}
+
+.config-question-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+.config-action-btn {
+  border: none;
+  background: transparent;
+  padding: 6px 10px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-brand-blue);
+  cursor: pointer;
+  border-radius: var(--radius-xs, 4px);
+}
+.config-action-btn:hover { background: color-mix(in srgb, var(--c-brand-blue) 10%, transparent); }
+.config-action-btn-muted { color: var(--c-text-medium); }
+.config-action-btn-muted:hover { background: white; color: var(--c-text-value); }
+
+/* ============================================================
+   Template-Recommendation Card — visuell abgesetzt vom Q&A-Blau,
+   damit User den neuen Schritt-Typ erkennt. Grüner Akzent +
+   subtile inset-Border, damit der Kontext „Vorschläge" klar wird.
+   ============================================================ */
+.rec-card {
+  margin: 6px 0 14px;
+  padding: 14px 14px 12px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--c-success, #2E7D4F) 10%, white) 0%,
+    color-mix(in srgb, var(--c-success, #2E7D4F) 5%, white) 100%);
+  border: 1px solid color-mix(in srgb, var(--c-success, #2E7D4F) 30%, transparent);
+  border-left: 4px solid var(--c-success, #2E7D4F);
+  border-radius: var(--radius-md, 8px);
+}
+.rec-card-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--c-success, #2E7D4F);
+  margin-bottom: 8px;
+}
+.rec-card-icon { flex-shrink: 0; }
+.rec-card-label {
+  font-family: var(--font-ui);
+  font-size: var(--font-4xs, 11.58px);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.rec-card-body {
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-value);
+  line-height: 1.5;
+  margin-bottom: 12px;
+}
+.rec-card-body :deep(p) { margin: 0 0 4px; }
+.rec-card-body :deep(p:last-child) { margin-bottom: 0; }
+.rec-card-body :deep(strong) { font-weight: 600; }
+
+.rec-loading, .rec-empty {
+  padding: 12px;
+  color: var(--c-text-medium);
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  font-style: italic;
+  text-align: center;
+  background: white;
+  border-radius: var(--radius-xs);
+  border: 1px dashed color-mix(in srgb, var(--c-success, #2E7D4F) 20%, transparent);
+}
+
+.rec-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rec-choice {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid var(--c-border, #cfcdd6);
+  border-radius: var(--radius-xs, 4px);
+  text-align: left;
+  font-family: var(--font-ui);
+  cursor: pointer;
+  transition: border-color 0.12s, box-shadow 0.12s, transform 0.06s;
+}
+.rec-choice:hover {
+  border-color: var(--c-success, #2E7D4F);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--c-success, #2E7D4F) 15%, transparent);
+}
+.rec-choice:active { transform: translateY(1px); }
+.rec-choice-icon {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-xs, 4px);
+  background: color-mix(in srgb, var(--c-success, #2E7D4F) 12%, white);
+  color: var(--c-success, #2E7D4F);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rec-choice-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.rec-choice-label {
+  font-size: var(--font-2xs, 14.17px);
+  font-weight: 600;
+  color: var(--c-text-value);
+  line-height: 1.3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.rec-star {
+  color: color-mix(in srgb, var(--c-warning, #F5B800) 100%, transparent);
+  font-size: 0.9em;
+}
+.rec-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: var(--font-4xs, 11.58px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  vertical-align: middle;
+}
+.rec-badge-system {
+  background: var(--c-brand-blue, #0078BE);
+  color: white;
+}
+/* System-Choices bekommen einen subtilen linken Blaustreifen, damit sie
+   visuell aus dem grünen Recommendation-Kontext hervorstechen. */
+.rec-choice-system {
+  border-left: 3px solid var(--c-brand-blue, #0078BE);
+}
+.rec-choice-detail {
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-medium);
+  line-height: 1.4;
+}
+.rec-choice-chevron {
+  flex-shrink: 0;
+  color: var(--c-text-medium);
+  display: inline-flex;
+  transition: transform 0.12s, color 0.12s;
+}
+.rec-choice:hover .rec-choice-chevron {
+  color: var(--c-success, #2E7D4F);
+  transform: translateX(2px);
+}
+.rec-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
 
 /* -------- Learn Mode body -------- */
 .learn-empty {

@@ -199,6 +199,14 @@ function goDatasheet(u?: ResultRow) {
 }
 function goBack() { router.push(isCoil.value ? coilGeometryUrl() : unitUrl()) }
 
+// Reset + Templates — analog zu thermodynamics/unit-selection/coil-geometry.
+const templatesOpen = ref(false)
+const toast = useToast()
+function resetConfig() { store.resetWizard() }
+function onTemplateApplied(t: { name: string }) {
+  toast.success(`Template "${t.name}" applied`)
+}
+
 // --- Ask-Günther failsafe -------------------------------------------------
 // When findUnits returns 0 hits, we surface an in-page CTA that seeds the
 // chatbot with the user's current wizard parameters. Günther can then call
@@ -510,6 +518,9 @@ function ColCell(props: ColCellProps) {
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3L5 8l5 5"/></svg>
         <span>Back</span>
       </button>
+      <button class="btn btn-outline" @click="resetConfig">Reset</button>
+      <button class="btn btn-outline" type="button" @click="templatesOpen = true">Templates</button>
+      <TemplatesModal v-model:open="templatesOpen" :category-slug="current.slug" @applied="onTemplateApplied" />
       <div class="foot-spacer" />
     </div>
 

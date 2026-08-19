@@ -7,7 +7,7 @@
  * sync across the page and the chat drawer.
  */
 
-export type HomeTabId = 'unit' | 'coil' | 'application' | 'api-services' | 'mygps'
+export type HomeTabId = 'unit' | 'coil' | 'application' | 'refrigerant' | 'api-services' | 'mygps'
 
 export function useHomeTab() {
   return useState<HomeTabId>('home-tab', () => 'unit')

@@ -3,7 +3,7 @@
  * /admin/rag-settings — Edit the singleton rag_settings row.
  * Backed by GET/PUT /api/rag/settings + test-key + reset store.
  */
-import { ref, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import ApiKeyTester from '~/components/admin/ApiKeyTester.vue'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -22,6 +22,34 @@ interface RagSettings {
   updated_at?: string
   updated_by?: string | null
 }
+
+// Kuratierte OpenRouter-Modelle für den Dropdown. Slug entspricht dem `model`-Feld
+// im OpenRouter-API-Body. Volle Liste unter https://openrouter.ai/models.
+const OPENROUTER_MODELS: Array<{ id: string; label: string; group: string }> = [
+  { id: 'anthropic/claude-sonnet-4.5',       label: 'Claude Sonnet 4.5 (Default)', group: 'Anthropic' },
+  { id: 'anthropic/claude-opus-4.1',         label: 'Claude Opus 4.1',             group: 'Anthropic' },
+  { id: 'anthropic/claude-haiku-4.5',        label: 'Claude Haiku 4.5',            group: 'Anthropic' },
+  { id: 'anthropic/claude-3.5-sonnet',       label: 'Claude 3.5 Sonnet (Legacy)',  group: 'Anthropic' },
+  { id: 'openai/gpt-4o',                     label: 'GPT-4o',                      group: 'OpenAI' },
+  { id: 'openai/gpt-4o-mini',                label: 'GPT-4o mini',                 group: 'OpenAI' },
+  { id: 'openai/o1',                         label: 'o1 (Reasoning)',              group: 'OpenAI' },
+  { id: 'google/gemini-2.5-flash',           label: 'Gemini 2.5 Flash',            group: 'Google' },
+  { id: 'google/gemini-2.5-pro',             label: 'Gemini 2.5 Pro',              group: 'Google' },
+  { id: 'meta-llama/llama-3.3-70b-instruct', label: 'Llama 3.3 70B Instruct',      group: 'Meta' },
+  { id: 'mistralai/mistral-large',           label: 'Mistral Large',               group: 'Mistral' },
+  { id: 'deepseek/deepseek-chat',            label: 'DeepSeek Chat',               group: 'DeepSeek' }
+]
+
+const OPENROUTER_DEFAULT_MODEL = 'anthropic/claude-sonnet-4.5'
+
+const openrouterGroups = computed(() => {
+  const groups: Record<string, typeof OPENROUTER_MODELS> = {}
+  for (const m of OPENROUTER_MODELS) {
+    if (!groups[m.group]) groups[m.group] = []
+    groups[m.group].push(m)
+  }
+  return groups
+})
 
 const api = useApi()
 const toast = useToast()
@@ -72,6 +100,20 @@ async function resetStore() {
   }
 }
 
+// Wenn Provider auf openrouter umgestellt wird und das aktuelle Model nicht wie
+// ein OpenRouter-Slug aussieht (kein `provider/model`-Format), auf Default setzen.
+// Umgekehrt beim Wechsel weg von openrouter das Feld leeren, damit der User den
+// nativen Modellnamen des neuen Providers eintippen kann.
+watch(() => settings.value?.llm_provider, (next, prev) => {
+  if (!settings.value || next === prev) return
+  if (next === 'openrouter') {
+    const looksLikeOpenRouter = /^[a-z0-9._-]+\/[a-z0-9._-]+$/i.test(settings.value.llm_model || '')
+    if (!looksLikeOpenRouter) settings.value.llm_model = OPENROUTER_DEFAULT_MODEL
+  } else if (prev === 'openrouter') {
+    settings.value.llm_model = ''
+  }
+})
+
 onMounted(load)
 </script>
 
@@ -99,15 +141,25 @@ onMounted(load)
             <option value="bella">Günther (Anthropic Claude)</option>
             <option value="anthropic">Anthropic (direkt)</option>
             <option value="gemini">Google Gemini</option>
+            <option value="openrouter">OpenRouter (Multi-Provider Gateway)</option>
           </select>
         </div>
         <div class="field">
           <label>Model</label>
-          <input type="text" v-model="settings.llm_model" placeholder="claude-sonnet-4-6 / gemini-1.5-flash" />
+          <select v-if="settings.llm_provider === 'openrouter'" v-model="settings.llm_model">
+            <optgroup v-for="(models, group) in openrouterGroups" :key="group" :label="group">
+              <option v-for="m in models" :key="m.id" :value="m.id">{{ m.label }}</option>
+            </optgroup>
+          </select>
+          <input v-else type="text" v-model="settings.llm_model" placeholder="claude-sonnet-4-6 / gemini-1.5-flash" />
+          <p v-if="settings.llm_provider === 'openrouter'" class="hint">
+            Modell-ID im Format <code>provider/model</code>. Weitere Modelle: <a href="https://openrouter.ai/models" target="_blank" rel="noopener">openrouter.ai/models</a>.
+          </p>
         </div>
         <div class="tester-row">
           <ApiKeyTester label="Anthropic" endpoint="/api/rag/test-key" />
           <ApiKeyTester label="Gemini" endpoint="/api/rag/test-gemini-key" />
+          <ApiKeyTester label="OpenRouter" endpoint="/api/rag/test-openrouter-key" />
         </div>
       </section>
 

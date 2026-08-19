@@ -86,6 +86,13 @@ function goNext() { if (canProceed.value) router.push(searchUrl()) }
 function goBack() { router.push(thermoUrl()) }
 function resetConfig() { store.resetCoilGeometry() }
 
+// Templates modal state
+const templatesOpen = ref(false)
+const toast = useToast()
+function onTemplateApplied(t: { name: string }) {
+  toast.success(`Template "${t.name}" applied`)
+}
+
 // Dropdown option lists (based on pre-migration coil-geometry.html)
 const finTypeOptions = [
   'F 50 mm x 25 mm (staggered) (FT09 old)',
@@ -107,7 +114,8 @@ const connectionMaterialOptions = ['AUTO', 'Cu', 'Stainless steel']
     <div class="sub-toolbar">
       <button class="btn btn-text" @click="goBack">← Back</button>
       <button class="btn btn-outline" @click="resetConfig">Reset</button>
-      <button class="btn btn-outline" type="button">Templates</button>
+      <button class="btn btn-outline" type="button" @click="templatesOpen = true">Templates</button>
+      <TemplatesModal v-model:open="templatesOpen" :category-slug="current.slug" @applied="onTemplateApplied" />
       <span class="spacer"></span>
       <ViewModeToggle />
       <button class="btn btn-primary" :disabled="!canProceed" @click="goNext">Next →</button>

@@ -74,6 +74,11 @@ export function getCategoryById(id: number | string): CategoryDef | null {
   return CATEGORIES.find(c => c.id === n) || null
 }
 
+export function getCategoryBySlug(slug: string | null | undefined): CategoryDef | null {
+  if (!slug) return null
+  return CATEGORIES.find(c => c.slug === slug) || null
+}
+
 export function useCategory() {
   const route = useRoute()
   const catId = computed<number>(() => {

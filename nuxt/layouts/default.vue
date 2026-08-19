@@ -12,12 +12,12 @@
 import GuentnerLogo from '~/components/GuentnerLogo.vue'
 import TopStepNav from '~/components/TopStepNav.vue'
 import SyncPanel from '~/components/SyncPanel.vue'
-import PerspectiveSwitcher from '~/components/PerspectiveSwitcher.vue'
 
 const route = useRoute()
 const user = useSupabaseUser()
 const featureFlags = useFeatureFlags()
 const chatDockOpen = useChatDockState()
+const { layout: chatLayout } = useChatDockLayout()
 
 // Step-nav under /mygpc/* + on the Datasheet page (both are wizard steps).
 const showStepNav = computed(
@@ -154,12 +154,6 @@ async function logout() {
 
         <span class="menu-divider" aria-hidden="true"></span>
 
-        <!-- 3-Ebenen-Switcher per CLAUDE.md — always visible in the header,
-             wired via usePerspective() to the shared Pinia store. -->
-        <PerspectiveSwitcher class="header-perspective" />
-
-        <span class="menu-divider" aria-hidden="true"></span>
-
         <div v-if="user" class="profile-cluster">
           <button
             class="avatar-group"
@@ -235,7 +229,11 @@ async function logout() {
 
     <TopStepNav v-if="showStepNav" />
 
-    <main class="site-main" :class="{ 'with-panel': panelsOpen, 'with-chat': chatDockOpen }">
+    <main class="site-main" :class="{
+      'with-panel': panelsOpen,
+      'with-chat': chatDockOpen,
+      'with-chat-push': chatDockOpen && chatLayout === 'push'
+    }">
       <slot />
     </main>
 
@@ -247,6 +245,7 @@ async function logout() {
     <GuidedHighlight v-if="user && featureFlags.isOn('chatbot') && featureFlags.isOn('guided_pass')" />
     <LearnModeOverlay />
     <ToastStack />
+    <TemplateFlashBanner />
 
     <footer class="site-footer">
       <div class="footer-left">
@@ -271,9 +270,12 @@ async function logout() {
   display: flex;
   flex-direction: column;
   background: var(--c-bg);
-  /* Width of the ChatDock drawer + approximate header height. Both are
-     consumed by .site-main.with-chat and by the drawer's CSS. */
-  --chat-drawer-w: 733px;
+  /* ChatDock drawer breadth + approximate header height. Vorher wurde die
+     Main-Column via padding-right um die Drawer-Breite reduziert (push-Layout).
+     Jetzt overlay-Layout — Drawer floated auf dem Content, Main-Content bleibt
+     unberührt. Breite auf 480px reduziert (statt 733px), um mehr Content
+     sichtbar zu lassen; max-width: 90vw greift auf schmalen Screens. */
+  --chat-drawer-w: 480px;
   --header-h: 68px;
   /* Perspective accent — 3-Ebenen-Farbcode am oberen Rand. */
   --perspective-accent: var(--c-brand-blue);
@@ -285,13 +287,6 @@ async function logout() {
 .app-shell[data-perspective='technical']   { --perspective-accent: var(--c-primary, #003865); }
 .app-shell[data-perspective='application'] { --perspective-accent: var(--c-process, #0078BE); }
 .app-shell[data-perspective='location']    { --perspective-accent: var(--c-site, #5B8C5A); }
-
-/* Header-mounted PerspectiveSwitcher — a bit smaller than the default. */
-.header-perspective { flex-shrink: 0; }
-.header-perspective :deep(.perspective-btn) {
-  padding: 6px 10px;
-  font-size: var(--font-3xs);
-}
 
 /* ================== HEADER ================== */
 /* Outer band — full-width white bar with the bottom divider */
@@ -620,8 +615,13 @@ async function logout() {
   transition: padding-right 0.24s ease;
 }
 .site-main.with-panel { padding-right: 340px; }
-.site-main.with-chat { padding-right: var(--chat-drawer-w); }
-.site-main.with-panel.with-chat { padding-right: calc(340px + var(--chat-drawer-w)); }
+/* Chat-Overlay (Default): kein padding-right — Drawer schwebt über dem
+   Content. SidePanel bleibt "push", weil es kürzer + schmaler ist. */
+.site-main.with-panel.with-chat { padding-right: 340px; }
+/* Chat-Push (per Toggle im ChatDock-Header): Main-Content wird um die
+   Drawer-Breite reduziert, sodass beide nebeneinander sitzen. */
+.site-main.with-chat.with-chat-push { padding-right: var(--chat-drawer-w); }
+.site-main.with-panel.with-chat.with-chat-push { padding-right: calc(340px + var(--chat-drawer-w)); }
 
 .side-panel {
   position: fixed;

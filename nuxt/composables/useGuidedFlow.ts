@@ -25,6 +25,10 @@ const dismissedFlowIds = ref<Set<string>>(new Set())
  *  the user chose, so the chatbot can reference it in answers. Cleared
  *  when the active flow id changes. */
 const pickedSuggestionLabel = ref<string | null>(null)
+/** Which home-card the user clicked to trigger a guided Q&A flow — e.g.
+ *  'industrial-refrigeration' or 'natural-refrigerants'. Read by flow.match()
+ *  to branch into the correct step tree. Cleared on route change away from '/'. */
+const pickedEntryId = ref<string | null>(null)
 
 let installed = false
 
@@ -56,6 +60,9 @@ export function useGuidedFlow() {
   const flags = useFeatureFlags()
   const store = useConfigStore()
   const homeTab = useHomeTab()
+  // Admin-editierbare Entry-Flows (aus DB oder Code-Fallback). Wird beim
+  // ersten Aufruf vom Watcher unten via ensureLoaded() angestoßen.
+  const entryFlowsState = useGuidedEntryFlows()
 
   // Install once per module. `flow` and `stepIndex` are module-scoped, but the
   // watchers reference the current router — safe because Nuxt gives every
@@ -63,16 +70,38 @@ export function useGuidedFlow() {
   if (!installed && typeof window !== 'undefined') {
     installed = true
 
+    // Fire-and-forget: sobald die DB-Configs da sind, matcht der Watcher neu
+    // (entryFlowsState.flows ist reactive, ändert sich nach ensureLoaded()).
+    entryFlowsState.ensureLoaded()
+
     watch(
-      [() => route.path, () => store.currentCategory, () => flags.isOn('guided_pass'), () => homeTab.value],
+      [
+        () => route.path,
+        () => store.currentCategory,
+        () => flags.isOn('guided_pass'),
+        () => homeTab.value,
+        pickedEntryId,
+        entryFlowsState.flows
+      ],
       ([path]) => {
+        // Verlässt der User '/', ist ein pickedEntry veraltet — er stammt aus
+        // einem Home-Karten-Klick, dessen Flow nur auf '/' matched.
+        if (path !== '/' && pickedEntryId.value) {
+          pickedEntryId.value = null
+        }
         // When flag is off, blank everything so the overlay disappears.
         if (!flags.isOn('guided_pass')) {
           activeFlow.value = null
           targetEl.value = null
           return
         }
-        const next = findFlowForRoute(route, store, homeTab.value)
+        // 1) Zuerst DB-hydrierte Entry-Flows (Admin-editierbar) prüfen —
+        //    Match ist über pickedEntryId.
+        const dynFlows = entryFlowsState.flows.value
+        const dyn = dynFlows.find(f => f.match(route, store, homeTab.value, pickedEntryId.value))
+        // 2) Wenn kein Entry-Flow matcht, auf die statische Registry
+        //    (homeUnit, thermo-*) zurückfallen.
+        const next = dyn || findFlowForRoute(route, store, homeTab.value, pickedEntryId.value)
         if (!next) {
           activeFlow.value = null
           targetEl.value = null
@@ -139,6 +168,22 @@ export function useGuidedFlow() {
       activeFlow.value = null
       targetEl.value = null
     }
+    // Wenn der Nutzer einen Home-Card-Flow abbricht, den Entry-Marker
+    // freigeben, damit ein neuer Card-Klick den Flow wieder aktivieren kann.
+    pickedEntryId.value = null
+  }
+
+  /**
+   * setEntry — vom Home-Karten-Klick aufgerufen. Räumt vorherigen Flow auf
+   * (dismiss löscht dessen dismissed-Cache NICHT — okay, Flows sind nach id
+   * unterschieden), setzt die Entry-ID und triggert damit den Match-Watcher.
+   */
+  function setEntry(entryId: string) {
+    // Dismissed-Set nicht anfassen — wir wollen genau diesen Flow neu starten.
+    dismissedFlowIds.value.clear()
+    stepIndex.value = 0
+    pickedSuggestionLabel.value = null
+    pickedEntryId.value = entryId
   }
 
   function reset() {
@@ -146,7 +191,9 @@ export function useGuidedFlow() {
     stepIndex.value = 0
     pickedSuggestionLabel.value = null
     if (flags.isOn('guided_pass')) {
-      const next = findFlowForRoute(route, store, homeTab.value)
+      const dynFlows = entryFlowsState.flows.value
+      const dyn = dynFlows.find(f => f.match(route, store, homeTab.value, pickedEntryId.value))
+      const next = dyn || findFlowForRoute(route, store, homeTab.value, pickedEntryId.value)
       activeFlow.value = next
       resolveTarget(next?.steps[0]?.targetLearnId)
     }
@@ -165,10 +212,12 @@ export function useGuidedFlow() {
     targetEl: computed(() => targetEl.value),
     isFinished,
     pickedSuggestionLabel: computed(() => pickedSuggestionLabel.value),
+    pickedEntryId: computed(() => pickedEntryId.value),
     advance,
     applySuggestion,
     dismiss,
     reset,
-    refreshTarget
+    refreshTarget,
+    setEntry
   }
 }

@@ -21,7 +21,9 @@ const links: AdminLink[] = [
   { to: '/admin/system',         label: 'System' },
   { to: '/admin/users',          label: 'Users' },
   { to: '/admin/features',       label: 'Features' },
-  { to: '/admin/home-sections',  label: 'Home Sections' }
+  { to: '/admin/home-sections',  label: 'Home Sections' },
+  { to: '/admin/guided-flows',   label: 'Guided Flows' },
+  { to: '/admin/system-templates', label: 'System Templates' }
 ]
 </script>
 

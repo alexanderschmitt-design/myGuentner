@@ -10,6 +10,8 @@
  * inline <select> for SI ↔ US switching via useUnits.
  */
 
+import { emptyUnitSelectionOpts } from '~/stores/configuration'
+
 const router = useRouter()
 const viewMode = useViewMode()
 
@@ -129,8 +131,6 @@ const fanUsageProfilePct       = ref<number | null>(100)
 const energyCostsEurPerKwh     = ref<number | null>(0.3)
 const impactLocation           = ref('DE')
 const energyCo2GPerKwh         = ref<number | null>(380)
-const defrostPerDay            = ref<number | null>(0)
-const defrostDurationMin       = ref<number | null>(0)
 const useDefrostPredictionModel = ref(false)
 
 const impactLocationOptions = [
@@ -180,45 +180,12 @@ const wiringOptions = [
 watch(terminalBoxEnabled, (v) => { if (v) ensureOpen('terminal') })
 
 // ---- Options accordion body ----
-// One reactive object keeps the ~25 fields together. Enum labels/values
-// mirror rag/gpc-parameters.json — the codes stay wire-ready for when we
-// hook `unitfeatures()` into the API layer in Weg B.
-const opts = reactive({
-  onlyErpCompliant:            false,
-  powerSupply:                 0,      // 0 = no constraint
-  motorTechnology:             -3,     // -3 = cost optimized (default per test.myguntner.com)
-  minimumEnergyEfficiencyClass: 0,     // 0 = no
-  maxOperatingPressure:        0,      // 0 = standard
-  coreTubeMaterial:            '0',    // "0" = no restriction
-  airBlowDirection:            0,      // 0 = standard (no restrictions)
-  defrostingType:              1,      // 1 = Air defrost
-  hotGasInterconnectingTubing: false,
-  airVelocityClass:            0,      // 0 = All
-  esp:                         false,
-  espPressurePa:               0,
-  epoxyCoatedFins:             false,
-  airSockWithStreamer:         false,
-  coilDefender:                false,
-  repairSwitch:                false,
-  repairSwitchPosition:        3,      // 3 = Standard
-  repairSwitchType:            2,      // 2 = Single-speed (7-pole)
-  repairSwitchWiring:          1,      // 1 = Preferably one per fan
-  wiringToTerminalBox:         false,
-  fanRingHeater:               false,
-  fanRingHeaterMode:           'standard',
-  doubleTrayInsulated:         false,
-  casingSimpleTraySs:          false,
-  casingDoubleTraySs:          false,
-  legsForFloorMounting:        false,
-  legsMaterial:                'galv',
-  defrostHose:                 false,
-  hingedFanUnits:              false,
-  designForEvapT0Below40:      false,
-  connectionsAirFlowLeft:      false,
-  inletHood:                   false,
-  louvreWithDrive:             false,
-  guentnerStreamer:            false
-})
+// Field-Bag lebt jetzt im Pinia-Store (siehe stores/configuration.ts →
+// unitSelectionOpts). Alle v-model-Bindings unten schreiben also direkt in den
+// Store; damit werden Werte im Template-Snapshot erfasst UND beim Template-
+// Load kommen sie live in die UI zurück (Pinia-State ist deep-reactive).
+const store = useConfigStore()
+const opts = store.unitSelectionOpts
 
 const powerSupplyOptions = [
   { value: 0,  label: 'All 50Hz' },
@@ -316,13 +283,8 @@ const impactModalOpen = ref(false)
 // to the Defrosting ImpactSelect. Applies only to Hot-gas (3) and Warm-brine
 // (8) methods; other defrost types don't expose additional controls.
 const defrostOptionsOpen = ref(false)
-const defrostOpts = reactive({
-  hotGasEndTempC:      6,      // Air temperature at which hot-gas cycle terminates
-  hotGasMinDurationMin: 3,     // Minimum cycle duration
-  drainPanHeater:      true,   // Heated drain pan during defrost
-  warmBrineTempC:      35,     // Warm-brine supply temperature
-  warmBrineFlowLpm:    30      // Warm-brine flow rate
-})
+// defrostOpts lebt jetzt im Store (analog zu unitSelectionOpts, siehe oben).
+const defrostOpts = store.defrostOpts
 const defrostOptionsHint = computed(() => {
   if (opts.defrostingType === 3) return 'Hot-gas defrost sub-options'
   if (opts.defrostingType === 8) return 'Warm-brine defrost sub-options'
@@ -333,6 +295,20 @@ const canProceed = computed(() => selectedSeries.value.size > 0)
 
 const { current, thermoUrl, searchUrl } = useCategory()
 useHead({ title: `myGPC — Unit Selection (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
+
+// Templates modal state
+const templatesOpen = ref(false)
+const toast = useToast()
+function onTemplateApplied(t: { name: string }) {
+  toast.success(`Template "${t.name}" applied`)
+  // Options-Accordion aufklappen, sobald das geladene Template dort etwas
+  // Nicht-Default gesetzt hat — sonst versteckt sich die Wirkung des Loads
+  // hinter einer geschlossenen Sektion und wirkt wie ein Bug.
+  const defaults = emptyUnitSelectionOpts() as Record<string, unknown>
+  const cur = store.unitSelectionOpts as unknown as Record<string, unknown>
+  const hasCustomOpts = Object.keys(defaults).some(k => cur[k] !== defaults[k])
+  if (hasCustomOpts) ensureOpen('options')
+}
 
 function goNext()  { if (canProceed.value) router.push(searchUrl()) }
 function goBack()  { router.push(thermoUrl()) }
@@ -351,8 +327,6 @@ function resetConfig() {
   energyCostsEurPerKwh.value = 0.3
   impactLocation.value = 'DE'
   energyCo2GPerKwh.value = 380
-  defrostPerDay.value = 0
-  defrostDurationMin.value = 0
   useDefrostPredictionModel.value = false
   // Terminal Box defaults
   terminalBoxEnabled.value = false
@@ -408,8 +382,9 @@ function resetConfig() {
         </svg>
         Back
       </button>
-      <button class="btn btn-outline" @click="resetConfig">Reset configuration</button>
-      <button class="btn btn-outline" type="button">Configuration templates</button>
+      <button class="btn btn-outline" @click="resetConfig">Reset</button>
+      <button class="btn btn-outline" type="button" @click="templatesOpen = true">Templates</button>
+      <TemplatesModal v-model:open="templatesOpen" :category-slug="current.slug" @applied="onTemplateApplied" />
 
       <span class="spacer"></span>
 
@@ -588,35 +563,14 @@ function resetConfig() {
               </div>
             </div>
 
-            <!-- Row 3 — Defrost/Day / Defrost Duration (Prediction Model
-                 moved to its own full-width row below — at 50 %-col-width
-                 its label is too long for a 33-% grid cell). -->
-            <div class="lim-group">
-              <div class="col-labels-3">
-                <span>Defrost / Day <InfoIcon title="Number of defrost cycles per day" /></span>
-                <span>Defrost Duration <InfoIcon title="Duration per defrost cycle" /></span>
-                <span></span>
-              </div>
-              <div class="input-grid-3">
-                <input class="bare-input" type="number" v-model.number="defrostPerDay" />
-                <div class="input-unit">
-                  <input type="number" v-model.number="defrostDurationMin" />
-                  <span class="unit-badge">min</span>
-                </div>
-                <div></div>
-              </div>
-            </div>
-
+            <!-- Defrost / Day, Defrost Duration und der Prediction-Model-
+                 Erklärtext wurden entfernt — nur die Checkbox bleibt als
+                 letztes Element im Impact-Panel. -->
             <label class="checkbox impact-prediction-check">
               <input type="checkbox" v-model="useDefrostPredictionModel" />
               Prediction model for defrosting
               <InfoIcon title="Physical model predicting optimum defrost timing" />
             </label>
-
-            <p class="impact-note">
-              Would you like to use our physical prediction model for defrosting instead of manual input?
-              The model predicts the optimum defrosting time and number of defrosting cycles per day for the selected unit.
-            </p>
           </div>
         </div>
 
@@ -1440,15 +1394,6 @@ function resetConfig() {
   align-self: start;
   gap: var(--space-xs2);
 }
-.impact-note {
-  margin: 0;
-  padding: 0 var(--space-xs);
-  font-family: var(--font-ui);
-  font-size: var(--font-3xs);
-  color: var(--c-text-light2);
-  line-height: 1.5;
-}
-
 /* Radio groups (Terminal Box PRESELECTION) */
 .radio-group {
   display: flex;

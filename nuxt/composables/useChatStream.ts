@@ -8,12 +8,15 @@
  * lines. Our `/api/chat` endpoint sends single-line JSON in `data:`.
  *
  * Emitted events (see nuxt/server/api/chat.post.ts):
- *   conversation → { conversationId: string }  (immer als erstes Event)
- *   sources      → { sources: RagSource[] }
- *   text         → { text: string }            (incremental token)
- *   thinking     → { text: string }            (incremental thinking token)
- *   done         → { stopReason, usage, fullText, provider }
- *   error        → { error: string }
+ *   conversation    → { conversationId: string }  (immer als erstes Event)
+ *   sources         → { sources: RagSource[] }
+ *   text            → { text: string }            (incremental token)
+ *   thinking        → { text: string }            (incremental thinking token)
+ *   tool_use        → { toolUseId, name, input }
+ *   tool_result     → { toolUseId, name, ok, summary, durationMs?, error? }
+ *   template_apply  → { templateId, templateName, categorySlug, configuration }
+ *   done            → { stopReason, usage, fullText, provider }
+ *   error           → { error: string }
  */
 
 export interface RagSource {
@@ -121,11 +124,19 @@ export interface ChatRequest {
   userContext?: UserContext
 }
 
+export interface TemplateApplyEvent {
+  templateId: string
+  templateName: string
+  categorySlug: string
+  configuration: any
+}
+
 export function useChatStream() {
   const text = ref('')
   const thinking = ref('')
   const sources = ref<RagSource[]>([])
   const toolCalls = ref<ToolCall[]>([])
+  const templateApply = ref<TemplateApplyEvent | null>(null)
   const done = ref<ChatDone | null>(null)
   const error = ref<string | null>(null)
   const isStreaming = ref(false)
@@ -138,6 +149,7 @@ export function useChatStream() {
     thinking.value = ''
     sources.value = []
     toolCalls.value = []
+    templateApply.value = null
     done.value = null
     error.value = null
   }
@@ -267,6 +279,18 @@ export function useChatStream() {
           }
         }
         break
+      case 'template_apply':
+        // Chatbot hat gpc_apply_template aufgerufen — Payload weiterreichen an
+        // die ChatDock, damit sie store.applyTemplate() ruft und einen Undo-Toast zeigt.
+        if (payload && typeof payload.templateId === 'string' && payload.configuration) {
+          templateApply.value = {
+            templateId: payload.templateId,
+            templateName: String(payload.templateName || ''),
+            categorySlug: String(payload.categorySlug || ''),
+            configuration: payload.configuration
+          }
+        }
+        break
       case 'done':
         done.value = payload as ChatDone
         break
@@ -296,6 +320,7 @@ export function useChatStream() {
     thinking: thinking as Readonly<typeof thinking>,
     sources: sources as Readonly<typeof sources>,
     toolCalls: toolCalls as Readonly<typeof toolCalls>,
+    templateApply: templateApply as Readonly<typeof templateApply>,
     done: done as Readonly<typeof done>,
     error: error as Readonly<typeof error>,
     isStreaming: isStreaming as Readonly<typeof isStreaming>,

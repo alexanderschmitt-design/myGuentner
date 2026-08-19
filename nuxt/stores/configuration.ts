@@ -115,6 +115,130 @@ export interface ProjectMeta {
   country: string;
 }
 
+/**
+ * Unit-Selection-Optionen — die Checkboxen und Dropdowns aus dem Options-Accordion
+ * in `unit-selection.vue`. Vorher lokaler `reactive()`, jetzt im Store, damit
+ * Template-Save/Load die Werte erfasst. Mirrors `rag/gpc-parameters.json`.
+ */
+export interface UnitSelectionOpts {
+  onlyErpCompliant: boolean;
+  powerSupply: number;
+  motorTechnology: number;
+  minimumEnergyEfficiencyClass: number;
+  maxOperatingPressure: number;
+  coreTubeMaterial: string;
+  airBlowDirection: number;
+  defrostingType: number;
+  hotGasInterconnectingTubing: boolean;
+  airVelocityClass: number;
+  esp: boolean;
+  espPressurePa: number;
+  epoxyCoatedFins: boolean;
+  airSockWithStreamer: boolean;
+  coilDefender: boolean;
+  repairSwitch: boolean;
+  repairSwitchPosition: number;
+  repairSwitchType: number;
+  repairSwitchWiring: number;
+  wiringToTerminalBox: boolean;
+  fanRingHeater: boolean;
+  fanRingHeaterMode: string;
+  doubleTrayInsulated: boolean;
+  casingSimpleTraySs: boolean;
+  casingDoubleTraySs: boolean;
+  legsForFloorMounting: boolean;
+  legsMaterial: string;
+  defrostHose: boolean;
+  hingedFanUnits: boolean;
+  designForEvapT0Below40: boolean;
+  connectionsAirFlowLeft: boolean;
+  inletHood: boolean;
+  louvreWithDrive: boolean;
+  guentnerStreamer: boolean;
+}
+
+export function emptyUnitSelectionOpts(): UnitSelectionOpts {
+  return {
+    onlyErpCompliant: false,
+    powerSupply: 0,
+    motorTechnology: -3,
+    minimumEnergyEfficiencyClass: 0,
+    maxOperatingPressure: 0,
+    coreTubeMaterial: '0',
+    airBlowDirection: 0,
+    defrostingType: 1,
+    hotGasInterconnectingTubing: false,
+    airVelocityClass: 0,
+    esp: false,
+    espPressurePa: 0,
+    epoxyCoatedFins: false,
+    airSockWithStreamer: false,
+    coilDefender: false,
+    repairSwitch: false,
+    repairSwitchPosition: 3,
+    repairSwitchType: 2,
+    repairSwitchWiring: 1,
+    wiringToTerminalBox: false,
+    fanRingHeater: false,
+    fanRingHeaterMode: 'standard',
+    doubleTrayInsulated: false,
+    casingSimpleTraySs: false,
+    casingDoubleTraySs: false,
+    legsForFloorMounting: false,
+    legsMaterial: 'galv',
+    defrostHose: false,
+    hingedFanUnits: false,
+    designForEvapT0Below40: false,
+    connectionsAirFlowLeft: false,
+    inletHood: false,
+    louvreWithDrive: false,
+    guentnerStreamer: false
+  };
+}
+
+export interface DefrostOpts {
+  hotGasEndTempC: number;
+  hotGasMinDurationMin: number;
+  drainPanHeater: boolean;
+  warmBrineTempC: number;
+  warmBrineFlowLpm: number;
+}
+
+export function emptyDefrostOpts(): DefrostOpts {
+  return {
+    hotGasEndTempC: 6,
+    hotGasMinDurationMin: 3,
+    drainPanHeater: true,
+    warmBrineTempC: 35,
+    warmBrineFlowLpm: 30
+  };
+}
+
+/**
+ * TemplatePayload — full wizard snapshot as saved to `user_templates.configuration`
+ * (see supabase/migrations/20260818000001_user_templates.sql). Symmetric partner
+ * of `snapshotForTemplate` + `applyTemplate`. Keep the field list in sync with
+ * TEMPLATE_PAYLOAD_KEYS below.
+ */
+export interface TemplatePayload {
+  parameters: ConfigurationParameters;
+  coilGeometry: CoilGeometryConfig;
+  unitInputData: UnitInputData;
+  unitSelectionOpts: UnitSelectionOpts;
+  defrostOpts: DefrostOpts;
+  productSection: 1 | 2;
+  currentCategory: string | null;
+  currentSubcategory: string | null;
+  selectedUnitKey: string | null;
+}
+
+export const TEMPLATE_PAYLOAD_KEYS = [
+  'parameters', 'coilGeometry', 'unitInputData',
+  'unitSelectionOpts', 'defrostOpts',
+  'productSection', 'currentCategory', 'currentSubcategory',
+  'selectedUnitKey'
+] as const;
+
 export interface ServiceConfig {
   quantity: number;
   discountPercent: number;
@@ -300,7 +424,12 @@ export const useConfigStore = defineStore('configuration', {
     // gefüllt (siehe action `hydrateUnitInputData`). Wizard-Änderungen
     // schreiben direkt hier hinein oder gehen via `updateParameters` +
     // Legacy-Mapper. Persistiert.
-    unitInputData: emptyUnitInputData() as UnitInputData
+    unitInputData: emptyUnitInputData() as UnitInputData,
+    // Unit Selection Options-Accordion state (vorher lokaler reactive in
+    // unit-selection.vue). Ins Pinia gehoben, damit Template-Save/Load die
+    // Checkbox-Werte erfasst.
+    unitSelectionOpts: emptyUnitSelectionOpts() as UnitSelectionOpts,
+    defrostOpts: emptyDefrostOpts() as DefrostOpts
   }),
 
   getters: {
@@ -407,6 +536,63 @@ export const useConfigStore = defineStore('configuration', {
       this.productSection = 1;
       this.coilGeometry = emptyCoilGeometry();
       this.unitInputData = emptyUnitInputData();
+      this.unitSelectionOpts = emptyUnitSelectionOpts();
+      this.defrostOpts = emptyDefrostOpts();
+      // Session-Flags freigeben, damit Auto-Apply beim nächsten Kategorie-
+      // Öffnen wieder greift. Siehe pages/mygpc/[catId]/thermodynamics.vue.
+      if (typeof window !== 'undefined') {
+        for (const key of Object.keys(window.sessionStorage)) {
+          if (key.startsWith('gpc:autoApplied:')) window.sessionStorage.removeItem(key);
+        }
+      }
+    },
+    /**
+     * Snapshot der Konfiguration im Template-Format. Symmetrischer Partner
+     * zu `applyTemplate`. Rückgabe wird direkt in user_templates.configuration
+     * (JSONB) geschrieben.
+     */
+    snapshotForTemplate(): TemplatePayload {
+      return {
+        parameters: { ...this.parameters },
+        coilGeometry: JSON.parse(JSON.stringify(this.coilGeometry)),
+        unitInputData: JSON.parse(JSON.stringify(this.unitInputData)),
+        unitSelectionOpts: { ...this.unitSelectionOpts },
+        defrostOpts: { ...this.defrostOpts },
+        productSection: this.productSection,
+        currentCategory: this.currentCategory,
+        currentSubcategory: this.currentSubcategory,
+        selectedUnitKey: this.selectedUnitKey
+      };
+    },
+    /**
+     * Wendet ein Template auf den Store an. Schema-tolerant — fehlende Felder
+     * fallen auf `emptyXxx()`-Defaults zurück, sodass alte Templates nach
+     * Schema-Evolution nicht kaputt gehen.
+     */
+    applyTemplate(payload: Partial<TemplatePayload>) {
+      if (payload.parameters) {
+        this.parameters = Object.assign(emptyParameters(), payload.parameters);
+      }
+      if (payload.coilGeometry) {
+        this.coilGeometry = Object.assign(emptyCoilGeometry(), payload.coilGeometry);
+      }
+      if (payload.unitInputData) {
+        this.unitInputData = mergeUnitInputData(emptyUnitInputData(), payload.unitInputData);
+      }
+      if (payload.unitSelectionOpts) {
+        // In-place mergen (nicht ersetzen), damit die reaktive Referenz bleibt
+        // und v-model-Bindings in unit-selection.vue live updaten.
+        Object.assign(this.unitSelectionOpts, emptyUnitSelectionOpts(), payload.unitSelectionOpts);
+      }
+      if (payload.defrostOpts) {
+        Object.assign(this.defrostOpts, emptyDefrostOpts(), payload.defrostOpts);
+      }
+      if (payload.productSection === 1 || payload.productSection === 2) {
+        this.productSection = payload.productSection;
+      }
+      if (payload.currentCategory !== undefined) this.currentCategory = payload.currentCategory;
+      if (payload.currentSubcategory !== undefined) this.currentSubcategory = payload.currentSubcategory;
+      if (payload.selectedUnitKey !== undefined) this.selectedUnitKey = payload.selectedUnitKey;
     }
   },
 
@@ -418,7 +604,8 @@ export const useConfigStore = defineStore('configuration', {
       'activePerspective', 'unitSystem', 'project', 'parameters',
       'selectedProducts', 'selectedAccessories', 'service', 'selectedUnitKey',
       'currentCategory', 'currentSubcategory',
-      'productSection', 'coilGeometry', 'unitInputData'
+      'productSection', 'coilGeometry', 'unitInputData',
+      'unitSelectionOpts', 'defrostOpts'
     ]
   } as any  // pinia-plugin-persistedstate-Optionen sind aus Sicht von vanilla Pinia "extra"
 });

@@ -112,10 +112,16 @@ onBeforeUnmount(() => {
 })
 
 const label = computed(() => {
+  // Priorität 1: data-field-name auf dem tatsächlichen DOM-Target — das
+  // ist der offizielle "Feld-Titel" den die Wizard-Pages als Learn-Mode-
+  // Attribut mitgeben (siehe z.B. index.vue `home-unit-grid`).
+  const el = guided.targetEl.value
+  const dsName = el?.getAttribute('data-field-name')
+  if (dsName) return dsName
+
   const step = guided.currentStep.value
   if (!step) return ''
-  // Extract the first bold-marked term in the message as a short label,
-  // e.g. "**Kälteleistung**" → "Kälteleistung"
+  // Fallback: erster **bold**-Term im Step-Message-Text.
   const m = step.message.match(/\*\*([^*]+)\*\*/)
   return m ? m[1] : 'Günther suggests'
 })
@@ -143,44 +149,34 @@ const label = computed(() => {
 .guided-highlight {
   position: fixed;
   pointer-events: none;
+  /* Feste blaue Border ohne Glow-Pulse — clean „Konfigurations-Rahmen"-Optik
+     analog zu den Referenz-Screenshots (Product Category / Capacity Feld). */
   border: 2px solid var(--c-brand-blue);
   border-radius: 6px;
   background: color-mix(in srgb, var(--c-brand-blue) 5%, transparent);
-  box-shadow:
-    0 0 0 4px color-mix(in srgb, var(--c-brand-blue) 12%, transparent),
-    0 0 22px 4px color-mix(in srgb, var(--c-brand-blue) 22%, transparent);
   z-index: 88;   /* below the chat drawer (95) but above page content */
-  animation: guided-pulse 1.8s ease-in-out infinite;
   transition:
     left 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
     top 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
     width 0.28s cubic-bezier(0.22, 0.61, 0.36, 1),
     height 0.28s cubic-bezier(0.22, 0.61, 0.36, 1);
 }
-@keyframes guided-pulse {
-  0%, 100% {
-    box-shadow:
-      0 0 0 4px color-mix(in srgb, var(--c-brand-blue) 12%, transparent),
-      0 0 22px 4px color-mix(in srgb, var(--c-brand-blue) 22%, transparent);
-  }
-  50% {
-    box-shadow:
-      0 0 0 8px color-mix(in srgb, var(--c-brand-blue) 6%, transparent),
-      0 0 30px 6px color-mix(in srgb, var(--c-brand-blue) 30%, transparent);
-  }
-}
+/* Label-Tab oben links — sitzt AUF der Border, mit angleichender
+   Border-Radius nur oben, wirkt visuell wie ein "aufgeklebtes" Bookmark. */
 .guided-highlight-badge {
   position: absolute;
-  top: -26px;
-  left: 0;
+  top: -22px;
+  left: -2px;
   background: var(--c-brand-blue);
   color: white;
   font-family: var(--font-ui);
-  font-size: 11px;
-  font-weight: 500;
-  padding: 3px 8px;
-  border-radius: 3px;
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 4px 4px 0 0;
   white-space: nowrap;
-  letter-spacing: 0.1px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.2;
 }
 </style>

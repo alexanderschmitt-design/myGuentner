@@ -239,10 +239,21 @@ function askGuentherAboutCoil() {
 
 // -------- Sidebar (reduced set for Coil) --------
 function goBack() { router.push(searchUrl()) }
+function resetConfig() { store.resetWizard() }
+
+// Templates modal + toast
+const templatesOpen = ref(false)
+const toast = useToast()
+function onTemplateApplied(t: { name: string }) {
+  toast.success(`Template "${t.name}" applied`)
+}
+
 interface SidebarAction { label: string; icon: string; onClick: () => void }
 const sidebarGroups: SidebarAction[][] = [
   [
-    { label: 'Back to results', icon: 'M12 5l-5 5 5 5', onClick: goBack }
+    { label: 'Back to results', icon: 'M12 5l-5 5 5 5', onClick: goBack },
+    { label: 'Reset',           icon: 'M14 6l2-2v6h-6l2-2M15 5a7 7 0 1 0 2 5', onClick: resetConfig },
+    { label: 'Templates',       icon: 'M4 5h12M4 10h12M4 15h8', onClick: () => { templatesOpen.value = true } }
   ],
   [
     { label: 'Recalculate',     icon: 'M4 10a6 6 0 0 1 10-4l2-2v6h-6l2-2M16 10a6 6 0 0 1-10 4l-2 2v-6h6l-2 2', onClick: () => {} },
@@ -259,6 +270,7 @@ const sidebarGroups: SidebarAction[][] = [
 
 <template>
   <div class="ds-page">
+    <TemplatesModal v-model:open="templatesOpen" :category-slug="current.slug" @applied="onTemplateApplied" />
     <div class="ds-layout">
       <!-- Header spans the full layout width so sidebar & first section align -->
       <div class="ds-header-shell">
