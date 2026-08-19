@@ -20,6 +20,7 @@ import { getActiveLlm, type UserContext } from '../utils/llm'
 import { requireUser } from '../utils/auth'
 import { checkRateLimit } from '../utils/rate-limit'
 import { getSupabaseServiceClient } from '../utils/supabase'
+import { getRagSettings } from '../utils/rag-settings'
 
 const CHAT_LIMIT_PER_HOUR = 60
 const MAX_QUERY_LEN = 4000
@@ -181,16 +182,34 @@ export default defineEventHandler(async (event) => {
       console.warn('[chat] RAG retrieval failed, continuing without context:', err.message)
     }
 
-    const llm = getActiveLlm()
+    // DB-Setting (Admin-UI) hat Vorrang vor env LLM_PROVIDER. Model-Override analog.
+    let dbProvider: string | null = null
+    let dbModel: string | null = null
+    try {
+      const settings = await getRagSettings()
+      dbProvider = settings.llm_provider || null
+      dbModel = settings.llm_model || null
+    } catch (err: any) {
+      console.warn('[chat] rag_settings unreachable, falling back to env provider:', err.message)
+    }
+
+    const llm = getActiveLlm(dbProvider || undefined)
+    console.log('[chat] provider=', llm.name, 'dbProvider=', dbProvider, 'model=', body.model || dbModel || '(default)')
     const stream = llm.ask(query, chunks, {
       language: body.language || 'de',
       effort: body.effort || 'medium',
       thinking: body.thinking === true,
-      maxTokens: body.maxTokens || 4096,
+      // Kein Endpoint-Default mehr — jeder Adapter kennt sein eigenes Limit
+      // (OpenRouter Free-Tier braucht ≤ 2048, Anthropic direkt kann 4096).
+      // Nur setzen, wenn der Client explizit einen Wert schickt.
+      maxTokens: typeof body.maxTokens === 'number' ? body.maxTokens : undefined,
       history: body.history || [],
-      model: body.model || undefined,
+      model: body.model || dbModel || undefined,
       detailedMode: body.detailedMode === true,
-      userContext: sanitizeUserContext(body.userContext)
+      userContext: sanitizeUserContext(body.userContext),
+      // Auth-User-ID für owner-scoped Tools (gpc_list_templates, gpc_apply_template).
+      // Nie in den LLM-Prompt gepackt — die Tools legen die Auth-Grenze fest.
+      authUserId: user.id
     })
 
     let capturedSources: any[] = []
@@ -239,6 +258,21 @@ export default defineEventHandler(async (event) => {
           durationMs: ev.toolResult.durationMs,
           error: ev.toolResult.error
         })
+        // Sonderfall gpc_apply_template: der Client bekommt die Configuration
+        // über einen dedizierten template_apply-Event und ruft dann store.applyTemplate().
+        // Die Template-Payload landet nicht im LLM-Kontext.
+        if (
+          ev.toolResult.name === 'gpc_apply_template' &&
+          ev.toolResult.ok &&
+          ev.toolResult.data?.configuration
+        ) {
+          send('template_apply', {
+            templateId: ev.toolResult.data.id,
+            templateName: ev.toolResult.data.name,
+            categorySlug: ev.toolResult.data.categorySlug,
+            configuration: ev.toolResult.data.configuration
+          })
+        }
       } else if (ev.type === 'done') {
         // Wir persistieren erst, damit die messageId ins done-Event kommt.
         capturedUsage = ev.usage

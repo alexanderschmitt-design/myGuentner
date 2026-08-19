@@ -93,13 +93,19 @@ export default defineNuxtConfig({
       propertySyntax: (process.env.DMS_PROPERTY_SYNTAX || 'bracket').toLowerCase()
     },
 
-    // LLM providers (Anthropic Bella / Google Gemini). Provider-Wahl via LLM_PROVIDER.
+    // LLM providers (Anthropic Bella / Google Gemini / OpenRouter). Provider-Wahl
+    // via LLM_PROVIDER (env) oder rag_settings.llm_provider (DB-Override, per Admin-UI).
     llm: {
       provider: (process.env.LLM_PROVIDER || 'anthropic').toLowerCase(),
       anthropicApiKey: process.env.ANTHROPIC_API_KEY || '',
       anthropicModel: process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-6',
       googleApiKey: process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY || '',
-      geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash'
+      geminiModel: process.env.GEMINI_MODEL || 'gemini-2.5-flash',
+      // OpenRouter — OpenAI-kompatibles Multi-Provider-Gateway.
+      // Env-Namen tolerant lesen (Windows case-insensitiv, Linux nicht).
+      openrouterApiKey: process.env.OPENROUTER_API_KEY || process.env.OPENROUTER_API_key || '',
+      openrouterBaseUrl: process.env.OPENROUTER_BASE_URL || process.env.OPENROUTER_URL || process.env.openrouter_URL || 'https://openrouter.ai/api/v1',
+      openrouterModel: process.env.OPENROUTER_MODEL || 'anthropic/claude-sonnet-4.5'
     },
 
     // Embeddings — OpenAI ist der einzige unterstützte Mode im Nitro-Port

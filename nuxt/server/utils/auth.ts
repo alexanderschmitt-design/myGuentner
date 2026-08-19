@@ -16,11 +16,20 @@ import { serverSupabaseUser } from '#supabase/server'
 import type { User } from '@supabase/supabase-js'
 
 export async function requireUser(event: H3Event): Promise<User> {
-  const user = await serverSupabaseUser(event)
-  if (!user) {
-    throw createError({ statusCode: 401, statusMessage: 'Authentication required' })
+  const raw = await serverSupabaseUser(event)
+  if (!raw) {
+    throw createError({ statusCode: 401, message: 'Authentication required' })
   }
-  return user as unknown as User
+  const u = raw as any
+  // `serverSupabaseUser` liefert bei manchen Setups nur den JWT-Payload
+  // (mit `sub`) statt eines dehydrierten User-Objekts (mit `id`). Standard-
+  // JWT-Claim `sub` == Supabase-User-ID, also mappen wir hier.
+  if (!u.id && u.sub) u.id = u.sub
+  if (!u.id) {
+    console.warn('[auth] serverSupabaseUser returned object without .id/.sub — session unusable. Object keys:', Object.keys(u))
+    throw createError({ statusCode: 401, message: 'Session invalid — please re-login' })
+  }
+  return u as User
 }
 
 export function isAdmin(user: User): boolean {

@@ -206,7 +206,10 @@ export async function* askBella(query: string, chunks: any[], options: AskOption
           toolUse: { toolUseId, name, input }
         }
 
-        const result = await executeTool(name, input, { userContext: options.userContext })
+        const result = await executeTool(name, input, {
+          userContext: options.userContext,
+          authUserId: options.authUserId
+        })
 
         yield {
           type: 'tool_result',
@@ -216,7 +219,12 @@ export async function* askBella(query: string, chunks: any[], options: AskOption
             ok: result.ok,
             summary: result.summary,
             durationMs: result.durationMs,
-            error: result.error
+            error: result.error,
+            // Nur für Tools wo der Client die strukturierten Daten braucht
+            // (aktuell nur gpc_apply_template → template_apply SSE-Event).
+            // Andere Tools liefern data über result.data an die LLM zurück,
+            // nicht an den Client.
+            data: name === 'gpc_apply_template' ? result.data : undefined
           }
         }
 

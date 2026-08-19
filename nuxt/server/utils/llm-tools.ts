@@ -23,6 +23,7 @@ import {
   gpceuUnitFeatures,
   resolveFluidIdFromCode
 } from './gpceu-server'
+import { getSupabaseServiceClient } from './supabase'
 
 // ============================================================================
 // Anthropic tool schemas — sent as the `tools` array on the messages.stream()
@@ -136,6 +137,46 @@ export const GPCEU_TOOLS = [
       },
       required: ['productCategory', 'unitKey']
     }
+  },
+  {
+    name: 'gpc_list_templates',
+    description:
+      'Lists the user\'s saved wizard-configuration templates. Use when the user ' +
+      'asks "welche templates habe ich", "meine gespeicherten konfigurationen", ' +
+      'or when you want to suggest an existing template that matches their intent ' +
+      'before proposing new parameters. Returns id, name, category, and whether ' +
+      'it is marked as private-default for that category.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        categorySlug: {
+          type: 'string',
+          description:
+            'Optional filter: evaporator-dx, evaporator-pump, air-cooler, ' +
+            'condenser, dry-cooler, subcooler, oil-cooler, gas-cooler. ' +
+            'Omit to list all templates.'
+        }
+      },
+      additionalProperties: false
+    }
+  },
+  {
+    name: 'gpc_apply_template',
+    description:
+      'Applies a saved template to the user\'s current wizard state. ONLY call ' +
+      'this after explicit user confirmation ("ja, lade das Template", "yes ' +
+      'apply it") — the user will see their entire configuration replaced by ' +
+      'the template values. Use gpc_list_templates first to find the correct id.',
+    input_schema: {
+      type: 'object',
+      properties: {
+        templateId: {
+          type: 'string',
+          description: 'UUID of the template as returned by gpc_list_templates.'
+        }
+      },
+      required: ['templateId']
+    }
   }
 ] as const
 
@@ -165,7 +206,7 @@ export interface ToolResult {
 export async function executeTool(
   name: string,
   input: Record<string, unknown>,
-  _ctx?: { userContext?: UserContext }
+  ctx?: { userContext?: UserContext; authUserId?: string }
 ): Promise<ToolResult> {
   const t0 = Date.now()
   try {
@@ -178,6 +219,10 @@ export async function executeTool(
         return await runGetDefaultInput(input, t0)
       case 'gpc_unit_features':
         return await runUnitFeatures(input, t0)
+      case 'gpc_list_templates':
+        return await runListTemplates(input, ctx, t0)
+      case 'gpc_apply_template':
+        return await runApplyTemplate(input, ctx, t0)
       default:
         return {
           ok: false,
@@ -389,6 +434,134 @@ async function runUnitFeatures(input: Record<string, unknown>, t0: number): Prom
     ok: true,
     summary: `features fetched for ${unitKey}`,
     data: res.data,
+    durationMs: Date.now() - t0
+  }
+}
+
+// ----------------------------------------------------------------------------
+// gpc_list_templates
+// ----------------------------------------------------------------------------
+async function runListTemplates(
+  input: Record<string, unknown>,
+  ctx: { authUserId?: string } | undefined,
+  t0: number
+): Promise<ToolResult> {
+  if (!ctx?.authUserId) {
+    return {
+      ok: false,
+      summary: 'not authenticated',
+      error: 'Templates are per-user — the caller must be logged in.',
+      durationMs: Date.now() - t0
+    }
+  }
+
+  const categorySlug = typeof input.categorySlug === 'string' ? input.categorySlug.trim() : ''
+  const sb = getSupabaseServiceClient()
+  let q = sb
+    .from('user_templates')
+    .select('id, name, category_slug, is_default_for_category, updated_at')
+    .eq('owner_id', ctx.authUserId)
+    .order('updated_at', { ascending: false })
+
+  if (categorySlug) q = q.eq('category_slug', categorySlug)
+
+  const { data, error } = await q
+  if (error) {
+    return {
+      ok: false,
+      summary: 'templates query failed',
+      error: error.message,
+      durationMs: Date.now() - t0
+    }
+  }
+
+  const templates = (data || []).map((r: any) => ({
+    id: r.id,
+    name: r.name,
+    categorySlug: r.category_slug,
+    isDefault: r.is_default_for_category,
+    updatedAt: r.updated_at
+  }))
+
+  return {
+    ok: true,
+    summary: templates.length > 0
+      ? `${templates.length} template${templates.length === 1 ? '' : 's'} found`
+      : 'no templates saved yet',
+    data: { count: templates.length, templates },
+    durationMs: Date.now() - t0
+  }
+}
+
+// ----------------------------------------------------------------------------
+// gpc_apply_template
+//
+// Trust boundary: the tool result carries the template's `configuration`
+// (the TemplatePayload). chat.post.ts emits a separate `template_apply` SSE
+// event with this payload; the client applies it via store.applyTemplate().
+// The server does NOT mutate any store — that lives in the browser Pinia.
+// ----------------------------------------------------------------------------
+async function runApplyTemplate(
+  input: Record<string, unknown>,
+  ctx: { authUserId?: string } | undefined,
+  t0: number
+): Promise<ToolResult> {
+  if (!ctx?.authUserId) {
+    return {
+      ok: false,
+      summary: 'not authenticated',
+      error: 'Applying a template requires an authenticated user.',
+      durationMs: Date.now() - t0
+    }
+  }
+  const templateId = typeof input.templateId === 'string' ? input.templateId.trim() : ''
+  if (!templateId) {
+    return {
+      ok: false,
+      summary: 'missing templateId',
+      error: 'templateId is required (get one from gpc_list_templates).',
+      durationMs: Date.now() - t0
+    }
+  }
+
+  const sb = getSupabaseServiceClient()
+  const { data, error } = await sb
+    .from('user_templates')
+    .select('id, name, category_slug, configuration')
+    .eq('id', templateId)
+    .eq('owner_id', ctx.authUserId)
+    .maybeSingle()
+
+  if (error) {
+    return {
+      ok: false,
+      summary: 'template lookup failed',
+      error: error.message,
+      durationMs: Date.now() - t0
+    }
+  }
+  if (!data) {
+    return {
+      ok: false,
+      summary: 'template not found',
+      error: `No template ${templateId} owned by current user.`,
+      durationMs: Date.now() - t0
+    }
+  }
+
+  return {
+    ok: true,
+    summary: `applying template "${data.name}"`,
+    // Data lives on TWO paths:
+    //   • LLM path — sees data.name so it can confirm to the user
+    //   • Client path — chat.post.ts forwards the configuration blob to
+    //     the browser via a `template_apply` SSE event.
+    data: {
+      id: data.id,
+      name: data.name,
+      categorySlug: data.category_slug,
+      configuration: data.configuration
+    },
     durationMs: Date.now() - t0
   }
 }

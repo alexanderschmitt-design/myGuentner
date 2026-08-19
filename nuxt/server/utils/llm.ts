@@ -6,6 +6,7 @@
 
 import { askBella, bellaHealthCheck, bellaConfig } from './llm-bella'
 import { askGemini, geminiHealthCheck, geminiConfig } from './llm-gemini'
+import { askOpenRouter, openrouterHealthCheck, openrouterConfig } from './llm-openrouter'
 
 export interface LlmEvent {
   type: 'sources' | 'text_delta' | 'thinking_delta' | 'tool_use' | 'tool_result' | 'done' | 'error'
@@ -29,6 +30,11 @@ export interface LlmEvent {
     summary: string
     durationMs?: number
     error?: string
+    /** Structured tool output — only forwarded to the client for tools where
+     *  the payload is intended for the frontend (e.g. gpc_apply_template's
+     *  configuration blob). Never surfaced back into the LLM's tool_result
+     *  message. */
+    data?: any
   }
 }
 
@@ -62,6 +68,9 @@ export interface AskOptions {
   model?: string
   detailedMode?: boolean
   userContext?: UserContext
+  /** Authenticated user id (auth.uid()) — forwarded to server-side tools that
+   *  need to scope DB queries by owner. Never surfaced into the LLM prompt. */
+  authUserId?: string
 }
 
 export type AskFunction = (query: string, chunks: any[], opts?: AskOptions) => AsyncIterable<LlmEvent>
@@ -81,6 +90,14 @@ export function getActiveLlm(overrideProvider?: string): LlmAdapter {
       ask: askGemini,
       healthCheck: geminiHealthCheck,
       config: geminiConfig()
+    }
+  }
+  if (provider === 'openrouter') {
+    return {
+      name: 'openrouter',
+      ask: askOpenRouter,
+      healthCheck: openrouterHealthCheck,
+      config: openrouterConfig()
     }
   }
   return {
