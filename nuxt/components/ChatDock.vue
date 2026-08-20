@@ -270,7 +270,50 @@ interface RecommendationTemplate {
   configuration: any
   updatedAt: string
   paramCount: number
+  isDemo?: boolean
 }
+
+/** Dev-Demo-Fallback: wenn die DB gar keine Matches liefert, zeigen wir 3
+ *  plausible Produkt-Vorschläge. Nur für die Entwicklungsphase — die Configuration
+ *  ist bewusst leer, damit die im Q&A gesetzten Store-Werte erhalten bleiben. */
+const DEMO_RECOMMENDATIONS: RecommendationTemplate[] = [
+  {
+    id: 'demo-1',
+    name: 'GACV CX 040.2B/16',
+    categorySlug: 'demo',
+    isDefaultForCategory: false,
+    isSystem: false,
+    isOwn: false,
+    configuration: {},
+    updatedAt: new Date().toISOString(),
+    paramCount: 34,
+    isDemo: true
+  },
+  {
+    id: 'demo-2',
+    name: 'GACC CX 040.2/2WN',
+    categorySlug: 'demo',
+    isDefaultForCategory: false,
+    isSystem: false,
+    isOwn: false,
+    configuration: {},
+    updatedAt: new Date().toISOString(),
+    paramCount: 28,
+    isDemo: true
+  },
+  {
+    id: 'demo-3',
+    name: 'GADC CX 025.1FE/2E-40',
+    categorySlug: 'demo',
+    isDefaultForCategory: false,
+    isSystem: false,
+    isOwn: false,
+    configuration: {},
+    updatedAt: new Date().toISOString(),
+    paramCount: 21,
+    isDemo: true
+  }
+]
 const recTargetSlug = ref<string | null>(null)
 const recTargetCatId = ref<number | null>(null)
 const recTemplates = ref<RecommendationTemplate[]>([])
@@ -332,9 +375,17 @@ async function loadRecommendationsForStep(step: GuidedStep) {
         }
       } catch { /* silent fallback */ }
     }
+    // Dev-Demo-Fallback: wenn die DB gar nichts liefert, immer 3
+    // Beispiel-Produkte anzeigen — dient der Entwicklungs-Demo damit
+    // die Recommendation-Karte nie leer aussieht.
+    if (collected.length === 0) {
+      collected = DEMO_RECOMMENDATIONS
+    }
     recTemplates.value = collected
   } catch (err: any) {
     console.warn('[recommendations] fetch failed:', err?.message || err)
+    // Auch bei Fetch-Error die Demo-Vorschläge zeigen
+    recTemplates.value = DEMO_RECOMMENDATIONS
   } finally {
     recLoading.value = false
   }
@@ -934,7 +985,8 @@ function pickPreset(p: PresetIntent) {
                     <span class="config-choice-body">
                       <span class="config-choice-label">
                         {{ t.name }}
-                        <span v-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated">★ SYSTEM</span>
+                        <span v-if="t.isDemo" class="rec-badge rec-badge-demo" title="Demo product — dev placeholder">DEMO</span>
+                        <span v-else-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated">★ SYSTEM</span>
                         <span v-else-if="t.isDefaultForCategory" class="rec-star" title="Your default for this category">★</span>
                       </span>
                       <span class="config-choice-detail">
@@ -1862,6 +1914,11 @@ function pickPreset(p: PresetIntent) {
 .rec-badge-system {
   background: var(--c-brand-blue, #0078BE);
   color: white;
+}
+.rec-badge-demo {
+  background: color-mix(in srgb, var(--c-warning, #F5B800) 25%, white);
+  color: color-mix(in srgb, var(--c-warning, #F5B800) 80%, black);
+  border: 1px solid color-mix(in srgb, var(--c-warning, #F5B800) 60%, transparent);
 }
 /* System-Choices bekommen einen subtilen linken Blaustreifen, damit sie
    visuell aus dem grünen Recommendation-Kontext hervorstechen. */
