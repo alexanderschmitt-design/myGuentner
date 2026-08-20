@@ -46,6 +46,15 @@ const router = useRouter()
 const store = useConfigStore()
 const guided = useGuidedFlow()
 const chatDockOpen = useChatDockState()
+const chatDockReset = useChatDockReset()
+
+// Tab-Wechsel resettet den Chat, damit der neue Kontext-Flow (home-unit /
+// home-application / home-refrigerant / home-unit für Coil etc.) frisch
+// mit seiner ersten Frage im Chat erscheint statt dass alte Turns
+// stehenbleiben.
+watch(activeTab, () => {
+  chatDockReset.reset()
+})
 
 /**
  * Q&A-Flow für Home-Karten aktivieren: statt direkt in den Wizard zu
@@ -60,6 +69,9 @@ const chatDockOpen = useChatDockState()
 const GUIDED_ENTRY_CARDS = GUIDED_ENTRY_IDS
 
 function startGuidedEntry(entryId: string) {
+  // Vorherigen Chat-Verlauf leeren, damit der User beim Öffnen des Chatbots
+  // wieder Greeting + erste Frage seines neuen Flows sieht.
+  chatDockReset.reset()
   guided.setEntry(entryId)
   chatDockOpen.value = true
 }
@@ -79,6 +91,9 @@ function startGuidedEntry(entryId: string) {
 // wizard opens with sensible defaults (used by the By-Application and
 // By-Refrigerant teaser cards — each has an implicit refrigerant / purpose).
 async function goToWizard(catId: number, categorySlug: string, productSection: 1 | 2 = 1, prefill?: Record<string, unknown>) {
+  // Chatbot-Reset — der thermo-* Guided-Flow auf der Wizard-Seite matched
+  // dann frisch und zeigt seine erste Frage statt eines alten Verlaufs.
+  chatDockReset.reset()
   store.setProductSection(productSection)
   store.currentCategory = categorySlug
   store.currentSubcategory = null

@@ -575,6 +575,37 @@ function clearHistory() {
   stream.reset()
 }
 
+// App-weites Reset-Signal — anderen Komponenten (Home-Tabs, Teaser-
+// Cards, Nav-Links) können den Chat zurücksetzen ohne direkten Zugriff
+// auf history/stream. Watcher auf den Signal-Counter greift auch wenn
+// die ChatDock geschlossen ist — so ist history beim nächsten Öffnen leer.
+const chatDockReset = useChatDockReset()
+function performReset() {
+  history.value = []
+  stream.reset()
+  guided.reset()
+  scrollToEnd()
+}
+watch(() => chatDockReset.signal.value, performReset)
+
+// Route-Wechsel = Kontext-Wechsel = fresh chat. Verhindert dass alte
+// Thermo-Q&A-Karten sichtbar bleiben wenn User via Header-Link (myGPC,
+// mySpareParts, Documents etc.) navigiert oder direkt zwischen zwei
+// Wizard-Kategorien springt.
+let lastFlowContext = ''
+function flowContextOf(path: string): string {
+  // Erste 3 Segmente als Kontext (z.B. "/mygpc/0" vs. "/mygpc/2" vs. "/")
+  const parts = path.split('/').slice(0, 4).join('/')
+  return parts
+}
+watch(() => route.path, (path) => {
+  const ctx = flowContextOf(path)
+  if (lastFlowContext && ctx !== lastFlowContext) {
+    performReset()
+  }
+  lastFlowContext = ctx
+}, { immediate: true })
+
 // ---- Start-screen preset intents ----
 // Mascot: bound dynamically so Vite doesn't try to statically import the PNG
 // (avoids a compile error until the user drops the asset into public/).
@@ -646,6 +677,9 @@ const presets: PresetIntent[] = [
 
 function pickPreset(p: PresetIntent) {
   if (stream.isStreaming.value) return
+  // Reset zuerst — der Guided-Flow-Watcher auf der neuen Route matched
+  // dann frisch und injiziert die erste Frage seines Flows.
+  chatDockReset.reset()
   if (p.kind === 'guided-entry' && p.entryId) {
     // Home-Entry-Q&A aktivieren + zurück zur Home, ChatDock offen lassen.
     guided.setEntry(p.entryId)
