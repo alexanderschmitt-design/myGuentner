@@ -638,13 +638,28 @@ function pickPreset(p: PresetIntent) {
       <aside v-if="isOpen" class="chat-drawer" aria-label="Chat with Günther">
         <header class="chat-drawer-head">
           <div class="chat-drawer-title">
-            <span class="chat-drawer-dot" aria-hidden="true"></span>
-            <strong>Günther</strong>
-            <span class="chat-drawer-subtitle">
-              <template v-if="mode === 'learn'">Learn Mode</template>
-              <template v-else-if="guidedEnabled && guided.activeFlow.value">{{ guided.activeFlow.value.title }}</template>
-              <template v-else>Güntner Assistant</template>
-            </span>
+            <!-- Kleines Roboter-Avatar (Header) — konsistent mit FAB + Empty-State-Greeting -->
+            <div class="chat-drawer-avatar" aria-hidden="true">
+              <svg viewBox="0 0 56 56" width="20" height="20" fill="none">
+                <line x1="28" y1="12" x2="28" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="28" cy="5" r="3.2" fill="#EF4444"/>
+                <rect x="6" y="24" width="4" height="10" rx="2" fill="white"/>
+                <rect x="46" y="24" width="4" height="10" rx="2" fill="white"/>
+                <rect x="10" y="14" width="36" height="30" rx="8" fill="white"/>
+                <rect x="14" y="20" width="28" height="18" rx="5" fill="var(--c-brand-blue, #0078BE)"/>
+                <circle cx="22" cy="28" r="2.2" fill="white"/>
+                <circle cx="34" cy="28" r="2.2" fill="white"/>
+                <path d="M23 33.5 Q28 36 33 33.5" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+              </svg>
+            </div>
+            <div class="chat-drawer-title-text">
+              <strong>Günther</strong>
+              <span class="chat-drawer-subtitle">
+                <template v-if="mode === 'learn'">Learn Mode</template>
+                <template v-else-if="guidedEnabled && guided.activeFlow.value">{{ guided.activeFlow.value.title }}</template>
+                <template v-else>Güntner Assistant</template>
+              </span>
+            </div>
           </div>
           <div class="chat-drawer-head-actions">
             <!-- Mode toggle: Chat / Learn. Only shows Learn icon when the
@@ -1127,21 +1142,41 @@ function pickPreset(p: PresetIntent) {
 .chat-drawer-title {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   font-family: var(--font-ui);
   font-size: var(--font-xs);
   color: var(--c-text-value);
+  min-width: 0;
 }
-.chat-drawer-dot {
-  width: 8px;
-  height: 8px;
+.chat-drawer-avatar {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
-  background: var(--c-success, #2E7D4F);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-success, #2E7D4F) 20%, transparent);
+  background: var(--c-brand-blue, #0078BE);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--c-brand-blue, #0078BE) 25%, transparent);
+}
+.chat-drawer-title-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.2;
+}
+.chat-drawer-title-text strong {
+  font-size: var(--font-xs, 15.69px);
+  color: var(--c-text-value);
+  font-weight: 600;
 }
 .chat-drawer-subtitle {
   color: var(--c-text-light2);
-  font-size: var(--font-3xs);
+  font-size: var(--font-3xs, 12.81px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .chat-drawer-head-actions { display: flex; gap: 4px; align-items: center; }
 
