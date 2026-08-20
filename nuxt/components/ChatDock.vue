@@ -593,41 +593,65 @@ const startSubtitle = computed(() => 'Answer a short question so I can suggest t
 interface PresetIntent {
   id: string
   label: string
-  queryDe: string
-  queryEn: string
   iconPath: string        // SVG path for a 20×20 viewBox
+  /** 'guided-entry' → aktiviert Home-Q&A-Flow für die entryId +
+   *  navigiert nach '/'. 'direct-unit' → springt direkt in den
+   *  Wizard `/mygpc/[catId]/thermodynamics`. */
+  kind: 'guided-entry' | 'direct-unit'
+  entryId?: string        // für guided-entry
+  catId?: number          // für direct-unit
+  categorySlug?: string   // für direct-unit
 }
 const presets: PresetIntent[] = [
   {
-    id: 'gcvc',
-    label: 'GCVC',
-    queryDe: 'Ich möchte eine GCVC-Anlage konfigurieren. Führe mich durch die nötigen Schritte.',
-    queryEn: 'I want to configure a GCVC unit. Walk me through the required steps.',
-    // Fan-blade icon
-    iconPath: 'M10 2c2 3 2 6 0 8-2-3-2-6 0-8zM18 10c-3 2-6 2-8 0 3-2 6-2 8 0zM10 18c-2-3-2-6 0-8 2 3 2 6 0 8zM2 10c3-2 6-2 8 0-3 2-6 2-8 0zM10 10a1 1 0 100 0'
+    id: 'air-cooler',
+    label: 'Air Cooler',
+    // Fan-in-square icon
+    iconPath: 'M3 3h14v14H3zM10 6c1 2 1 3 0 4-1-2-1-3 0-4zM14 10c-2 1-3 1-4 0 2-1 3-1 4 0zM10 14c-1-2-1-3 0-4 1 2 1 3 0 4zM6 10c2-1 3-1 4 0-2 1-3 1-4 0z',
+    kind: 'direct-unit',
+    catId: 2,
+    categorySlug: 'air-cooler'
   },
   {
-    id: 'fruit',
-    label: 'Fruit Cooling',
-    queryDe: 'Ich brauche eine Lösung für Obst-Kühlung. Welche Parameter empfiehlst du?',
-    queryEn: 'I need a fruit-cooling solution. What parameters do you recommend?',
-    // Apple-with-leaf icon
-    iconPath: 'M10 5c-3 0-6 2-6 6 0 4 3 7 6 7s6-3 6-7c0-4-3-6-6-6zM11 5c1-2 3-2 4-2-.5 2-2 3-4 3'
+    id: 'dry-cooler',
+    label: 'Dry Cooler',
+    // Radiator-fins icon
+    iconPath: 'M3 4h14v12H3zM6 4v12M10 4v12M14 4v12',
+    kind: 'direct-unit',
+    catId: 4,
+    categorySlug: 'dry-cooler'
   },
   {
-    id: 'support',
-    label: 'Support by configuration',
-    queryDe: 'Ich brauche Unterstützung bei einer laufenden Konfiguration. Wie können wir starten?',
-    queryEn: 'I need help with an ongoing configuration. How can we get started?',
-    // Chat-bubble with helper dots
-    iconPath: 'M3 4h14v10h-8l-4 3v-3H3zM7 9h.01M10 9h.01M13 9h.01'
+    id: 'data-center',
+    label: 'Data Center',
+    // Server-stack icon
+    iconPath: 'M3 4h14v5H3zM3 11h14v5H3zM6 6.5h.01M6 13.5h.01M9 6.5h5M9 13.5h5',
+    kind: 'guided-entry',
+    entryId: 'data-center'
+  },
+  {
+    id: 'commercial-hvac',
+    label: 'Commercial HVAC',
+    // Building-with-vents icon
+    iconPath: 'M4 17V6l6-3 6 3v11H4zM8 10h4M8 13h4M8 7h4',
+    kind: 'guided-entry',
+    entryId: 'commercial-hvac'
   }
 ]
 
 function pickPreset(p: PresetIntent) {
   if (stream.isStreaming.value) return
-  inputValue.value = activeLocale.value === 'de' ? p.queryDe : p.queryEn
-  submit()
+  if (p.kind === 'guided-entry' && p.entryId) {
+    // Home-Entry-Q&A aktivieren + zurück zur Home, ChatDock offen lassen.
+    guided.setEntry(p.entryId)
+    if (route.path !== '/') useRouter().push('/')
+  } else if (p.kind === 'direct-unit' && p.catId != null && p.categorySlug) {
+    // Direkt in den Wizard springen — ChatDock bleibt offen für inline-Guidance
+    // via thermo-liquid / thermo-refrigerant Flow.
+    configStore.setProductSection(1)
+    configStore.currentCategory = p.categorySlug
+    useRouter().push(`/mygpc/${p.catId}/thermodynamics`)
+  }
 }
 </script>
 
@@ -1058,7 +1082,9 @@ function pickPreset(p: PresetIntent) {
     <!-- Floating action button (only when drawer is closed — the
          drawer has its own header X for closing) -->
     <button v-if="!isOpen" type="button" class="chat-fab" aria-label="Open chat" @click="toggle">
-      <svg viewBox="0 0 56 56" width="30" height="30" fill="none">
+      <!-- Roter Notification-Dot als Aufmerksamkeits-Zeichen -->
+      <span class="chat-fab-dot" aria-hidden="true"></span>
+      <svg viewBox="0 0 56 56" width="60" height="60" fill="none">
         <line x1="28" y1="12" x2="28" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/>
         <circle cx="28" cy="5" r="3.2" fill="#EF4444"/>
         <rect x="6" y="24" width="4" height="10" rx="2" fill="white"/>
@@ -1095,21 +1121,63 @@ function pickPreset(p: PresetIntent) {
   bottom: 24px;
   right: 24px;
   z-index: 90;
-  width: 52px;
-  height: 52px;
+  /* Doppelt so groß wie vorher (52 → 104px), sichtbarer Call-to-Action. */
+  width: 104px;
+  height: 104px;
   border-radius: 50%;
   border: none;
   background: var(--c-brand-blue);
   color: white;
-  box-shadow: 0 8px 24px rgba(38, 102, 224, 0.35);
+  box-shadow: 0 12px 32px rgba(38, 102, 224, 0.4);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s, box-shadow 0.15s;
+  transition: transform 0.15s;
+  /* Sanfte, dauerhafte Pulse-Animation auf den Outline-Ring, damit der
+     Button auf Landing-Pages klar sichtbar bleibt. */
+  animation: fab-pulse 2.4s ease-out infinite;
 }
-.chat-fab:hover { transform: translateY(-2px); box-shadow: 0 12px 28px rgba(38, 102, 224, 0.45); }
+.chat-fab:hover { transform: translateY(-2px) scale(1.02); }
 .chat-fab.is-open { background: var(--c-text-medium); }
+
+/* Roter Notification-Dot oben rechts am FAB — Aufmerksamkeits-Marker. */
+.chat-fab-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #EF4444;
+  border: 3px solid white;
+  box-shadow: 0 0 0 3px color-mix(in srgb, #EF4444 25%, transparent);
+  z-index: 1;
+}
+
+/* Pulse-Ring: outline expandiert mit fadeout, dauerhafter Loop. */
+@keyframes fab-pulse {
+  0% {
+    box-shadow:
+      0 12px 32px rgba(38, 102, 224, 0.4),
+      0 0 0 0 color-mix(in srgb, var(--c-brand-blue, #0078BE) 45%, transparent);
+  }
+  70% {
+    box-shadow:
+      0 12px 32px rgba(38, 102, 224, 0.4),
+      0 0 0 22px color-mix(in srgb, var(--c-brand-blue, #0078BE) 0%, transparent);
+  }
+  100% {
+    box-shadow:
+      0 12px 32px rgba(38, 102, 224, 0.4),
+      0 0 0 0 color-mix(in srgb, var(--c-brand-blue, #0078BE) 0%, transparent);
+  }
+}
+/* Bevorzugung des Users respektieren — bei prefers-reduced-motion keine
+   endlose Animation. */
+@media (prefers-reduced-motion: reduce) {
+  .chat-fab { animation: none; }
+}
 
 /* Drawer sits BELOW the site header (var --header-h fallback 68px)
    and extends to the viewport bottom. It's pinned to the right edge
@@ -1237,13 +1305,13 @@ function pickPreset(p: PresetIntent) {
 
 /* ---------- New start screen (empty transcript) ---------- */
 .chat-start {
-  min-height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 40px 24px;
+  /* Top-anchored: Content startet oben, nicht mittig zentriert im Drawer */
+  justify-content: flex-start;
+  gap: 14px;
+  padding: 32px 24px 24px;
   text-align: center;
 }
 /* Blaukreis-Avatar mit Roboter-Glyph — kompakter „Hi, ich bin Günther"-Header */

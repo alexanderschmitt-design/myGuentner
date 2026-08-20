@@ -270,7 +270,6 @@ async function logout() {
     </aside>
 
     <ChatDock v-if="user && featureFlags.isOn('chatbot')" />
-    <GuentherIntro v-if="user && featureFlags.isOn('chatbot')" />
     <GuidedHighlight v-if="user && featureFlags.isOn('chatbot') && featureFlags.isOn('guided_pass')" />
     <LearnModeOverlay />
     <ToastStack />
