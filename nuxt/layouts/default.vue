@@ -19,6 +19,21 @@ const featureFlags = useFeatureFlags()
 const chatDockOpen = useChatDockState()
 const { layout: chatLayout } = useChatDockLayout()
 
+// Admin-Erkennung — spiegelt die Logik aus middleware/admin.ts + utils/auth.ts.
+// Ergänzt „Administration" ins Profil-Menü für berechtigte User.
+const isAdmin = computed<boolean>(() => {
+  const u: any = user.value
+  if (!u) return false
+  const appRole = u.app_metadata?.role
+  const userRole = u.user_metadata?.role
+  if (appRole === 'admin' || userRole === 'admin') return true
+  const cfg = useRuntimeConfig()
+  const raw = (cfg.public?.adminEmails as string) || ''
+  const allowlist = raw.split(',').map((s: string) => s.trim().toLowerCase()).filter(Boolean)
+  const email = (u.email || '').toLowerCase()
+  return email.length > 0 && allowlist.includes(email)
+})
+
 // Step-nav under /mygpc/* + on the Datasheet page (both are wizard steps).
 const showStepNav = computed(
   () => route.path.startsWith('/mygpc') || route.path === '/gpc-details'
@@ -212,6 +227,19 @@ async function logout() {
                   <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c2 2 3 4.5 3 7s-1 5-3 7c-2-2-3-4.5-3-7s1-5 3-7z"/></svg>
                   <span>EMEA/EN</span>
                 </button>
+                <NuxtLink
+                  v-if="isAdmin"
+                  to="/admin"
+                  class="profile-item"
+                  role="menuitem"
+                  @click="profileOpen = false"
+                >
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 2l7 3v5c0 4-3 7-7 8-4-1-7-4-7-8V5l7-3z"/>
+                    <path d="M7 10l2 2 4-4"/>
+                  </svg>
+                  <span>Administration</span>
+                </NuxtLink>
               </div>
 
               <div class="profile-section">
