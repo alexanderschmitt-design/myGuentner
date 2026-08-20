@@ -1,14 +1,21 @@
 /**
- * useFeatureFlags — reactive app-wide feature flags, persisted per browser
- * in localStorage. Mirrors useSectionVisibility() so admins can toggle
- * cross-cutting features (chatbot, learn-mode) from /admin/features.
+ * useFeatureFlags — reactive, app-wide feature flags stored in the
+ * Supabase table `app_settings` under keys `feature.<id>`.
  *
- * SSR-safe: the ref reads defaults on the server and hydrates from
- * localStorage on the client in onMounted.
+ * Hydration:
+ *   • plugins/app-settings.ts fetches /api/app-settings on app-init and
+ *     writes the result into useState('app-settings').
+ *   • This composable reads that shared state and maps it back to
+ *     the FEATURES list. Missing keys fall back to defaultOn.
+ *
+ * Writes:
+ *   • setFlag() calls PUT /api/admin/app-settings (admin-gated).
+ *     On success the local state is updated so the admin UI reflects
+ *     the change immediately. Other browsers see it on next page load
+ *     (30 s server cache TTL).
  */
-import { ref, watch, onMounted } from 'vue'
 
-const STORAGE_PREFIX = 'mygpc_feature_'
+const KEY_PREFIX = 'feature.'
 
 export interface FeatureFlag {
   id: string
@@ -44,41 +51,39 @@ export const FEATURES: FeatureFlag[] = [
   }
 ]
 
-// Module-level reactive state, so every consumer shares one source of truth.
-const flags = ref<Record<string, boolean>>(
-  Object.fromEntries(FEATURES.map((f) => [f.id, f.defaultOn]))
-)
-let hydrated = false
-
-function readFromStorage() {
-  if (typeof window === 'undefined') return
-  for (const f of FEATURES) {
-    const raw = window.localStorage.getItem(STORAGE_PREFIX + f.id)
-    if (raw === null) continue
-    flags.value[f.id] = raw === '1' || raw === 'true'
-  }
-}
-
-function persist(id: string, on: boolean) {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_PREFIX + id, on ? '1' : '0')
-}
+type AppSettings = Record<string, unknown>
 
 export function useFeatureFlags() {
-  onMounted(() => {
-    if (!hydrated) {
-      readFromStorage()
-      hydrated = true
+  const state = useState<AppSettings | null>('app-settings', () => null)
+
+  const flags = computed<Record<string, boolean>>(() => {
+    const out: Record<string, boolean> = {}
+    for (const f of FEATURES) {
+      const v = state.value?.[KEY_PREFIX + f.id]
+      out[f.id] = typeof v === 'boolean' ? v : f.defaultOn
     }
+    return out
   })
 
-  function setFlag(id: string, on: boolean) {
-    flags.value[id] = on
-    persist(id, on)
+  async function setFlag(id: string, on: boolean) {
+    const key = KEY_PREFIX + id
+    try {
+      const res = await $fetch<{ ok: boolean; error?: string }>('/api/admin/app-settings', {
+        method: 'PUT',
+        body: { key, value: on }
+      })
+      if (res?.ok) {
+        state.value = { ...(state.value ?? {}), [key]: on }
+      } else {
+        console.error('[useFeatureFlags] setFlag failed:', res?.error)
+      }
+    } catch (err: any) {
+      console.error('[useFeatureFlags] setFlag error:', err?.message || err)
+    }
   }
 
-  function reset() {
-    for (const f of FEATURES) setFlag(f.id, f.defaultOn)
+  async function reset() {
+    for (const f of FEATURES) await setFlag(f.id, f.defaultOn)
   }
 
   return {

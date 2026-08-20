@@ -23,7 +23,7 @@ function count(id: string): number {
   <div>
     <AdminPageHeader
       title="Features"
-      description="App-weite Feature-Schalter. Änderungen sind pro Browser (localStorage) und greifen sofort auf jeder Seite."
+      description="App-weite Feature-Schalter. Änderungen gelten für alle User (persistiert in Supabase) und greifen beim nächsten Page-Load."
     >
       <template #actions>
         <button class="btn btn-outline" @click="reset">Reset defaults</button>

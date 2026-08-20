@@ -1,8 +1,8 @@
 <script setup lang="ts">
 /**
  * /admin/home-sections — Toggles for the Home page tab/accordion
- * visibility. Ports the pre-migration frontend/admin.html feature
- * switches. Persisted per-browser via useSectionVisibility() (localStorage).
+ * visibility. Persisted globally via useSectionVisibility() → Supabase
+ * app_settings (key prefix `section.`).
  */
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
@@ -10,12 +10,12 @@ useHead({ title: 'myGPC — Home sections' })
 
 const { sections, visibility, setVisible } = useSectionVisibility()
 
-function toggle(id: string, on: boolean) {
-  setVisible(id as any, on)
+async function toggle(id: string, on: boolean) {
+  await setVisible(id as any, on)
 }
 
-function resetToDefaults() {
-  for (const s of sections) setVisible(s.id, s.defaultVisible)
+async function resetToDefaults() {
+  for (const s of sections) await setVisible(s.id, s.defaultVisible)
 }
 </script>
 
@@ -23,7 +23,7 @@ function resetToDefaults() {
   <div>
     <AdminPageHeader
       title="Home sections"
-      description="Sichtbarkeit der Startseiten-Accordions umschalten. Änderungen sind pro Browser (localStorage) und greifen beim nächsten Home-Load."
+      description="Sichtbarkeit der Startseiten-Accordions umschalten. Änderungen gelten für alle User (persistiert in Supabase) und greifen beim nächsten Home-Load."
     >
       <template #actions>
         <button class="btn btn-outline" @click="resetToDefaults">Reset defaults</button>
@@ -55,7 +55,7 @@ function resetToDefaults() {
 
     <section class="card">
       <h2>Storage</h2>
-      <p class="hint">Flags sind unter <code>mygpc_section_&lt;id&gt;</code> im <code>localStorage</code> gespeichert. Site-Daten löschen setzt zurück.</p>
+      <p class="hint">Werte liegen in Supabase (<code>app_settings</code>-Tabelle, Key-Präfix <code>section.</code>). Reset defaults schreibt die Standardwerte zurück in die DB.</p>
     </section>
   </div>
 </template>

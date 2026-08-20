@@ -1,10 +1,13 @@
 /**
- * useSectionVisibility — Feature flags for the 5 landing accordions.
+ * useSectionVisibility — Global visibility toggles for the 5 landing
+ * accordions, admin-controlled, persisted in Supabase `app_settings`
+ * under keys `section.<id>`.
  *
- * Storage: localStorage keys `mygpc_section_<id>` (`'1'` visible / `'0'` hidden).
- * Ported from pre-migration frontend/index.html + admin.html toggles.
+ * Reads the shared useState('app-settings') that plugins/app-settings.ts
+ * populates on app-init. Writes go through PUT /api/admin/app-settings.
+ * Missing keys fall back to `defaultVisible` from SECTIONS below.
  *
- * Defaults (aktuell):
+ * Defaults:
  *   units          → visible
  *   coils          → visible
  *   application    → visible
@@ -12,6 +15,8 @@
  *   mygps          → hidden (regional/legacy)
  *   api-services   → hidden (Enterprise-Only)
  */
+
+const KEY_PREFIX = 'section.'
 
 export type SectionId = 'units' | 'mygps' | 'application' | 'refrigerant' | 'coils' | 'api-services'
 
@@ -31,38 +36,36 @@ export const SECTIONS: Section[] = [
   { id: 'api-services',  label: 'API & MCP Services', description: 'myGPC API + MCP Server enterprise integration cards', defaultVisible: false }
 ]
 
-function key(id: SectionId) { return `mygpc_section_${id}` }
-
-export function isSectionVisible(id: SectionId): boolean {
-  if (!import.meta.client) return SECTIONS.find(s => s.id === id)?.defaultVisible ?? false
-  const stored = localStorage.getItem(key(id))
-  if (stored === null) return SECTIONS.find(s => s.id === id)?.defaultVisible ?? false
-  return stored === '1'
-}
-
-export function setSectionVisible(id: SectionId, visible: boolean): void {
-  if (!import.meta.client) return
-  localStorage.setItem(key(id), visible ? '1' : '0')
-}
+type AppSettings = Record<string, unknown>
 
 export function useSectionVisibility() {
-  // Reactive map — updates whenever localStorage changes (via a client-only bump ref).
-  const bump = ref(0)
-  if (import.meta.client) {
-    window.addEventListener('storage', (e) => {
-      if (e.key?.startsWith('mygpc_section_')) bump.value++
-    })
-  }
+  const state = useState<AppSettings | null>('app-settings', () => null)
+
   const visibility = computed<Record<SectionId, boolean>>(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const _ = bump.value // ensure re-computation on bump
     const out: Record<string, boolean> = {}
-    for (const s of SECTIONS) out[s.id] = isSectionVisible(s.id)
+    for (const s of SECTIONS) {
+      const v = state.value?.[KEY_PREFIX + s.id]
+      out[s.id] = typeof v === 'boolean' ? v : s.defaultVisible
+    }
     return out as Record<SectionId, boolean>
   })
-  function setVisible(id: SectionId, v: boolean) {
-    setSectionVisible(id, v)
-    bump.value++
+
+  async function setVisible(id: SectionId, on: boolean) {
+    const key = KEY_PREFIX + id
+    try {
+      const res = await $fetch<{ ok: boolean; error?: string }>('/api/admin/app-settings', {
+        method: 'PUT',
+        body: { key, value: on }
+      })
+      if (res?.ok) {
+        state.value = { ...(state.value ?? {}), [key]: on }
+      } else {
+        console.error('[useSectionVisibility] setVisible failed:', res?.error)
+      }
+    } catch (err: any) {
+      console.error('[useSectionVisibility] setVisible error:', err?.message || err)
+    }
   }
+
   return { sections: SECTIONS, visibility, setVisible }
 }
