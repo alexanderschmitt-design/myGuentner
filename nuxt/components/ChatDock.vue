@@ -339,12 +339,10 @@ async function loadRecommendationsForStep(step: GuidedStep) {
     recLoading.value = false
   }
 
-  // Wenn keine Templates da sind, überspringen wir die Empfehlungs-Karte
-  // und laufen direkt in den Wizard weiter (via finalize).
-  if (!recTemplates.value.length) {
-    recAutoSkipped.value = true
-    runRecommendationFinalize(step)
-  }
+  // KEIN Auto-Skip — auch bei 0 Templates bleibt die Empfehlungs-Karte
+  // sichtbar. User entscheidet selbst wann er in den Wizard weitergeht
+  // (via Skip-Link oder Template-Klick). Kein unerwartetes „App springt
+  // plötzlich zur Thermodynamik-Seite".
 }
 
 function runRecommendationFinalize(step: GuidedStep) {
