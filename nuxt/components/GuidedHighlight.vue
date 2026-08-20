@@ -72,6 +72,7 @@ function bindObserver(el: HTMLElement | null) {
 // takes ~240ms, so we sample every frame for 320ms.
 let animatingUntil = 0
 function ensureRafLoop() {
+  if (typeof window === 'undefined') return
   const now = performance.now()
   if (now < animatingUntil) {
     measure()
@@ -79,12 +80,14 @@ function ensureRafLoop() {
   }
 }
 function kickRafLoop(durationMs = 320) {
+  if (typeof window === 'undefined') return
   animatingUntil = performance.now() + durationMs
   requestAnimationFrame(ensureRafLoop)
 }
 
 // Re-measure on step / target changes, on scroll and on resize.
 watch(() => guided.targetEl.value, (el) => {
+  if (typeof window === 'undefined') return
   measure()
   bindObserver(el)
   // A short delay so smooth-scroll settles before we take the final rect
