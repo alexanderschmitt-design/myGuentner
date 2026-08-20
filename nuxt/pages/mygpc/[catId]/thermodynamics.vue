@@ -242,6 +242,11 @@ function resetToDefaults() { store.resetWizard() }
 // Templates modal + Auto-Apply Private-Default (Etappe 3)
 const templatesOpen = ref(false)
 const toast = useToast()
+
+// Field-Highlight nach Template-Load: reactive class-toggle für 3.2s
+// Puls-Effekt auf allen Wizard-Feldern via useTemplateFlash-Composable.
+const { highlightActive: templateHighlightActive } = useTemplateFlash()
+
 function onTemplateApplied(t: { name: string }) {
   toast.success(`Template "${t.name}" applied`)
 }
@@ -280,7 +285,7 @@ const fluidValue = computed<string>({
 </script>
 
 <template>
-  <div class="wizard-page thermo-page">
+  <div class="wizard-page thermo-page" :class="{ 'template-just-loaded': templateHighlightActive }">
     <!-- Sub-toolbar -->
     <div class="sub-toolbar">
       <button class="btn btn-text" @click="goBack">
@@ -1008,5 +1013,47 @@ const fluidValue = computed<string>({
   flex-direction: column;
   gap: 4px;
   padding: 0;
+}
+
+/* Template-Load-Highlight: kurzes Blau-Puls-Overlay auf allen Form-Feldern
+   für ~3s nach einem Template-Load, damit User sofort sieht welche Werte
+   der Chatbot ausgefüllt hat. Trigger via .template-just-loaded auf .wizard-page. */
+.template-just-loaded .field input,
+.template-just-loaded .field select,
+.template-just-loaded .field textarea,
+.template-just-loaded .input-unit input,
+.template-just-loaded .bare-input {
+  animation: field-load-pulse 3.2s ease-out;
+}
+@keyframes field-load-pulse {
+  0% {
+    background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 22%, white);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--c-brand-blue, #0078BE) 30%, transparent);
+    transform: scale(1.02);
+  }
+  20% {
+    background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 12%, white);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue, #0078BE) 18%, transparent);
+    transform: scale(1);
+  }
+  100% {
+    background: white;
+    box-shadow: 0 0 0 0 transparent;
+    transform: scale(1);
+  }
+}
+/* User-Presetting respektieren — bei reduced-motion nur Farb-Fade, kein Scale */
+@media (prefers-reduced-motion: reduce) {
+  .template-just-loaded .field input,
+  .template-just-loaded .field select,
+  .template-just-loaded .field textarea,
+  .template-just-loaded .input-unit input,
+  .template-just-loaded .bare-input {
+    animation: field-load-pulse-reduced 2s ease-out;
+  }
+  @keyframes field-load-pulse-reduced {
+    0% { background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 15%, white); }
+    100% { background: white; }
+  }
 }
 </style>

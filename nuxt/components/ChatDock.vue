@@ -300,24 +300,39 @@ async function loadRecommendationsForStep(step: GuidedStep) {
 
   recLoading.value = true
   try {
+    const mapRow = (t: any) => ({
+      id: t.id,
+      name: t.name,
+      categorySlug: t.categorySlug,
+      isDefaultForCategory: t.isDefaultForCategory,
+      isSystem: t.isSystem === true,
+      isOwn: t.isOwn === true,
+      configuration: t.configuration,
+      updatedAt: t.updatedAt,
+      paramCount: countConfigParams(t.configuration)
+    })
+    // 1) Primär: user- + shared-Rows für die exakte Ziel-Kategorie.
     const res = await $fetch<{ ok: boolean; templates: any[] }>(`/api/templates?category=${encodeURIComponent(target.slug)}`)
+    let collected: RecommendationTemplate[] = []
     if (res.ok && Array.isArray(res.templates)) {
-      // System-Templates zuerst, dann private (API sortiert schon so, aber
-      // wir stellen sicher dass die Top-3 möglichst gemischt sind).
-      recTemplates.value = res.templates
-        .slice(0, 3)
-        .map((t: any) => ({
-          id: t.id,
-          name: t.name,
-          categorySlug: t.categorySlug,
-          isDefaultForCategory: t.isDefaultForCategory,
-          isSystem: t.isSystem === true,
-          isOwn: t.isOwn === true,
-          configuration: t.configuration,
-          updatedAt: t.updatedAt,
-          paramCount: countConfigParams(t.configuration)
-        }))
+      collected = res.templates.slice(0, 3).map(mapRow)
     }
+    // 2) Fallback: bei < 3 Matches mit System-Templates aus ANDEREN Kategorien
+    //    auffüllen — der User sieht immer bis zu 3 sinnvolle Vorschläge, statt
+    //    einer einsamen Karte, wenn seine Ziel-Kategorie schwach bestückt ist.
+    if (collected.length < 3) {
+      try {
+        const cross = await $fetch<{ ok: boolean; templates: any[] }>('/api/templates')
+        if (cross.ok && Array.isArray(cross.templates)) {
+          const existingIds = new Set(collected.map(t => t.id))
+          const pool = cross.templates
+            .filter((t: any) => t.isSystem === true && !existingIds.has(t.id))
+            .map(mapRow)
+          collected = [...collected, ...pool].slice(0, 3)
+        }
+      } catch { /* silent fallback */ }
+    }
+    recTemplates.value = collected
   } catch (err: any) {
     console.warn('[recommendations] fetch failed:', err?.message || err)
   } finally {
