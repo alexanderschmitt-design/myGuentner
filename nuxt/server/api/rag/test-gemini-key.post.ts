@@ -1,14 +1,24 @@
 import { requireAdmin } from '../../utils/auth'
 
+/**
+ * POST /api/rag/test-gemini-key
+ *
+ * Ohne Body: nutzt den server-konfigurierten GEMINI_API_KEY (bzw. GOOGLE_API_KEY)
+ * + GEMINI_MODEL und feuert einen minimalen "Antworte mit OK"-Ping.
+ *
+ * Optional Body: `{ apiKey?, model? }` — Ad-hoc-Test mit anderem Key/Modell.
+ */
 export default defineEventHandler(async (event) => {
   await requireAdmin(event)
   const body = await readBody<any>(event).catch(() => ({}))
-  const apiKey = (body?.apiKey || '').trim()
-  const model = (body?.model || 'gemini-2.5-flash').trim()
-  if (!apiKey) {
-    setResponseStatus(event, 400)
-    return { ok: false, error: 'apiKey is required' }
-  }
+  const overrideKey = (body?.apiKey || '').trim()
+  const overrideModel = (body?.model || '').trim()
+
+  const cfg = useRuntimeConfig().llm
+  const apiKey = overrideKey || cfg.googleApiKey
+  const model = overrideModel || cfg.geminiModel || 'gemini-2.5-flash'
+  if (!apiKey) return { ok: false, error: 'GEMINI_API_KEY (bzw. GOOGLE_API_KEY) ist nicht gesetzt' }
+
   try {
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(apiKey)}`
     const res = await fetch(url, {

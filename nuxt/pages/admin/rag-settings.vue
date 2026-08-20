@@ -157,7 +157,7 @@ onMounted(load)
           </p>
         </div>
         <div class="tester-row">
-          <ApiKeyTester label="Anthropic" endpoint="/api/rag/test-key" />
+          <ApiKeyTester label="Anthropic" endpoint="/api/rag/test-anthropic-key" />
           <ApiKeyTester label="Gemini" endpoint="/api/rag/test-gemini-key" />
           <ApiKeyTester label="OpenRouter" endpoint="/api/rag/test-openrouter-key" />
         </div>
