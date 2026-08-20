@@ -28,7 +28,7 @@ export const FEATURES: FeatureFlag[] = [
     id: 'guided_pass',
     label: 'Guided Pass',
     description: 'Chatbot scripts the user through Category and Thermodynamics: proactive Günther turns with suggestion buttons, and a pulsing ring on the form field the current step is talking about. Requires Chatbot to be on.',
-    defaultOn: false
+    defaultOn: true
   },
   {
     id: 'basic_expert_toggle',
