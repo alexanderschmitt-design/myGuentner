@@ -4,12 +4,13 @@
  * Storage: localStorage keys `mygpc_section_<id>` (`'1'` visible / `'0'` hidden).
  * Ported from pre-migration frontend/index.html + admin.html toggles.
  *
- * Defaults mirror pre-migration behaviour:
+ * Defaults (aktuell):
  *   units          → visible
- *   mygps          → hidden (was NLA/EN-region-only)
- *   application    → hidden
- *   coils          → hidden
- *   api-services   → hidden
+ *   coils          → visible
+ *   application    → visible
+ *   refrigerant    → visible
+ *   mygps          → hidden (regional/legacy)
+ *   api-services   → hidden (Enterprise-Only)
  */
 
 export type SectionId = 'units' | 'mygps' | 'application' | 'refrigerant' | 'coils' | 'api-services'
@@ -24,9 +25,9 @@ interface Section {
 export const SECTIONS: Section[] = [
   { id: 'units',         label: 'Units',              description: '6 Guentner unit product cards (Evaporator, Air/Dry Cooler, Condenser, Gas Cooler)', defaultVisible: true },
   { id: 'mygps',         label: 'myGPS',              description: 'myGPS wizard categories (Evaporative / Adiabatic / High-Density / Dry / Air Cooler / Data Center)', defaultVisible: false },
-  { id: 'application',   label: 'By Application',     description: 'Industry-first cards (Data Centers, Food Processing, Industrial Refrigeration)', defaultVisible: false },
+  { id: 'application',   label: 'By Application',     description: 'Industry-first cards (Data Centers, Food Processing, Industrial Refrigeration)', defaultVisible: true },
   { id: 'refrigerant',   label: 'By Refrigerant',     description: '3 refrigerant-family teasers (Natural, Brine, Synthetic)', defaultVisible: true },
-  { id: 'coils',         label: 'Bare Coils',         description: '6 bare-coil products routing to the coil configurator (productSection=2)', defaultVisible: false },
+  { id: 'coils',         label: 'Bare Coils',         description: '6 bare-coil products routing to the coil configurator (productSection=2)', defaultVisible: true },
   { id: 'api-services',  label: 'API & MCP Services', description: 'myGPC API + MCP Server enterprise integration cards', defaultVisible: false }
 ]
 
