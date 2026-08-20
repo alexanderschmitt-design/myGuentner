@@ -584,8 +584,11 @@ const activeLocale = computed(() => {
 })
 
 const startPrompt = computed(() => activeLocale.value === 'de'
-  ? 'Was möchtest du konfigurieren?'
-  : 'What would you like to configure?')
+  ? 'Hallo, ich bin Günther'
+  : 'Hello, I\'m Günther')
+const startSubtitle = computed(() => activeLocale.value === 'de'
+  ? 'Beantworte eine kurze Frage, damit ich dir die passende Konfiguration vorschlagen kann.'
+  : 'Answer a short question so I can suggest the right configuration for you.')
 
 interface PresetIntent {
   id: string
@@ -724,36 +727,30 @@ function pickPreset(p: PresetIntent) {
           <!-- =========== CHAT MODE =========== -->
           <template v-if="mode === 'chat'">
           <div v-if="!transcript.length" class="chat-start">
-            <img :src="mascotSrc" alt="Günther" class="start-mascot" @error="mascotError = true" v-show="!mascotError" />
-            <div v-if="mascotError" class="start-mascot-fallback" aria-hidden="true">
-              <svg viewBox="0 0 120 140" width="180" height="210" fill="none">
-                <!-- Head -->
-                <rect x="18" y="14" width="84" height="72" rx="34" fill="#f6f6f5" stroke="#c5c5c5" stroke-width="1.5"/>
-                <!-- Face plate -->
-                <rect x="30" y="30" width="60" height="42" rx="20" fill="#181c24"/>
+            <!-- Kompakter Blaukreis-Avatar mit Roboter-Glyph (Head + Screen + Antenne) -->
+            <div class="start-avatar" aria-hidden="true">
+              <svg viewBox="0 0 48 48" width="32" height="32" fill="none">
+                <!-- Antennen-Kugel + Stab -->
+                <line x1="24" y1="9" x2="24" y2="5" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <circle cx="24" cy="4" r="2" fill="white"/>
+                <!-- Head (Rechteck rund) -->
+                <rect x="10" y="10" width="28" height="24" rx="6" fill="none" stroke="white" stroke-width="2.2"/>
+                <!-- Face-Screen -->
+                <rect x="14" y="15" width="20" height="14" rx="3" fill="white"/>
                 <!-- Eyes -->
-                <ellipse cx="46" cy="50" rx="5" ry="7" fill="#39edb5"/>
-                <ellipse cx="74" cy="50" rx="5" ry="7" fill="#39edb5"/>
-                <!-- Smile -->
-                <path d="M50 60 Q60 66 70 60" stroke="#39edb5" stroke-width="2" stroke-linecap="round" fill="none"/>
-                <!-- Antennas -->
-                <line x1="30" y1="14" x2="24" y2="4" stroke="#c5c5c5" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="90" y1="14" x2="96" y2="4" stroke="#c5c5c5" stroke-width="1.5" stroke-linecap="round"/>
-                <circle cx="24" cy="4"  r="2" fill="#c5c5c5"/>
-                <circle cx="96" cy="4"  r="2" fill="#c5c5c5"/>
+                <circle cx="19.5" cy="22" r="1.8" fill="var(--c-brand-blue, #0078BE)"/>
+                <circle cx="28.5" cy="22" r="1.8" fill="var(--c-brand-blue, #0078BE)"/>
                 <!-- Ears -->
-                <circle cx="14" cy="50" r="6" fill="#e8e6e2" stroke="#c5c5c5" stroke-width="1.5"/>
-                <circle cx="106" cy="50" r="6" fill="#e8e6e2" stroke="#c5c5c5" stroke-width="1.5"/>
+                <rect x="7" y="18" width="3" height="8" rx="1.5" fill="white"/>
+                <rect x="38" y="18" width="3" height="8" rx="1.5" fill="white"/>
+                <!-- Body-Ansatz (Hals) -->
+                <rect x="20" y="34" width="8" height="4" rx="1" fill="white"/>
                 <!-- Body -->
-                <rect x="30" y="90" width="60" height="42" rx="22" fill="#f6f6f5" stroke="#c5c5c5" stroke-width="1.5"/>
-                <!-- Body light -->
-                <rect x="52" y="102" width="16" height="4" rx="2" fill="#39edb5"/>
-                <!-- Arm waving -->
-                <path d="M90 100 Q108 92 112 78" stroke="#c5c5c5" stroke-width="10" stroke-linecap="round" fill="none"/>
-                <circle cx="112" cy="76" r="7" fill="#f6f6f5" stroke="#c5c5c5" stroke-width="1.5"/>
+                <rect x="12" y="38" width="24" height="6" rx="3" fill="white"/>
               </svg>
             </div>
             <h2 class="start-headline">{{ startPrompt }}</h2>
+            <p class="start-subtitle">{{ startSubtitle }}</p>
             <div class="start-presets">
               <button
                 v-for="p in presets"
@@ -1201,27 +1198,38 @@ function pickPreset(p: PresetIntent) {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 24px;
-  padding: 32px 24px;
+  gap: 16px;
+  padding: 40px 24px;
   text-align: center;
 }
-.start-mascot {
-  max-width: 240px;
-  height: auto;
-  filter: drop-shadow(0 8px 16px rgba(38, 102, 224, 0.12));
-}
-.start-mascot-fallback {
+/* Blaukreis-Avatar mit Roboter-Glyph — kompakter „Hi, ich bin Günther"-Header */
+.start-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--c-brand-blue, #0078BE);
   display: inline-flex;
-  filter: drop-shadow(0 8px 16px rgba(38, 102, 224, 0.12));
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--c-brand-blue, #0078BE) 30%, transparent);
+  margin-bottom: 4px;
 }
 .start-headline {
   margin: 0;
-  font-family: var(--font-headline);
-  font-weight: 400;
-  font-size: var(--font-2xl);
+  font-family: var(--font-headline, var(--font-ui));
+  font-weight: 500;
+  font-size: var(--font-lg, 22px);
   color: var(--c-text-value);
   line-height: 1.2;
-  max-width: 460px;
+  max-width: 320px;
+}
+.start-subtitle {
+  margin: 0 0 8px;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  color: var(--c-text-medium);
+  line-height: 1.5;
+  max-width: 340px;
 }
 .start-presets {
   width: 100%;
