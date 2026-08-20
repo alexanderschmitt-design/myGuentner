@@ -101,6 +101,7 @@ async function goToWizard(catId: number, categorySlug: string, productSection: 1
   // 1) Fallback-Prefill (Hardcoded-Signature-Wert der Home-Karte)
   if (prefill && Object.keys(prefill).length) {
     store.updateParameters(prefill as any)
+    store.markAnswered(Object.keys(prefill))
   }
 
   // 2) Wenn User ein Template für diese Kategorie hat, überschreibt es den Prefill.
@@ -111,6 +112,7 @@ async function goToWizard(catId: number, categorySlug: string, productSection: 1
       const match = res.templates.find(t => t.id === res.defaultId) ?? res.templates[0]
       if (match) {
         store.applyTemplate(match.configuration)
+        store.noteTemplateApplied(match.id ?? null, match.name ?? null)
         // sessionStorage-Flag setzen, damit der Auto-Apply-Hook in thermodynamics.vue
         // nicht nochmal drüberrennt und ein bereits geladenes Template neu lädt.
         if (typeof window !== 'undefined') {

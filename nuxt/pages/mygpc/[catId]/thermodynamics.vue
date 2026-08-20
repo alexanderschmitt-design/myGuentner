@@ -266,6 +266,7 @@ onMounted(async () => {
     const def = res.templates.find(t => t.id === res.defaultId)
     if (def) {
       store.applyTemplate(def.configuration)
+      store.noteTemplateApplied(def.id ?? null, def.name ?? null)
       window.sessionStorage.setItem(flagKey, '1')
       toast.info(`Loaded your default template for ${slug}`)
     }

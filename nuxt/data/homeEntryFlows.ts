@@ -96,10 +96,14 @@ export function buildEntryFlow(config: EntryFlowConfig): GuidedFlow {
       detail: c.detail,
       apply: (ctx: GuidedContext) => {
         ctx.store.updateParameters(c.params as any)
+        ctx.store.markAnswered(Object.keys(c.params))
         // fixedParams (z.B. constant coolingPurpose) werden HIER schon gesetzt,
         // damit die Recommendation-Karte gegen die vollständige Store-Config
         // filtern kann (Refrigerant-Map-Resolver braucht coolingPurpose).
-        if (config.fixedParams) ctx.store.updateParameters(config.fixedParams as any)
+        if (config.fixedParams) {
+          ctx.store.updateParameters(config.fixedParams as any)
+          ctx.store.markAnswered(Object.keys(config.fixedParams))
+        }
         return true
       }
     }))
@@ -135,6 +139,7 @@ export function buildEntryFlow(config: EntryFlowConfig): GuidedFlow {
 function finalize(ctx: GuidedContext, config: EntryFlowConfig): boolean {
   if (config.fixedParams) {
     ctx.store.updateParameters(config.fixedParams as any)
+    ctx.store.markAnswered(Object.keys(config.fixedParams))
   }
   const target = typeof config.target === 'function'
     ? config.target(ctx.store)

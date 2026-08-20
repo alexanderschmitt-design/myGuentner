@@ -58,6 +58,16 @@ export interface GuidedStep {
   /** Show a "Weiter" button when there are no suggestions (default: yes) */
   readonly showAdvance?: boolean
   /**
+   * Signalisiert, dass dieser Step bereits beantwortet ist (durch Guided-Q&A
+   * auf der Home-Karte, ein zuvor geladenes Template, o.ä.). Wenn beim
+   * Aktivieren eines Flows die ersten Steps `hasAnswer(store)===true` liefern,
+   * springt der Cursor gleich zum ersten unbeantworteten Step — der User
+   * wird nicht nochmal gefragt was er schon geklärt hat.
+   *
+   * Steps ohne `hasAnswer` gelten als "unbeantwortet" (sicherer Default).
+   */
+  readonly hasAnswer?: (store: ConfigStore) => boolean
+  /**
    * Special-step-Rendering. Wenn gesetzt, rendert die ChatDock den Step
    * mit einer alternativen Karte:
    *   - `recommendations` → Template-Empfehlungs-Karte mit bis zu 3
@@ -198,13 +208,15 @@ const homeApplicationFlow: GuidedFlow = {
           label: 'Cold storage (0…+5 °C)',
           detail: 'Evaporator DX, R448A, 10 kW',
           apply: (ctx) => {
-            ctx.store.updateParameters({
+            const patch = {
               coolingCapacityKw: 10,
               refrigerant: 'R448A',
               evaporatingTempC: -8,
               airInletTempC: 2,
               coolingPurpose: 'cold-storage'
-            })
+            } as const
+            ctx.store.updateParameters(patch)
+            ctx.store.markAnswered(Object.keys(patch))
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'evaporator-dx'
             ctx.markCategoryDefaultsApplied?.('evaporator-dx')
@@ -216,13 +228,15 @@ const homeApplicationFlow: GuidedFlow = {
           label: 'Deep freeze (-18…-35 °C)',
           detail: 'Evaporator DX, R744, 25 kW',
           apply: (ctx) => {
-            ctx.store.updateParameters({
+            const patch = {
               coolingCapacityKw: 25,
               refrigerant: 'R744',
               evaporatingTempC: -35,
               airInletTempC: -25,
               coolingPurpose: 'deep-freeze'
-            })
+            } as const
+            ctx.store.updateParameters(patch)
+            ctx.store.markAnswered(Object.keys(patch))
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'evaporator-dx'
             ctx.markCategoryDefaultsApplied?.('evaporator-dx')
@@ -234,7 +248,7 @@ const homeApplicationFlow: GuidedFlow = {
           label: 'Air conditioning / Chiller',
           detail: 'Air cooler coolant, glycol 34%, 5 kW',
           apply: (ctx) => {
-            ctx.store.updateParameters({
+            const patch = {
               coolingCapacityKw: 5,
               glycolType: 'ethylene',
               concentrationVolPct: 34,
@@ -242,7 +256,9 @@ const homeApplicationFlow: GuidedFlow = {
               outletTempC: 6,
               airInletTempC: 25,
               coolingPurpose: 'air-conditioning'
-            })
+            } as const
+            ctx.store.updateParameters(patch)
+            ctx.store.markAnswered(Object.keys(patch))
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'air-cooler'
             ctx.markCategoryDefaultsApplied?.('air-cooler')
@@ -254,13 +270,15 @@ const homeApplicationFlow: GuidedFlow = {
           label: 'Condensing / Heat rejection',
           detail: 'Condenser, R448A, 100 kW',
           apply: (ctx) => {
-            ctx.store.updateParameters({
+            const patch = {
               coolingCapacityKw: 100,
               refrigerant: 'R448A',
               condensingTempC: 45,
               airInletTempC: 32,
               coolingPurpose: 'condensing'
-            })
+            } as const
+            ctx.store.updateParameters(patch)
+            ctx.store.markAnswered(Object.keys(patch))
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'condenser'
             ctx.markCategoryDefaultsApplied?.('condenser')
@@ -272,13 +290,15 @@ const homeApplicationFlow: GuidedFlow = {
           label: 'CO₂ Gas Cooler',
           detail: 'Gas cooler, R744, 180 kW',
           apply: (ctx) => {
-            ctx.store.updateParameters({
+            const patch = {
               coolingCapacityKw: 180,
               refrigerant: 'R744',
               condensingTempC: 45,
               airInletTempC: 32,
               coolingPurpose: 'condensing'
-            })
+            } as const
+            ctx.store.updateParameters(patch)
+            ctx.store.markAnswered(Object.keys(patch))
             ctx.store.setProductSection(1)
             ctx.store.currentCategory = 'gas-cooler'
             ctx.markCategoryDefaultsApplied?.('gas-cooler')
@@ -319,11 +339,12 @@ const thermoRefrigerantFlow: GuidedFlow = {
         'Let\'s start with **capacity**. What is your design target?\n\n' +
         'The suggestions are typical starting points — you can fine-tune the value in the field afterwards.',
       targetLearnId: 'thermo-capacity',
+      hasAnswer: (store) => store.hasAnsweredParam('coolingCapacityKw'),
       suggestions: [
-        { label: '10 kW', detail: 'Small cold room',            apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 10 });  return true } },
-        { label: '25 kW', detail: 'Standard cold room',         apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 25 });  return true } },
-        { label: '50 kW', detail: 'Large cold room / freezer',  apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 50 });  return true } },
-        { label: '100 kW', detail: 'Industrial process',        apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 100 }); return true } }
+        { label: '10 kW', detail: 'Small cold room',            apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 10 });  ctx.store.markAnswered('coolingCapacityKw'); return true } },
+        { label: '25 kW', detail: 'Standard cold room',         apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 25 });  ctx.store.markAnswered('coolingCapacityKw'); return true } },
+        { label: '50 kW', detail: 'Large cold room / freezer',  apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 50 });  ctx.store.markAnswered('coolingCapacityKw'); return true } },
+        { label: '100 kW', detail: 'Industrial process',        apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 100 }); ctx.store.markAnswered('coolingCapacityKw'); return true } }
       ]
     },
     {
@@ -331,11 +352,12 @@ const thermoRefrigerantFlow: GuidedFlow = {
       message:
         'Now the **refrigerant**. The three natural refrigerants below are F-gas compliant and future-proof; R448A is the common HFO blend for retrofit applications.',
       targetLearnId: 'thermo-refrigerant',
+      hasAnswer: (store) => store.hasAnsweredParam('refrigerant'),
       suggestions: [
-        { label: 'R744 (CO₂)',    detail: 'Natural, GWP 1',           apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R744' });  return true } },
-        { label: 'R717 (NH₃)',    detail: 'Natural, industrial',      apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R717' });  return true } },
-        { label: 'R290 (propane)', detail: 'Natural, small charge',   apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R290' });  return true } },
-        { label: 'R448A',         detail: 'HFO blend, retrofit',      apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R448A' }); return true } }
+        { label: 'R744 (CO₂)',    detail: 'Natural, GWP 1',           apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R744' });  ctx.store.markAnswered('refrigerant'); return true } },
+        { label: 'R717 (NH₃)',    detail: 'Natural, industrial',      apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R717' });  ctx.store.markAnswered('refrigerant'); return true } },
+        { label: 'R290 (propane)', detail: 'Natural, small charge',   apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R290' });  ctx.store.markAnswered('refrigerant'); return true } },
+        { label: 'R448A',         detail: 'HFO blend, retrofit',      apply: (ctx) => { ctx.store.updateParameters({ refrigerant: 'R448A' }); ctx.store.markAnswered('refrigerant'); return true } }
       ]
     },
     {
@@ -343,11 +365,12 @@ const thermoRefrigerantFlow: GuidedFlow = {
       message:
         'And the **evaporating temperature t₀**? Rule of thumb: about 6–10 K below the target room temperature; often more for deep freeze.',
       targetLearnId: 'thermo-evap-temp',
+      hasAnswer: (store) => store.hasAnsweredParam('evaporatingTempC'),
       suggestions: [
-        { label: '-8 °C',  detail: 'Cold room +2 °C',       apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: -8 });  return true } },
-        { label: '-25 °C', detail: 'Deep freeze -18 °C',    apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: -25 }); return true } },
-        { label: '-35 °C', detail: 'Blast freezer',         apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: -35 }); return true } },
-        { label: '+2 °C',  detail: 'Chiller / AC',          apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: 2 });   return true } }
+        { label: '-8 °C',  detail: 'Cold room +2 °C',       apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: -8 });  ctx.store.markAnswered('evaporatingTempC'); return true } },
+        { label: '-25 °C', detail: 'Deep freeze -18 °C',    apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: -25 }); ctx.store.markAnswered('evaporatingTempC'); return true } },
+        { label: '-35 °C', detail: 'Blast freezer',         apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: -35 }); ctx.store.markAnswered('evaporatingTempC'); return true } },
+        { label: '+2 °C',  detail: 'Chiller / AC',          apply: (ctx) => { ctx.store.updateParameters({ evaporatingTempC: 2 });   ctx.store.markAnswered('evaporatingTempC'); return true } }
       ]
     },
     {
@@ -355,11 +378,12 @@ const thermoRefrigerantFlow: GuidedFlow = {
       message:
         'Finally the **air inlet temperature** at the evaporator. For a cold room this is the room temperature; for a condenser it\'s the ambient temperature at the installation site.',
       targetLearnId: 'thermo-air-inlet',
+      hasAnswer: (store) => store.hasAnsweredParam('airInletTempC'),
       suggestions: [
-        { label: '+2 °C',  detail: 'Cold room',              apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 2 });   return true } },
-        { label: '-18 °C', detail: 'Deep freeze store',      apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: -18 }); return true } },
-        { label: '+25 °C', detail: 'Air conditioning',       apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 25 });  return true } },
-        { label: '+32 °C', detail: 'Condenser, summer',      apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 32 });  return true } }
+        { label: '+2 °C',  detail: 'Cold room',              apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 2 });   ctx.store.markAnswered('airInletTempC'); return true } },
+        { label: '-18 °C', detail: 'Deep freeze store',      apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: -18 }); ctx.store.markAnswered('airInletTempC'); return true } },
+        { label: '+25 °C', detail: 'Air conditioning',       apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 25 });  ctx.store.markAnswered('airInletTempC'); return true } },
+        { label: '+32 °C', detail: 'Condenser, summer',      apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 32 });  ctx.store.markAnswered('airInletTempC'); return true } }
       ]
     },
     {
@@ -390,11 +414,12 @@ const thermoLiquidFlow: GuidedFlow = {
       message:
         'Let\'s start with **capacity**. For liquid coolers / dry coolers, the design usually sits in the 5–300 kW range.',
       targetLearnId: 'thermo-capacity',
+      hasAnswer: (store) => store.hasAnsweredParam('coolingCapacityKw'),
       suggestions: [
-        { label: '5 kW',   detail: 'Small AC application',        apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 5 });   return true } },
-        { label: '50 kW',  detail: 'Mid-size chiller',            apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 50 });  return true } },
-        { label: '150 kW', detail: 'Industrial / data center',    apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 150 }); return true } },
-        { label: '300 kW', detail: 'Large dry cooler network',    apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 300 }); return true } }
+        { label: '5 kW',   detail: 'Small AC application',        apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 5 });   ctx.store.markAnswered('coolingCapacityKw'); return true } },
+        { label: '50 kW',  detail: 'Mid-size chiller',            apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 50 });  ctx.store.markAnswered('coolingCapacityKw'); return true } },
+        { label: '150 kW', detail: 'Industrial / data center',    apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 150 }); ctx.store.markAnswered('coolingCapacityKw'); return true } },
+        { label: '300 kW', detail: 'Large dry cooler network',    apply: (ctx) => { ctx.store.updateParameters({ coolingCapacityKw: 300 }); ctx.store.markAnswered('coolingCapacityKw'); return true } }
       ]
     },
     {
@@ -402,10 +427,11 @@ const thermoLiquidFlow: GuidedFlow = {
       message:
         'Which **medium** circulates in the loop? Glycol-water mixtures are the standard when freezing is a risk.',
       targetLearnId: 'thermo-medium',
+      hasAnswer: (store) => store.hasAnsweredParam('glycolType'),
       suggestions: [
-        { label: 'Ethylene glycol',   detail: 'Standard, cost-effective',   apply: (ctx) => { ctx.store.updateParameters({ glycolType: 'ethylene',  concentrationVolPct: 34 }); return true } },
-        { label: 'Propylene glycol',  detail: 'Food-grade',                  apply: (ctx) => { ctx.store.updateParameters({ glycolType: 'propylene', concentrationVolPct: 34 }); return true } },
-        { label: 'Water (pure)',      detail: 'No frost protection',         apply: (ctx) => { ctx.store.updateParameters({ glycolType: 'water',     concentrationVolPct: 0 });  return true } }
+        { label: 'Ethylene glycol',   detail: 'Standard, cost-effective',   apply: (ctx) => { ctx.store.updateParameters({ glycolType: 'ethylene',  concentrationVolPct: 34 }); ctx.store.markAnswered(['glycolType', 'concentrationVolPct']); return true } },
+        { label: 'Propylene glycol',  detail: 'Food-grade',                  apply: (ctx) => { ctx.store.updateParameters({ glycolType: 'propylene', concentrationVolPct: 34 }); ctx.store.markAnswered(['glycolType', 'concentrationVolPct']); return true } },
+        { label: 'Water (pure)',      detail: 'No frost protection',         apply: (ctx) => { ctx.store.updateParameters({ glycolType: 'water',     concentrationVolPct: 0 });  ctx.store.markAnswered(['glycolType', 'concentrationVolPct']); return true } }
       ]
     },
     {
@@ -413,10 +439,11 @@ const thermoLiquidFlow: GuidedFlow = {
       message:
         'What are the **inlet and outlet temperatures** at the heat exchanger?',
       targetLearnId: 'thermo-inlet-temp',
+      hasAnswer: (store) => store.hasAnsweredParam('inletTempC') && store.hasAnsweredParam('outletTempC'),
       suggestions: [
-        { label: '12/6 °C',   detail: 'Chiller standard',        apply: (ctx) => { ctx.store.updateParameters({ inletTempC: 12, outletTempC: 6 });   return true } },
-        { label: '45/40 °C',  detail: 'Dry cooler',              apply: (ctx) => { ctx.store.updateParameters({ inletTempC: 45, outletTempC: 40 });  return true } },
-        { label: '-5/-10 °C', detail: 'Deep-freeze brine loop',  apply: (ctx) => { ctx.store.updateParameters({ inletTempC: -5, outletTempC: -10 }); return true } }
+        { label: '12/6 °C',   detail: 'Chiller standard',        apply: (ctx) => { ctx.store.updateParameters({ inletTempC: 12, outletTempC: 6 });   ctx.store.markAnswered(['inletTempC', 'outletTempC']); return true } },
+        { label: '45/40 °C',  detail: 'Dry cooler',              apply: (ctx) => { ctx.store.updateParameters({ inletTempC: 45, outletTempC: 40 });  ctx.store.markAnswered(['inletTempC', 'outletTempC']); return true } },
+        { label: '-5/-10 °C', detail: 'Deep-freeze brine loop',  apply: (ctx) => { ctx.store.updateParameters({ inletTempC: -5, outletTempC: -10 }); ctx.store.markAnswered(['inletTempC', 'outletTempC']); return true } }
       ]
     },
     {
@@ -424,10 +451,11 @@ const thermoLiquidFlow: GuidedFlow = {
       message:
         'And the **air inlet temperature** — i.e. the ambient temperature at the installation site.',
       targetLearnId: 'thermo-air-inlet',
+      hasAnswer: (store) => store.hasAnsweredParam('airInletTempC'),
       suggestions: [
-        { label: '+25 °C', detail: 'Mild summer',             apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 25 }); return true } },
-        { label: '+32 °C', detail: 'Summer design',           apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 32 }); return true } },
-        { label: '+40 °C', detail: 'Hot climate site',        apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 40 }); return true } }
+        { label: '+25 °C', detail: 'Mild summer',             apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 25 }); ctx.store.markAnswered('airInletTempC'); return true } },
+        { label: '+32 °C', detail: 'Summer design',           apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 32 }); ctx.store.markAnswered('airInletTempC'); return true } },
+        { label: '+40 °C', detail: 'Hot climate site',        apply: (ctx) => { ctx.store.updateParameters({ airInletTempC: 40 }); ctx.store.markAnswered('airInletTempC'); return true } }
       ]
     },
     {

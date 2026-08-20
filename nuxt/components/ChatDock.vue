@@ -61,6 +61,7 @@ const toast = useToast()
 watch(() => stream.templateApply.value, (ev) => {
   if (!ev) return
   configStore.applyTemplate(ev.configuration)
+  configStore.noteTemplateApplied(ev.templateId ?? null, ev.templateName ?? null)
   if (typeof window !== 'undefined' && ev.categorySlug) {
     window.sessionStorage.setItem(`gpc:autoApplied:${ev.categorySlug}`, '1')
   }
@@ -407,6 +408,7 @@ function runRecommendationFinalize(step: GuidedStep) {
 async function onRecommendationPick(t: RecommendationTemplate, step: GuidedStep) {
   // 1) Template applien (existing store action aus Templates-Feature)
   configStore.applyTemplate(t.configuration)
+  configStore.noteTemplateApplied(t.id ?? null, t.name ?? null)
 
   // 2) Sicherstellen dass die Ziel-Kategorie gesetzt ist (Template kann
   //    unterschiedliche Kategorie tragen — wir nehmen die vom Template).

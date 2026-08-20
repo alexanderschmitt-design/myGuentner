@@ -116,7 +116,13 @@ export function useGuidedFlow() {
         const changed = !activeFlow.value || activeFlow.value.id !== next.id
         activeFlow.value = next
         if (changed) {
-          stepIndex.value = 0
+          // Wenn die ersten Steps bereits durch Guided-Q&A / Template
+          // beantwortet sind, gleich zum ersten unbeantworteten Step
+          // springen. Steps ohne `hasAnswer` gelten als unbeantwortet.
+          const firstOpenIdx = next.steps.findIndex(
+            (s) => !s.hasAnswer || !s.hasAnswer(store)
+          )
+          stepIndex.value = firstOpenIdx < 0 ? next.steps.length - 1 : firstOpenIdx
           pickedSuggestionLabel.value = null
         }
         resolveTarget(next.steps[stepIndex.value]?.targetLearnId)

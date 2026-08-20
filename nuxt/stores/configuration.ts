@@ -429,7 +429,20 @@ export const useConfigStore = defineStore('configuration', {
     // unit-selection.vue). Ins Pinia gehoben, damit Template-Save/Load die
     // Checkbox-Werte erfasst.
     unitSelectionOpts: emptyUnitSelectionOpts() as UnitSelectionOpts,
-    defrostOpts: emptyDefrostOpts() as DefrostOpts
+    defrostOpts: emptyDefrostOpts() as DefrostOpts,
+
+    // Welche ConfigurationParameters-Keys wurden bereits durch Guided-Q&A
+    // oder ein Template intentional gesetzt (im Gegensatz zu den Startwerten
+    // aus emptyParameters()). Der Wizard-Guided-Flow (thermoRefrigerantFlow,
+    // thermoLiquidFlow) skippt Steps deren Key hier gemarkt ist, damit der
+    // User nicht nochmal gefragt wird, wenn die Q&A das schon geklärt hat.
+    answeredParams: {} as Record<string, boolean>,
+
+    // ID des zuletzt geladenen System- oder User-Templates. Erlaubt UI-States
+    // wie "Template X geladen" + Undo, und wird beim Reload aus dem Persist-
+    // Store rehydriert (statt Modul-scope zu verpuffen).
+    lastAppliedTemplateId: null as string | null,
+    lastAppliedTemplateName: null as string | null
   }),
 
   getters: {
@@ -524,6 +537,29 @@ export const useConfigStore = defineStore('configuration', {
       }
       this.unitInputData = mergeUnitInputData(this.unitInputData, patch as Partial<UnitInputData>);
     },
+    /**
+     * Markiert Parameter-Keys als "vom User / Guided-Flow / Template intentional
+     * beantwortet". Der Wizard-Guided-Flow konsultiert das über hasAnsweredParam(),
+     * um bereits geklärte Steps zu überspringen.
+     */
+    markAnswered(keys: string[] | string) {
+      const arr = Array.isArray(keys) ? keys : [keys];
+      for (const k of arr) this.answeredParams[k] = true;
+    },
+    hasAnsweredParam(key: string): boolean {
+      return this.answeredParams[key] === true;
+    },
+    clearAnsweredParams() { this.answeredParams = {}; },
+
+    /**
+     * Merkt sich, welches Template gerade aktiv ist. Persistiert, damit ein
+     * F5-Reload den Kontext behält (für UI-Badges + Undo-Fähigkeit).
+     */
+    noteTemplateApplied(id: string | null, name?: string | null) {
+      this.lastAppliedTemplateId = id;
+      this.lastAppliedTemplateName = name ?? null;
+    },
+
     resetWizard() {
       this.parameters = emptyParameters();
       this.validationWarnings = [];
@@ -531,6 +567,9 @@ export const useConfigStore = defineStore('configuration', {
       this.selectedAccessories = [];
       this.service = emptyService();
       this.selectedUnitKey = null;
+      this.answeredParams = {};
+      this.lastAppliedTemplateId = null;
+      this.lastAppliedTemplateName = null;
       this.currentCategory = null;
       this.currentSubcategory = null;
       this.productSection = 1;
@@ -572,6 +611,11 @@ export const useConfigStore = defineStore('configuration', {
     applyTemplate(payload: Partial<TemplatePayload>) {
       if (payload.parameters) {
         this.parameters = Object.assign(emptyParameters(), payload.parameters);
+        // Alles, was das Template mitbringt, ist ein bewusst gesetzter Wert —
+        // der Wizard soll diese Steps im Guided-Flow nicht nochmal fragen.
+        for (const k of Object.keys(payload.parameters)) {
+          this.answeredParams[k] = true;
+        }
       }
       if (payload.coilGeometry) {
         this.coilGeometry = Object.assign(emptyCoilGeometry(), payload.coilGeometry);
@@ -605,7 +649,8 @@ export const useConfigStore = defineStore('configuration', {
       'selectedProducts', 'selectedAccessories', 'service', 'selectedUnitKey',
       'currentCategory', 'currentSubcategory',
       'productSection', 'coilGeometry', 'unitInputData',
-      'unitSelectionOpts', 'defrostOpts'
+      'unitSelectionOpts', 'defrostOpts',
+      'answeredParams', 'lastAppliedTemplateId', 'lastAppliedTemplateName'
     ]
   } as any  // pinia-plugin-persistedstate-Optionen sind aus Sicht von vanilla Pinia "extra"
 });

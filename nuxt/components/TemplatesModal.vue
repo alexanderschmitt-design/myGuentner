@@ -74,6 +74,7 @@ async function onApply() {
   const t = templates.value.find(x => x.id === selectedId.value)
   if (!t) return
   store.applyTemplate(t.configuration)
+  store.noteTemplateApplied(t.id ?? null, t.name ?? null)
   emit('applied', t)
   close()
   // Cross-Category-Load: wenn das Template aus einer anderen Kategorie stammt
