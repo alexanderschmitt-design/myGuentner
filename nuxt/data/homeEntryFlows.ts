@@ -111,8 +111,9 @@ export function buildEntryFlow(config: EntryFlowConfig): GuidedFlow {
   const recommendationStep: GuidedStep = {
     id: `${config.entryId}-__recommendations__`,
     message:
-      'Based on your answers, here are matching templates. Pick one to load ' +
-      'the configuration, or skip to configure from scratch.',
+      'Based on your answers, we have identified the following products for you. ' +
+      'Pick one to continue in the wizard with a pre-filled configuration, or ' +
+      'skip to configure from scratch.',
     kind: 'recommendations',
     recommendationCtx: {
       resolveTarget,

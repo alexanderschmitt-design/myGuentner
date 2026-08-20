@@ -905,44 +905,45 @@ function pickPreset(p: PresetIntent) {
                             && guidedEnabled
                             && guided.currentStep.value?.id === msg.guidedStep.id
                             && msg.guidedStep.kind === 'recommendations'">
-              <!-- Template-Empfehlungs-Karte — grüner Akzent, distinctive
-                   vom Q&A-Blau, damit User erkennt: neuer Schritt-Typ. -->
-              <div class="rec-card">
-                <div class="rec-card-head">
-                  <svg class="rec-card-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-                    <path d="M8 1l1.6 4.6L14 7l-4.4 1.4L8 13 6.4 8.4 2 7l4.4-1.4L8 1z"/>
+              <!-- Produkt-Empfehlungs-Karte: identisches Design wie
+                   Configuration Question / Guidance, nur mit anderem
+                   Header-Label. User erkennt: "das ist auch eine Frage,
+                   nur die Auswahl-Items sind konkrete Produkte." -->
+              <div class="config-question-card">
+                <div class="config-question-head">
+                  <svg class="config-question-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
+                    <path d="M8 1l1.3 3.7L13 6l-3.7 1.3L8 11 6.7 7.3 3 6l3.7-1.3L8 1zM13 10l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7L13 10z"/>
                   </svg>
-                  <span class="rec-card-label">TEMPLATE SUGGESTIONS</span>
+                  <span class="config-question-label">RECOMMENDED PRODUCTS</span>
                 </div>
-                <div class="rec-card-body" v-html="renderStepMarkdown(msg.content)"></div>
+                <div class="config-question-body" v-html="renderStepMarkdown(msg.content)"></div>
 
-                <div v-if="recLoading" class="rec-loading">Searching matching templates…</div>
+                <div v-if="recLoading" class="rec-loading">Identifying matching products…</div>
 
-                <div v-else-if="recTemplates.length" class="rec-choice-list">
+                <div v-else-if="recTemplates.length" class="config-choice-list">
                   <button
                     v-for="t in recTemplates"
                     :key="t.id"
                     type="button"
-                    class="rec-choice"
-                    :class="{ 'rec-choice-system': t.isSystem }"
+                    class="config-choice"
                     @click="onRecommendationPick(t, msg.guidedStep!)"
                   >
-                    <span class="rec-choice-icon" aria-hidden="true">
+                    <span class="config-choice-icon" aria-hidden="true">
                       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M2.5 3.5h11v9h-11zM2.5 6h11M5 3.5v9"/>
                       </svg>
                     </span>
-                    <span class="rec-choice-body">
-                      <span class="rec-choice-label">
+                    <span class="config-choice-body">
+                      <span class="config-choice-label">
                         {{ t.name }}
-                        <span v-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated system template">★ SYSTEM</span>
-                        <span v-else-if="t.isDefaultForCategory" class="rec-star" title="Your default template for this category">★</span>
+                        <span v-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated">★ SYSTEM</span>
+                        <span v-else-if="t.isDefaultForCategory" class="rec-star" title="Your default for this category">★</span>
                       </span>
-                      <span class="rec-choice-detail">
+                      <span class="config-choice-detail">
                         {{ t.paramCount }} parameter{{ t.paramCount === 1 ? '' : 's' }} pre-filled
                       </span>
                     </span>
-                    <span class="rec-choice-chevron" aria-hidden="true">
+                    <span class="config-choice-chevron" aria-hidden="true">
                       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M6 3l5 5-5 5"/>
                       </svg>
@@ -951,13 +952,13 @@ function pickPreset(p: PresetIntent) {
                 </div>
 
                 <div v-else-if="!recAutoSkipped" class="rec-empty">
-                  No saved templates for this category yet — you'll configure from scratch.
+                  No matching products yet — you'll configure from scratch.
                 </div>
 
-                <div class="rec-card-actions">
+                <div class="config-question-actions">
                   <button
                     type="button"
-                    class="config-action-btn"
+                    class="config-action-btn config-action-btn-muted"
                     @click="onRecommendationSkip(msg.guidedStep!)"
                   >Skip — configure from scratch →</button>
                 </div>
