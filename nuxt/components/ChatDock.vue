@@ -593,7 +593,7 @@ const activeLocale = computed(() => {
 // weiter möglich, aber die Empty-State-Zeile ist eine feste Marketing-
 // Zeile in EN).
 const startPrompt = computed(() => 'Hello, I\'m Günther')
-const startSubtitle = computed(() => 'Answer a short question so I can suggest the right configuration for you.')
+const startSubtitle = computed(() => 'I will help you to configure the right product for your special need.')
 
 interface PresetIntent {
   id: string
