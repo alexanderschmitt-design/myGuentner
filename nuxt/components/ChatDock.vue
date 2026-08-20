@@ -648,6 +648,17 @@ function performReset() {
   history.value = []
   stream.reset()
   guided.reset()
+  // Nach reset() hat guided den aktiven Flow neu gematched. Wenn dabei
+  // ein Step aktiv ist, direkt in die frische history committen — sonst
+  // hätte der User leere history + aktiven Guided-Step (Card unsichtbar).
+  const cur = guided.currentStep.value
+  if (cur && guidedEnabled.value) {
+    history.value = [{
+      role: 'assistant',
+      content: cur.message,
+      guidedStep: cur
+    }]
+  }
   scrollToEnd()
 }
 watch(() => chatDockReset.signal.value, performReset)
