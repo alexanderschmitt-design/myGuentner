@@ -156,6 +156,11 @@ const transcript = computed<HistoryEntry[]>(() => {
   return liveAssistant.value ? [...history.value, liveAssistant.value] : history.value
 })
 
+/** True sobald User selbst irgendwas beigetragen hat (Klick auf Choice,
+ *  Text abgeschickt). Steuert die Sichtbarkeit des Begrüßungs-Blocks:
+ *  auto-injizierte Guided-Steps zählen NICHT als „User-Interaction". */
+const hasUserTurn = computed(() => history.value.some((m) => m.role === 'user'))
+
 const sourceModal = ref(false)
 const openedSource = ref<RagSource | null>(null)
 
@@ -765,7 +770,7 @@ function pickPreset(p: PresetIntent) {
         <div ref="bodyRef" class="chat-drawer-body">
           <!-- =========== CHAT MODE =========== -->
           <template v-if="mode === 'chat'">
-          <div v-if="!transcript.length" class="chat-start">
+          <div v-if="!hasUserTurn" class="chat-start" :class="{ 'chat-start-with-guided': transcript.length > 0 }">
             <!-- Roboter-Avatar im Blaukreis mit roter Antennen-Kugel — matched
                  das Referenz-Icon (Screenshot 2026-08-20). -->
             <div class="start-avatar" aria-hidden="true">
@@ -792,7 +797,10 @@ function pickPreset(p: PresetIntent) {
             </div>
             <h2 class="start-headline">{{ startPrompt }}</h2>
             <p class="start-subtitle">{{ startSubtitle }}</p>
-            <div class="start-presets">
+            <!-- Presets nur zeigen wenn KEIN Guided-Flow schon aktiv ist —
+                 sonst hat der User die Auswahl-Karte des Flows unmittelbar
+                 darunter und würde doppelte Choices sehen. -->
+            <div v-if="transcript.length === 0" class="start-presets">
               <button
                 v-for="p in presets"
                 :key="p.id"
@@ -1118,7 +1126,11 @@ function pickPreset(p: PresetIntent) {
 <style scoped>
 .chat-fab {
   position: fixed;
-  bottom: 24px;
+  /* Angehoben aus dem viewport-Boden auf ~20vh — landet ungefähr auf
+     Höhe der untersten Kategorie-Kartenreihe auf typischen Desktop-
+     Auflösungen (1080p / 900p). Auf kleineren Bildschirmen sitzt der
+     FAB dadurch nicht mehr direkt am Rand aber bleibt gut sichtbar. */
+  bottom: 20vh;
   right: 24px;
   z-index: 90;
   /* Doppelt so groß wie vorher (52 → 104px), sichtbarer Call-to-Action. */
@@ -1314,6 +1326,15 @@ function pickPreset(p: PresetIntent) {
   padding: 32px 24px 24px;
   text-align: center;
 }
+/* Kompakter wenn ein Guided-Flow-Step darunter rendert — weniger Vertikal-
+   Padding + Subtitle darf ausgeblendet werden auf schmalen Höhen. */
+.chat-start-with-guided {
+  padding: 20px 24px 12px;
+  gap: 8px;
+}
+.chat-start-with-guided .start-headline { font-size: var(--font-md, 18px); }
+.chat-start-with-guided .start-subtitle { display: none; }
+.chat-start-with-guided .start-avatar { width: 52px; height: 52px; }
 /* Blaukreis-Avatar mit Roboter-Glyph — kompakter „Hi, ich bin Günther"-Header */
 .start-avatar {
   width: 64px;
