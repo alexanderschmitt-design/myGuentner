@@ -16,12 +16,17 @@ export default defineEventHandler(async (event) => {
   }
   return {
     ok: true,
-    users: data.users.map((u) => ({
-      id: u.id,
-      email: u.email,
-      createdAt: u.created_at,
-      lastSignInAt: u.last_sign_in_at,
-      confirmed: !!u.email_confirmed_at
-    }))
+    users: data.users.map((u) => {
+      const appRole = (u.app_metadata as any)?.role
+      const userRole = (u.user_metadata as any)?.role
+      return {
+        id: u.id,
+        email: u.email,
+        createdAt: u.created_at,
+        lastSignInAt: u.last_sign_in_at,
+        confirmed: !!u.email_confirmed_at,
+        isAdmin: appRole === 'admin' || userRole === 'admin'
+      }
+    })
   }
 })
