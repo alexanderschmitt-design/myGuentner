@@ -583,12 +583,12 @@ const activeLocale = computed(() => {
   return (l === 'de' ? 'de' : 'en') as 'de' | 'en'
 })
 
-const startPrompt = computed(() => activeLocale.value === 'de'
-  ? 'Hallo, ich bin Günther'
-  : 'Hello, I\'m Günther')
-const startSubtitle = computed(() => activeLocale.value === 'de'
-  ? 'Beantworte eine kurze Frage, damit ich dir die passende Konfiguration vorschlagen kann.'
-  : 'Answer a short question so I can suggest the right configuration for you.')
+// Greeting bleibt Englisch — konsistent mit dem restlichen Wizard-UI,
+// unabhängig von activeLocale (DE-Fallback im Chatbot-Sprachstil ist
+// weiter möglich, aber die Empty-State-Zeile ist eine feste Marketing-
+// Zeile in EN).
+const startPrompt = computed(() => 'Hello, I\'m Günther')
+const startSubtitle = computed(() => 'Answer a short question so I can suggest the right configuration for you.')
 
 interface PresetIntent {
   id: string
