@@ -727,26 +727,28 @@ function pickPreset(p: PresetIntent) {
           <!-- =========== CHAT MODE =========== -->
           <template v-if="mode === 'chat'">
           <div v-if="!transcript.length" class="chat-start">
-            <!-- Kompakter Blaukreis-Avatar mit Roboter-Glyph (Head + Screen + Antenne) -->
+            <!-- Roboter-Avatar im Blaukreis mit roter Antennen-Kugel — matched
+                 das Referenz-Icon (Screenshot 2026-08-20). -->
             <div class="start-avatar" aria-hidden="true">
-              <svg viewBox="0 0 48 48" width="32" height="32" fill="none">
-                <!-- Antennen-Kugel + Stab -->
-                <line x1="24" y1="9" x2="24" y2="5" stroke="white" stroke-width="2" stroke-linecap="round"/>
-                <circle cx="24" cy="4" r="2" fill="white"/>
-                <!-- Head (Rechteck rund) -->
-                <rect x="10" y="10" width="28" height="24" rx="6" fill="none" stroke="white" stroke-width="2.2"/>
-                <!-- Face-Screen -->
-                <rect x="14" y="15" width="20" height="14" rx="3" fill="white"/>
-                <!-- Eyes -->
-                <circle cx="19.5" cy="22" r="1.8" fill="var(--c-brand-blue, #0078BE)"/>
-                <circle cx="28.5" cy="22" r="1.8" fill="var(--c-brand-blue, #0078BE)"/>
-                <!-- Ears -->
-                <rect x="7" y="18" width="3" height="8" rx="1.5" fill="white"/>
-                <rect x="38" y="18" width="3" height="8" rx="1.5" fill="white"/>
-                <!-- Body-Ansatz (Hals) -->
-                <rect x="20" y="34" width="8" height="4" rx="1" fill="white"/>
-                <!-- Body -->
-                <rect x="12" y="38" width="24" height="6" rx="3" fill="white"/>
+              <svg viewBox="0 0 56 56" width="40" height="40" fill="none">
+                <!-- Antennen-Stab -->
+                <line x1="28" y1="12" x2="28" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                <!-- Rote Antennen-Kugel -->
+                <circle cx="28" cy="5" r="3.2" fill="#EF4444"/>
+                <!-- Ohren links + rechts (weiße Rechtecke) -->
+                <rect x="6" y="24" width="4" height="10" rx="2" fill="white"/>
+                <rect x="46" y="24" width="4" height="10" rx="2" fill="white"/>
+                <!-- Head (Rechteck rund, weiß) -->
+                <rect x="10" y="14" width="36" height="30" rx="8" fill="white"/>
+                <!-- Face-Screen (blau-getönt für Gegen-Kontrast) -->
+                <rect x="14" y="20" width="28" height="18" rx="5" fill="var(--c-brand-blue, #0078BE)"/>
+                <!-- Eyes (weiße Punkte) -->
+                <circle cx="22" cy="28" r="2.2" fill="white"/>
+                <circle cx="34" cy="28" r="2.2" fill="white"/>
+                <!-- Smile — leicht kurviger weißer Strich -->
+                <path d="M23 33.5 Q28 36 33 33.5" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+                <!-- Body-Ansatz (Hals) — kurzer weißer Streifen unter dem Kopf -->
+                <rect x="24" y="44" width="8" height="4" rx="1.5" fill="white"/>
               </svg>
             </div>
             <h2 class="start-headline">{{ startPrompt }}</h2>
@@ -1041,9 +1043,16 @@ function pickPreset(p: PresetIntent) {
     <!-- Floating action button (only when drawer is closed — the
          drawer has its own header X for closing) -->
     <button v-if="!isOpen" type="button" class="chat-fab" aria-label="Open chat" @click="toggle">
-      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor"
-           stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 5h16v11H8l-4 4V5z"/>
+      <svg viewBox="0 0 56 56" width="30" height="30" fill="none">
+        <line x1="28" y1="12" x2="28" y2="7" stroke="white" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="28" cy="5" r="3.2" fill="#EF4444"/>
+        <rect x="6" y="24" width="4" height="10" rx="2" fill="white"/>
+        <rect x="46" y="24" width="4" height="10" rx="2" fill="white"/>
+        <rect x="10" y="14" width="36" height="30" rx="8" fill="white"/>
+        <rect x="14" y="20" width="28" height="18" rx="5" fill="var(--c-brand-blue, #0078BE)"/>
+        <circle cx="22" cy="28" r="2.2" fill="white"/>
+        <circle cx="34" cy="28" r="2.2" fill="white"/>
+        <path d="M23 33.5 Q28 36 33 33.5" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
       </svg>
     </button>
 
