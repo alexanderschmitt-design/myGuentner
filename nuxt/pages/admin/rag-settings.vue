@@ -292,19 +292,35 @@ onMounted(load)
   color: var(--c-text-medium);
 }
 .settings-grid {
-  display: grid;
-  /* Feste 2-Spalten-Struktur — die 4 Sections sortieren sich zu:
-     Row 1: [Chat-LLM]     [Embedding-Provider]
-     Row 2: [Retrieval]    [System Prompt]
-     Row 3: [Danger]        (full width via .card.danger)
-     Der auto-fit-Ansatz vorher produzierte auf großen Screens 3 Spalten
-     mit unschönem Versatz. */
-  grid-template-columns: 1fr 1fr;
+  /* Nach mehreren fehlgeschlagenen Grid-Versuchen zurück zu Flexbox mit
+     festem 50%-Split. Grid mit 1fr/1fr rundet bei bestimmten Viewports
+     einzelne Columns pixelig verschieden (fractional pixel rounding),
+     was auf breiten Screens sichtbaren Versatz produziert.
+     Flexbox mit calc((100% - gap) / 2) ist mathematisch exakt. */
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-4);
-  align-items: start;
+  --row-gap: var(--space-4);
+  align-items: stretch;
+}
+.settings-grid > .card {
+  /* Alle Cards nehmen exakt die halbe Breite (minus halber Gap). */
+  flex: 0 0 calc(50% - (var(--row-gap) / 2));
+  max-width: calc(50% - (var(--row-gap) / 2));
+  min-width: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+.settings-grid > .card.danger,
+.settings-grid > .card.full-width {
+  flex: 0 0 100%;
+  max-width: 100%;
 }
 @media (max-width: 900px) {
-  .settings-grid { grid-template-columns: 1fr; }
+  .settings-grid > .card {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
 }
 .card {
   background: white;
@@ -314,11 +330,12 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   gap: 14px;
-  /* min-width:0 + overflow:hidden ist Pflicht, damit ein Kind-Element mit
-     "natural width" > 1fr die Grid-Column nicht sprengt und beide Cards
-     verschieden breit werden (siehe Debug 2026-08-21). */
+}
+/* Alle Text-Elemente in Cards dürfen keine ausbrechenden natural-widths
+   erzeugen — sonst wird die Card-Column vom Grid gestreckt. */
+.card * {
   min-width: 0;
-  overflow: hidden;
+  overflow-wrap: break-word;
 }
 .card h2 {
   margin: 0;
