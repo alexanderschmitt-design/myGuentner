@@ -74,7 +74,8 @@ const isDirty = computed(() => {
  *  Name an die falsche API geschickt. */
 const EMBEDDING_MODE_DEFAULTS: Record<string, string> = {
   openai: 'text-embedding-3-small',
-  gemini: 'gemini-embedding-001'
+  gemini: 'gemini-embedding-001',
+  openrouter: 'openai/text-embedding-3-small'
 }
 function onEmbeddingModeChange() {
   if (!settings.value) return
@@ -222,8 +223,9 @@ onMounted(load)
         <div class="field">
           <label>Mode</label>
           <select v-model="settings.embedding_mode" @change="onEmbeddingModeChange">
-            <option value="openai">OpenAI (text-embedding-3-small · 1536-dim)</option>
+            <option value="openai">OpenAI direkt (text-embedding-3-small · 1536-dim)</option>
             <option value="gemini">Google Gemini (gemini-embedding-001 · 1536-dim)</option>
+            <option value="openrouter">OpenRouter Gateway (openai/text-embedding-3-small · 1536-dim)</option>
           </select>
         </div>
         <div class="field">
@@ -231,8 +233,9 @@ onMounted(load)
           <input type="text" v-model="settings.embedding_model" placeholder="text-embedding-3-small" />
         </div>
         <p class="hint">
-          Bei Wechsel zwischen openai ↔ gemini muss der Vector Store neu berechnet werden (Reset unten + Documents → Reprocess All).
-          Beide Provider liefern 1536-dim Vektoren — pgvector-Schema bleibt unverändert.
+          Bei Wechsel zwischen den Providern muss der Vector Store neu berechnet werden (Reset unten + Documents → Reprocess All).
+          Alle drei Provider liefern 1536-dim Vektoren — pgvector-Schema bleibt unverändert.
+          <strong>OpenRouter</strong> ist am günstigsten wenn du eh schon Guthaben dort hast (nutzt dein OpenRouter-Konto, kein separater OpenAI-Account nötig).
         </p>
         <div class="tester-row">
           <ApiKeyTester label="Active Embedding Provider" endpoint="/api/rag/test-embeddings" />

@@ -1,16 +1,21 @@
 /**
- * Embeddings — Multi-Provider (OpenAI + Google Gemini).
+ * Embeddings — Multi-Provider (OpenAI + Google Gemini + OpenRouter).
  *
  * Schema-Constraint: Supabase `document_chunks.embedding` ist vector(1536).
- * Beide Provider müssen 1536-dim Vektoren liefern:
+ * Alle Provider müssen 1536-dim Vektoren liefern:
  *   • OpenAI text-embedding-3-small: nativ 1536.
  *   • Google Gemini gemini-embedding-001: parametrisierbar via
  *     `outputDimensionality`, wir setzen fix 1536.
+ *   • OpenRouter openai/text-embedding-3-small: OpenAI-kompatibles Interface
+ *     unter openrouter.ai/api/v1/embeddings, proxy'ed die OpenAI-Modelle
+ *     (auch cohere/*, voyageai/* wenn 1536-dim). Nutzt OpenRouter-Guthaben.
  *
  * Provider-Wahl kommt aus `rag_settings.embedding_mode`:
- *   • 'openai'  → OpenAI-API (braucht OPENAI_API_KEY)
- *   • 'gemini'  → Google Generative Language API (braucht GEMINI_API_KEY
- *                 oder GOOGLE_API_KEY)
+ *   • 'openai'     → OpenAI-API direkt (braucht OPENAI_API_KEY)
+ *   • 'gemini'     → Google Generative Language API (braucht GEMINI_API_KEY
+ *                     oder GOOGLE_API_KEY)
+ *   • 'openrouter' → OpenRouter-Gateway (braucht OPENROUTER_API_KEY, nutzt
+ *                     OpenRouter-Guthaben statt separatem OpenAI/Gemini-Konto)
  *
  * Wechsel des Providers erfordert Re-Embedding aller bestehenden Chunks —
  * sonst ist die Retrieval-Qualität schlecht (unterschiedliche Vektor-Räume).
@@ -31,6 +36,12 @@ const GEMINI_DEFAULT_MODEL = 'gemini-embedding-001'
 // zerlegt und die Ergebnisse zusammengeführt.
 const GEMINI_BATCH_SIZE = 100
 
+// OpenRouter-Embedding-Endpoint (OpenAI-kompatibel). Modell muss ein 1536-
+// dim Embedding-Modell sein — Default: openai/text-embedding-3-small.
+const OPENROUTER_EMBEDDINGS_PATH = '/embeddings'
+const OPENROUTER_DEFAULT_MODEL = 'openai/text-embedding-3-small'
+const OPENROUTER_BATCH_SIZE = 100
+
 export function getEmbeddingsConfig() {
   const cfg = useRuntimeConfig()
   const llm = cfg.llm as any
@@ -39,15 +50,21 @@ export function getEmbeddingsConfig() {
     openaiModel: (cfg.openaiEmbeddingModel as string) || OPENAI_DEFAULT_MODEL,
     geminiKey: (llm?.googleApiKey as string) || '',
     geminiModel: GEMINI_DEFAULT_MODEL,
+    openrouterKey: (llm?.openrouterApiKey as string) || '',
+    openrouterBaseUrl: (llm?.openrouterBaseUrl as string) || 'https://openrouter.ai/api/v1',
+    openrouterModel: OPENROUTER_DEFAULT_MODEL,
     dimension: DEFAULT_DIMENSION
   }
 }
 
-async function getActiveProvider(): Promise<'openai' | 'gemini'> {
+type Provider = 'openai' | 'gemini' | 'openrouter'
+
+async function getActiveProvider(): Promise<Provider> {
   try {
     const settings = await getRagSettings()
     const mode = (settings.embedding_mode || 'openai').toLowerCase()
     if (mode === 'gemini' || mode === 'google') return 'gemini'
+    if (mode === 'openrouter') return 'openrouter'
     return 'openai'
   } catch {
     return 'openai'
@@ -154,6 +171,75 @@ async function embedGemini(texts: string[]): Promise<number[][]> {
 }
 
 // ============================================================================
+// OpenRouter (OpenAI-compatible embeddings gateway)
+// ============================================================================
+
+/**
+ * OpenRouter proxy'ed OpenAI Embedding-Modelle. Interface ist exakt
+ * OpenAI-kompatibel — nur die Base-URL + der Model-String unterscheiden
+ * sich. Kosten laufen über dein OpenRouter-Guthaben statt separatem
+ * OpenAI-Account.
+ *
+ * Docs: https://openrouter.ai/docs/api-reference/embeddings
+ */
+async function embedOpenRouter(texts: string[]): Promise<number[][]> {
+  const cfg = getEmbeddingsConfig()
+  if (!cfg.openrouterKey) {
+    throw new Error('OPENROUTER_API_KEY is not set — set it in Vercel env vars, or switch embedding_mode to "gemini" / "openai" in /admin/rag-settings.')
+  }
+  const baseUrl = cfg.openrouterBaseUrl.replace(/\/+$/, '')
+  const url = `${baseUrl}${OPENROUTER_EMBEDDINGS_PATH}`
+  const results: number[][] = []
+
+  for (let i = 0; i < texts.length; i += OPENROUTER_BATCH_SIZE) {
+    const batch = texts.slice(i, i + OPENROUTER_BATCH_SIZE)
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${cfg.openrouterKey}`,
+        // Nice-to-have: OpenRouter empfiehlt X-Title für Analytics
+        'X-Title': 'myGPC RAG'
+      },
+      body: JSON.stringify({
+        model: cfg.openrouterModel,
+        input: batch
+      })
+    })
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => '')).slice(0, 500)
+      if (res.status === 402) {
+        throw new Error(
+          'OpenRouter-Guthaben aufgebraucht (HTTP 402). Guthaben unter ' +
+          'https://openrouter.ai/credits aufladen und Reprocess erneut versuchen.'
+        )
+      }
+      if (res.status === 429) {
+        throw new Error(`OpenRouter Rate-Limit erreicht (HTTP 429). Kurz warten und erneut versuchen. Detail: ${detail}`)
+      }
+      throw new Error(`OpenRouter embeddings ${res.status}: ${detail}`)
+    }
+    const data = await res.json()
+    const batchEmbeddings = (data.data || [])
+      .sort((a: any, b: any) => a.index - b.index)
+      .map((e: any) => e.embedding as number[])
+    if (batchEmbeddings.length !== batch.length) {
+      throw new Error(`OpenRouter returned ${batchEmbeddings.length} embeddings for ${batch.length} inputs`)
+    }
+    for (const v of batchEmbeddings) {
+      if (!Array.isArray(v) || v.length !== DEFAULT_DIMENSION) {
+        throw new Error(
+          `OpenRouter returned unexpected embedding dimension ${v?.length} (expected ${DEFAULT_DIMENSION}). ` +
+          `Prüfe ob "${cfg.openrouterModel}" ein 1536-dim Modell ist (z.B. openai/text-embedding-3-small).`
+        )
+      }
+    }
+    results.push(...batchEmbeddings)
+  }
+  return results
+}
+
+// ============================================================================
 // Public API
 // ============================================================================
 
@@ -161,6 +247,7 @@ export async function embedTexts(texts: string[]): Promise<number[][]> {
   if (!texts.length) return []
   const provider = await getActiveProvider()
   if (provider === 'gemini') return embedGemini(texts)
+  if (provider === 'openrouter') return embedOpenRouter(texts)
   return embedOpenAI(texts)
 }
 
