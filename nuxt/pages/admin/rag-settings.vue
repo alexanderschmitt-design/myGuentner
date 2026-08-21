@@ -180,6 +180,9 @@ onMounted(load)
           Bei Wechsel zwischen openai ↔ gemini muss der Vector Store neu berechnet werden (Reset unten + Documents → Reprocess All).
           Beide Provider liefern 1536-dim Vektoren — pgvector-Schema bleibt unverändert.
         </p>
+        <div class="tester-row">
+          <ApiKeyTester label="Active Embedding Provider" endpoint="/api/rag/test-embeddings" />
+        </div>
       </section>
 
       <section class="card">
