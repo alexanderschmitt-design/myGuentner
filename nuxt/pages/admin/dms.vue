@@ -1,8 +1,16 @@
 <script setup lang="ts">
 /**
- * /admin/dms — Direct DMS search + import trigger. Complements the
- * DmsSearchModal reachable from /admin/documents; this full-page view
- * adds a persistent job-monitor panel for tracking imports.
+ * /admin/dms — Direct DMS search + import trigger.
+ *
+ * Für Portal Public Documents (DMANU) ist ein statisches 10-Filter-Set
+ * (Document Type, Permission, Brand, Region, Language Portal, Product
+ * Category, Product Level 1, Product Group, Product Family, Product Series)
+ * fest in der Seite verdrahtet. Die einzelnen Filter-Options werden lazy
+ * vom Server geholt (6h in-process gecached) — damit blockiert der
+ * erste Page-Load nicht auf Full-Discovery.
+ *
+ * Andere ObjectDefinitions verwenden weiterhin das legacy DMS_PROPERTY_MAP-
+ * getriebene facets.get.ts.
  */
 import { ref, onMounted, computed } from 'vue'
 
@@ -13,7 +21,30 @@ const api = useApi()
 const toast = useToast()
 
 interface FilterOption { value: string; label: string; count?: number }
-interface FilterDef { frontendField: string; label: string; hint: string; options: FilterOption[] }
+interface FilterDef {
+  frontendField: string
+  label: string
+  hint?: string
+  options: FilterOption[]
+  sourcePropertyId?: string | null
+  loading?: boolean
+}
+
+// Portal Public Documents ist der Default-Objekttyp — die Guntner-DMS-
+// Suche findet hier die freigegebenen Kunden-Manuals + Broschüren.
+const PORTAL_PUBLIC_DOCUMENTS_OBJDEF_ID = 'DMANU'
+const PORTAL_FILTERS_STATIC: Array<{ frontendField: string; label: string }> = [
+  { frontendField: 'documentType',    label: 'Document Type' },
+  { frontendField: 'permission',      label: 'Permission' },
+  { frontendField: 'brand',           label: 'Brand' },
+  { frontendField: 'region',          label: 'Region' },
+  { frontendField: 'languagePortal',  label: 'Language Portal' },
+  { frontendField: 'productCategory', label: 'Product Category' },
+  { frontendField: 'productLevel1',   label: 'Product Level 1' },
+  { frontendField: 'productGroup',    label: 'Product Group' },
+  { frontendField: 'productFamily',   label: 'Product Family' },
+  { frontendField: 'productSeries',   label: 'Product Series' }
+]
 
 const health = ref<any>(null)
 const fulltext = ref('')
@@ -23,16 +54,9 @@ const selected = ref<Set<string>>(new Set())
 const importing = ref(false)
 const activeJobId = ref<string | null>(null)
 
-interface FilterDefDynamic extends FilterDef {
-  /** Wenn gesetzt (Dynamic-Discovery), ist der Filter kein Frontend-Alias
-   *  sondern eine direkte DMS-Property-ID. Muss beim Search-Query anders
-   *  gesendet werden (?prop.<id>=<value> statt ?filter.<field>=<value>). */
-  sourcePropertyId?: string
-}
-
-const filterDefs = ref<FilterDefDynamic[]>([])
+const objectCategory = ref<string>(PORTAL_PUBLIC_DOCUMENTS_OBJDEF_ID)
+const filterDefs = ref<FilterDef[]>(PORTAL_FILTERS_STATIC.map((f) => ({ ...f, options: [], loading: true })))
 const activeFilters = ref<Record<string, string>>({})
-const filtersLoading = ref(false)
 
 const columns = [
   { key: 'select', label: '', width: '36px' },
@@ -44,44 +68,44 @@ const columns = [
 async function loadHealth() {
   try {
     health.value = await api.get('/api/dms/health')
-    // Env-Default DMS_DEFAULT_OBJECT_DEFINITION_IDS als Vorauswahl übernehmen
-    // — der Server rankt Templates gegen diese ObjDef, der User sieht den
-    // aktiven Filter aber im Dropdown und kann ihn ändern.
     const defaults: string = health.value?.defaultObjectDefinitionIds || ''
-    if (defaults && !activeFilters.value.objectCategory) {
+    if (defaults) {
       const first = defaults.split(',').map((s: string) => s.trim()).filter(Boolean)[0]
-      if (first) {
-        activeFilters.value = { ...activeFilters.value, objectCategory: first }
-      }
+      if (first) objectCategory.value = first
     }
   } catch (err: any) {
     health.value = { ok: false, error: err.message }
   }
 }
 
-async function loadFilters() {
-  filtersLoading.value = true
+async function loadPortalFilterValues() {
+  // Nur DMANU hat das statische Filter-Set. Andere ObjDefs → leer / TODO.
+  if (objectCategory.value !== PORTAL_PUBLIC_DOCUMENTS_OBJDEF_ID) {
+    filterDefs.value = []
+    return
+  }
+  // Ein Aufruf holt alle 10 Filter parallel; Server cached 6h in-process
+  // → zweiter Load praktisch instant.
   try {
-    const query: Record<string, string> = {}
-    if (fulltext.value.trim()) query.fulltext = fulltext.value.trim()
-    // objectCategory-Auswahl → Facets dynamisch pro ObjectDefinition laden.
-    if (activeFilters.value.objectCategory) {
-      query.objectDefinitionIds = activeFilters.value.objectCategory
+    const res = await api.get<{
+      ok: boolean
+      filters: Array<{ frontendField: string; label: string; propertyId: string | null; options: Array<{ value: string; count?: number }> }>
+    }>('/api/dms/filter-values', { query: { objectDefinitionId: objectCategory.value } })
+    if (res.ok && Array.isArray(res.filters)) {
+      const byField = new Map(res.filters.map((f) => [f.frontendField, f]))
+      filterDefs.value = PORTAL_FILTERS_STATIC.map((f) => {
+        const v = byField.get(f.frontendField)
+        return {
+          ...f,
+          options: (v?.options || []).map((o) => ({ value: o.value, label: o.value, count: o.count })),
+          sourcePropertyId: v?.propertyId || null,
+          loading: false
+        }
+      })
     }
-    const res = await api.get<{ ok: boolean; filters: FilterDefDynamic[] }>('/api/dms/facets', { query })
-    filterDefs.value = res.filters || []
-    // Alte Filter-Werte cleanen die es in den neuen Definitions nicht mehr gibt
-    // (aber objectCategory beibehalten — der triggert ja den Reload).
-    const validFields = new Set(filterDefs.value.map(f => f.frontendField))
-    const pruned: Record<string, string> = {}
-    for (const [k, v] of Object.entries(activeFilters.value)) {
-      if (validFields.has(k) || k === 'objectCategory') pruned[k] = v
-    }
-    activeFilters.value = pruned
   } catch (err: any) {
-    toast.error(err.message || 'Filter konnten nicht geladen werden')
-  } finally {
-    filtersLoading.value = false
+    toast.error(err.message || 'Filter-Werte konnten nicht geladen werden')
+    filterDefs.value = filterDefs.value.map((f) => ({ ...f, loading: false }))
   }
 }
 
@@ -89,15 +113,10 @@ function setFilter(field: string, value: string) {
   if (!value) delete activeFilters.value[field]
   else activeFilters.value[field] = value
   activeFilters.value = { ...activeFilters.value }
-  // Bei Kategorie-Wechsel: Filter-Set komplett neu laden (dynamische Discovery).
-  if (field === 'objectCategory') {
-    loadFilters()
-  }
 }
 
 function clearFilters() {
   activeFilters.value = {}
-  loadFilters()
 }
 
 const hasFilters = computed(() => Object.keys(activeFilters.value).length > 0)
@@ -105,24 +124,12 @@ const hasFilters = computed(() => Object.keys(activeFilters.value).length > 0)
 function buildSearchQuery() {
   const query: Record<string, string | number> = { pageSize: 50 }
   if (fulltext.value.trim()) query.fulltext = fulltext.value.trim()
-  const dynFields = new Map(filterDefs.value.map(f => [f.frontendField, f.sourcePropertyId]))
+  query.objectDefinitionIds = objectCategory.value
+  const propMap = new Map(filterDefs.value.map((f) => [f.frontendField, f.sourcePropertyId]))
   for (const [k, v] of Object.entries(activeFilters.value)) {
-    if (k === 'objectCategory') {
-      // objectCategory ist ein sourcecategories-Filter → geht als
-      // `filter.objectCategory` durch die DMS_PROPERTY_MAP.translateFilters.
-      // Zusätzlich als objectDefinitionIds an den Server damit die Facets
-      // konsistent bleiben.
-      query[`filter.${k}`] = v
-      query.objectDefinitionIds = v
-      continue
-    }
-    // Dynamic-Discovery-Filter: direkter DMS-Property-Key → `prop.<id>=<value>`.
-    const propId = dynFields.get(k)
-    if (propId) {
-      query[`prop.${propId}`] = v
-    } else {
-      query[`filter.${k}`] = v
-    }
+    const propId = propMap.get(k)
+    if (propId) query[`prop.${propId}`] = v
+    else query[`filter.${k}`] = v
   }
   return query
 }
@@ -171,9 +178,10 @@ async function runImport() {
   }
 }
 
-onMounted(() => {
-  loadHealth()
-  loadFilters()
+onMounted(async () => {
+  await loadHealth()
+  // Filter-Values laden asynchron im Hintergrund — Page ist sofort sichtbar.
+  loadPortalFilterValues()
 })
 </script>
 
@@ -207,14 +215,22 @@ onMounted(() => {
         </button>
       </div>
 
+      <div class="dms-scope-row">
+        <span class="dms-scope-label">Dokumententyp:</span>
+        <span class="dms-scope-chip">Portal Public Documents <code>({{ objectCategory }})</code></span>
+      </div>
+
       <div v-if="filterDefs.length" class="dms-filter-row">
         <div v-for="f in filterDefs" :key="f.frontendField" class="dms-filter">
-          <label>{{ f.label }}</label>
+          <label>{{ f.label }}<span v-if="f.options.length" class="dms-filter-count">{{ f.options.length }}</span></label>
           <select
             :value="activeFilters[f.frontendField] || ''"
+            :disabled="f.loading || !f.options.length"
             @change="setFilter(f.frontendField, ($event.target as HTMLSelectElement).value)"
           >
-            <option value="">— alle —</option>
+            <option value="">
+              {{ f.loading ? '— lädt… —' : (!f.options.length ? '— keine Werte —' : '— alle —') }}
+            </option>
             <option v-for="opt in f.options" :key="opt.value" :value="opt.value">
               {{ opt.label }}<span v-if="opt.count"> ({{ opt.count }})</span>
             </option>
@@ -227,14 +243,13 @@ onMounted(() => {
           @click="clearFilters"
         >Filter zurücksetzen</button>
       </div>
-      <div v-else-if="filtersLoading" class="filter-hint">Lade Filter …</div>
     </section>
 
     <DataTable
       :rows="rows"
       :columns="columns"
       :loading="searching"
-      empty-message="Volltext oben eingeben und suchen."
+      empty-message="Volltext oben eingeben oder Filter setzen und suchen."
       :row-key="(r: any) => r.dmsId"
     >
       <template #cell-select="{ row }">
@@ -298,6 +313,29 @@ onMounted(() => {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 15%, transparent);
 }
 
+.dms-scope-row {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-medium);
+}
+.dms-scope-chip {
+  padding: 3px 10px;
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 12%, white);
+  color: var(--c-brand-blue, #0078BE);
+  border-radius: 999px;
+  font-weight: 500;
+}
+.dms-scope-chip code {
+  margin-left: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 90%;
+  color: color-mix(in srgb, var(--c-brand-blue, #0078BE) 70%, black);
+}
+
 .dms-filter-row {
   margin-top: 12px;
   display: grid;
@@ -310,6 +348,17 @@ onMounted(() => {
   font-family: var(--font-ui);
   font-size: var(--font-3xs);
   color: var(--c-text-medium);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.dms-filter-count {
+  padding: 1px 6px;
+  background: var(--c-bg, #F5F4F0);
+  border-radius: 10px;
+  font-family: 'DM Mono', monospace;
+  font-size: 90%;
+  color: var(--c-text-light2);
 }
 .dms-filter select {
   padding: 8px 10px;
@@ -318,6 +367,11 @@ onMounted(() => {
   font-family: var(--font-ui);
   font-size: var(--font-2xs);
   background: white;
+}
+.dms-filter select:disabled {
+  background: color-mix(in srgb, var(--c-bg, #F5F4F0) 70%, white);
+  color: var(--c-text-light2);
+  cursor: not-allowed;
 }
 .filter-clear {
   align-self: center;
@@ -328,11 +382,6 @@ onMounted(() => {
   font-size: var(--font-3xs);
   text-decoration: underline;
   padding: 4px 0;
-}
-.filter-hint {
-  margin-top: 12px;
-  color: var(--c-text-medium);
-  font-size: var(--font-3xs);
 }
 
 .cell-sub {
