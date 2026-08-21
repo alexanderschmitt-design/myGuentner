@@ -114,8 +114,7 @@ async function probeFacetForCandidates(
 async function resolveFilter(
   objDefId: string,
   filter: PortalFilterDef,
-  discoveryValues: Map<string, Array<{ value: string; count?: number }>>,
-  discoveryPropertyMap: Map<string, string>,
+  discoveryValuesByKey: Map<string, Array<{ value: string; count?: number }>>,
   debug: Record<string, string[]> | null
 ): Promise<FilterValues> {
   const cacheKey = `${objDefId}::${filter.frontendField}`
@@ -130,34 +129,37 @@ async function resolveFilter(
   }
 
   const dbg = debug ? [] as string[] : undefined
+  let resolvedPropertyId: string | null = null
+  let resolvedOptions: Array<{ value: string; count?: number }> = []
 
-  // 1) Probe die statischen Kandidaten via Facet-API.
-  let resolved = await probeFacetForCandidates(objDefId, filter.candidatePropertyIds, dbg)
-
-  // 2) Fallback: entdeckten Property-Key aus DisplayName-Match nutzen (via Discovery).
-  if (!resolved.propertyId) {
-    const discoveredKey = discoveryPropertyMap.get(filter.frontendField)
-    if (discoveredKey) {
-      dbg?.push(`fallback discovery key: ${discoveredKey}`)
-      resolved = await probeFacetForCandidates(objDefId, [discoveredKey], dbg)
-      if (!resolved.propertyId) {
-        // Kein Facet, aber Sample-Values verfügbar → daraus Options bauen.
-        const sample = discoveryValues.get(filter.frontendField)
-        if (sample && sample.length) {
-          resolved = { propertyId: discoveredKey, options: sample }
-          dbg?.push(`  → using sample-aggregated values (${sample.length})`)
-        }
-      }
+  // Primär: für jeden Kandidaten schauen ob er in der Discovery-Sample-
+  // Aggregation vorkommt — d.velop-Facet-API wirft aktuell HTTP 500, aber
+  // die Sample-Search liefert die Werte via sourceProperties zuverlässig.
+  for (const candidate of filter.candidatePropertyIds) {
+    const sample = discoveryValuesByKey.get(candidate)
+    if (sample && sample.length) {
+      resolvedPropertyId = candidate
+      resolvedOptions = sample
+      dbg?.push(`✓ ${candidate}: ${sample.length} values (via discovery)`)
+      break
     }
+    dbg?.push(`  ${candidate}: not in discovery`)
   }
 
-  resolved.options.sort((a, b) => (b.count || 0) - (a.count || 0) || a.value.localeCompare(b.value))
+  // Sekundär: Facet-API probieren (falls Discovery leer, z.B. neuer Filter).
+  if (!resolvedPropertyId) {
+    const probed = await probeFacetForCandidates(objDefId, filter.candidatePropertyIds, dbg)
+    resolvedPropertyId = probed.propertyId
+    resolvedOptions = probed.options
+  }
+
+  resolvedOptions.sort((a, b) => (b.count || 0) - (a.count || 0) || a.value.localeCompare(b.value))
 
   const values: FilterValues = {
     frontendField: filter.frontendField,
     label: filter.label,
-    propertyId: resolved.propertyId,
-    options: resolved.options.slice(0, 200)
+    propertyId: resolvedPropertyId,
+    options: resolvedOptions.slice(0, 200)
   }
   if (debug && dbg) debug[filter.frontendField] = dbg
   // Nur erfolgreiche Auflösungen cachen — leere Ergebnisse sind meist
@@ -191,26 +193,28 @@ export default defineEventHandler(async (event) => {
   }
 
   try {
-    // Discovery einmalig pro Request (nur wenn irgendein Filter Fallback braucht).
-    // Läuft parallel zu den ersten Facet-Probes — kein extra Latency.
-    const discoveryPromise = discoverPropertiesForObjectDefinition(objectDefinitionId, { sampleSize: 100 })
-      .then((props) => {
-        const propMap = new Map<string, string>()
-        const valMap = new Map<string, Array<{ value: string; count?: number }>>()
-        for (const filter of filterSet) {
-          const needles = [filter.label, ...(filter.aliases || [])].map((s) => s.toLowerCase())
-          const match = props.find((p) => {
-            const dn = (p.displayName || '').toLowerCase()
-            return needles.some((n) => dn === n || dn.startsWith(n))
-          })
-          if (match) {
-            propMap.set(filter.frontendField, match.key)
-            valMap.set(filter.frontendField, match.values.map((v) => ({ value: v.value, count: v.count })))
-          }
+    // Discovery einmalig pro Request. Läuft nur wenn mindestens ein Filter
+    // KEIN Cache-Hit hat — daher lazy (nicht sofort ausgeführt).
+    let discoveryValuesByKey: Map<string, Array<{ value: string; count?: number }>> | null = null
+    let allDiscoveredForDebug: any[] = []
+
+    async function ensureDiscovery() {
+      if (discoveryValuesByKey) return discoveryValuesByKey
+      try {
+        const props = await discoverPropertiesForObjectDefinition(objectDefinitionId, { sampleSize: 100 })
+        const map = new Map<string, Array<{ value: string; count?: number }>>()
+        for (const p of props) {
+          map.set(p.key, p.values.map((v) => ({ value: v.value, count: v.count })))
         }
-        return { propMap, valMap, all: props }
-      })
-      .catch((err) => ({ propMap: new Map<string, string>(), valMap: new Map<string, Array<{ value: string; count?: number }>>(), all: [] as Array<{ key: string; displayName: string; occurrenceCount: number; values: Array<{ value: string; count: number }> }>, error: err.message }))
+        discoveryValuesByKey = map
+        allDiscoveredForDebug = props
+        return map
+      } catch (err: any) {
+        console.warn('[filter-values] discovery failed:', err.message)
+        discoveryValuesByKey = new Map()
+        return discoveryValuesByKey
+      }
+    }
 
     if (field) {
       const filter = filterSet.find((f) => f.frontendField === field)
@@ -218,20 +222,24 @@ export default defineEventHandler(async (event) => {
         setResponseStatus(event, 404)
         return { ok: false, error: `unknown field: ${field}` }
       }
-      const discovery = await discoveryPromise
-      const debug = debugMode ? {} : null
-      const values = await resolveFilter(objectDefinitionId, filter, discovery.valMap, discovery.propMap, debug)
-      return { ok: true, objectDefinitionId, filters: [values], _debug: debug ? { ...debug, allDiscovered: (discovery as any).all } : undefined }
+      const debug = debugMode ? {} as Record<string, string[]> : null
+      // Discovery nur laufen lassen wenn kein DB-Cache-Hit.
+      const dbHit = await readFromDbCache(objectDefinitionId, filter.frontendField)
+      const discovery = dbHit ? new Map() : await ensureDiscovery()
+      const values = await resolveFilter(objectDefinitionId, filter, discovery, debug)
+      return { ok: true, objectDefinitionId, filters: [values], _debug: debug ? { ...debug, allDiscovered: allDiscoveredForDebug } : undefined }
     }
 
-    const discovery = await discoveryPromise
-    const debug = debugMode ? {} : null
-    const filters = await Promise.all(filterSet.map((f) => resolveFilter(objectDefinitionId, f, discovery.valMap, discovery.propMap, debug)))
+    // Full-Set-Load: discovery einmal (falls irgendein Filter fehlt) + alle
+    // Filter parallel resolven.
+    const discovery = await ensureDiscovery()
+    const debug = debugMode ? {} as Record<string, string[]> : null
+    const filters = await Promise.all(filterSet.map((f) => resolveFilter(objectDefinitionId, f, discovery, debug)))
     return {
       ok: true,
       objectDefinitionId,
       filters,
-      _debug: debug ? { ...debug, allDiscovered: (discovery as any).all } : undefined
+      _debug: debug ? { ...debug, allDiscovered: allDiscoveredForDebug } : undefined
     }
   } catch (err: any) {
     setResponseStatus(event, 502)
