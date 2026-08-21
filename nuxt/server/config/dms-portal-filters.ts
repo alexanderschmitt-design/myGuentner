@@ -25,24 +25,77 @@ export interface PortalFilterDef {
   frontendField: string
   /** Anzeige-Label im UI (matches d.velop displayName exakt oder Alias) */
   label: string
-  /** Weitere d.velop-Aliases, falls der displayName leicht abweicht.
-   *  Beim Property-ID-Lookup wird case-insensitive gegen diese Liste + `label` gematched. */
+  /** DisplayName-Aliases für den Fallback-Schema-Lookup. */
   aliases?: string[]
-  /** Optionale Property-ID-Hints (falls bereits bekannt) — überspringt Discovery. */
-  knownPropertyId?: string
+  /**
+   * Liste von d.velop-Property-Key-Kandidaten. Der Server probiert sie der
+   * Reihe nach via `getFacetValues()` — die erste, die Werte liefert,
+   * gewinnt und wird gecached. Kombiniert typische d.velop-Naming-
+   * Konventionen (`property_<name>`, `<name>`) mit numerischen IDs.
+   */
+  candidatePropertyIds: string[]
 }
 
 export const PORTAL_PUBLIC_DOCUMENTS_FILTERS: PortalFilterDef[] = [
-  { frontendField: 'documentType',    label: 'Document Type',    aliases: ['Dokumententyp'], knownPropertyId: '128' },
-  { frontendField: 'permission',      label: 'Permission',       aliases: ['Berechtigung'] },
-  { frontendField: 'brand',           label: 'Brand',            aliases: ['Marke'] },
-  { frontendField: 'region',          label: 'Region' },
-  { frontendField: 'languagePortal',  label: 'Language Portal',  aliases: ['Language', 'Sprache'] },
-  { frontendField: 'productCategory', label: 'Product Category', aliases: ['Produkt-Kategorie'] },
-  { frontendField: 'productLevel1',   label: 'Product Level 1',  aliases: ['Product Level', 'Produkt-Level 1'] },
-  { frontendField: 'productGroup',    label: 'Product Group',    aliases: ['Produkt-Gruppe'] },
-  { frontendField: 'productFamily',   label: 'Product Family',   aliases: ['Produkt-Familie'] },
-  { frontendField: 'productSeries',   label: 'Product Series',   aliases: ['Produkt-Serie'] }
+  {
+    frontendField: 'documentType',
+    label: 'Document Type',
+    aliases: ['Dokumententyp'],
+    candidatePropertyIds: ['128', 'property_document_type', 'property_documenttype', 'document_type', 'documenttype', 'Document Type']
+  },
+  {
+    frontendField: 'permission',
+    label: 'Permission',
+    aliases: ['Berechtigung'],
+    candidatePropertyIds: ['property_permission', 'permission', 'Permission']
+  },
+  {
+    frontendField: 'brand',
+    label: 'Brand',
+    aliases: ['Marke'],
+    candidatePropertyIds: ['property_brand', 'brand', 'Brand']
+  },
+  {
+    frontendField: 'region',
+    label: 'Region',
+    candidatePropertyIds: ['property_region', 'region', 'Region']
+  },
+  {
+    frontendField: 'languagePortal',
+    label: 'Language Portal',
+    aliases: ['Language', 'Sprache', 'Portal Language'],
+    candidatePropertyIds: ['property_language_portal', 'property_languageportal', 'property_language', 'language_portal', 'languageportal', 'language', 'Language Portal', 'Language']
+  },
+  {
+    frontendField: 'productCategory',
+    label: 'Product Category',
+    aliases: ['Produkt-Kategorie'],
+    candidatePropertyIds: ['property_product_category', 'property_productcategory', 'product_category', 'productcategory', 'Product Category']
+  },
+  {
+    frontendField: 'productLevel1',
+    label: 'Product Level 1',
+    aliases: ['Product Level', 'Produkt-Level 1'],
+    candidatePropertyIds: ['property_product_level_1', 'property_productlevel1', 'property_product_level1', 'product_level_1', 'productlevel1', 'Product Level 1']
+  },
+  {
+    frontendField: 'productGroup',
+    label: 'Product Group',
+    aliases: ['Produkt-Gruppe'],
+    candidatePropertyIds: ['property_product_group', 'property_productgroup', 'product_group', 'productgroup', 'Product Group']
+  },
+  {
+    frontendField: 'productFamily',
+    label: 'Product Family',
+    aliases: ['Produkt-Familie'],
+    candidatePropertyIds: ['property_product_family', 'property_productfamily', 'product_family', 'productfamily', 'Product Family']
+  },
+  {
+    frontendField: 'productSeries',
+    label: 'Product Series',
+    aliases: ['Produkt-Serie'],
+    candidatePropertyIds: ['property_product_series', 'property_productseries', 'product_series', 'productseries', 'Product Series']
+  }
 ]
 
 export const PORTAL_PUBLIC_DOCUMENTS_OBJDEF_ID = 'DMANU'
