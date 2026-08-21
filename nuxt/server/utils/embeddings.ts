@@ -124,6 +124,17 @@ async function embedGemini(texts: string[]): Promise<number[][]> {
     })
     if (!res.ok) {
       const detail = (await res.text().catch(() => '')).slice(0, 500)
+      // 429 = Free-Tier-Quota erschöpft (100 embed_content_requests / Tag).
+      // Klarere Fehlermeldung als der raw d.velop-Text, damit der Admin
+      // sofort weiß was zu tun ist.
+      if (res.status === 429) {
+        throw new Error(
+          'Gemini Free-Tier-Kontingent erschöpft (100 Embedding-Requests/Tag). ' +
+          'Optionen: (1) morgen erneut versuchen, (2) auf Paid-Tier upgraden ' +
+          '(https://aistudio.google.com/app/apikey → Billing), (3) auf OpenAI ' +
+          'wechseln (RAG Settings → Embedding-Mode: OpenAI, OPENAI_API_KEY setzen).'
+        )
+      }
       throw new Error(`Gemini embeddings ${res.status}: ${detail}`)
     }
     const data = await res.json()

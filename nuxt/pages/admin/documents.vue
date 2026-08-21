@@ -35,6 +35,10 @@ const uploading = ref(false)
 const dmsOpen = ref(false)
 const deleteTarget = ref<DocRow | null>(null)
 const reprocessingAll = ref(false)
+// Set von Doc-IDs die gerade prozessiert werden — der Reprocess-Endpoint
+// blockiert bis fertig; solange updaten wir die Row lokal auf "processing"
+// damit der User sofortiges visuelles Feedback bekommt.
+const processingIds = ref<Set<string>>(new Set())
 
 const columns = [
   { key: 'name', label: 'Name' },
@@ -74,20 +78,41 @@ async function onFile(f: File | null) {
 }
 
 async function reprocess(row: DocRow) {
+  // Sofort-Feedback: Status-Pill in der Row auf "processing" umschalten
+  // + Info-Toast anzeigen. Der Server-Call ist synchron — nach Antwort
+  // kommt ein Erfolg-/Fehler-Toast.
+  processingIds.value = new Set([...processingIds.value, row.id])
+  const rowIdx = docs.value.findIndex((d) => d.id === row.id)
+  if (rowIdx >= 0) {
+    docs.value = [
+      ...docs.value.slice(0, rowIdx),
+      { ...docs.value[rowIdx], status: 'processing', error: null },
+      ...docs.value.slice(rowIdx + 1)
+    ]
+  }
+  toast.info(`Reprocess für "${row.name}" gestartet — Text-Extraktion + Embeddings laufen…`)
   try {
-    await api.post(`/api/documents/${row.id}/process`)
-    toast.success(`Reprocess für ${row.name} gestartet`)
+    const res = await api.post<{ ok: boolean; chunkCount?: number }>(`/api/documents/${row.id}/process`)
+    if (res?.chunkCount != null) {
+      toast.success(`"${row.name}" reprocessed — ${res.chunkCount} Chunks eingebettet`)
+    } else {
+      toast.success(`"${row.name}" reprocessed`)
+    }
     await load()
   } catch (err: any) {
-    toast.error(err.message || 'Reprocess fehlgeschlagen')
+    toast.error(err.message || 'Reprocess fehlgeschlagen — siehe Fehlermeldung in der Zeile')
+    await load()
+  } finally {
+    processingIds.value = new Set([...processingIds.value].filter((id) => id !== row.id))
   }
 }
 
 async function reprocessAll() {
   reprocessingAll.value = true
+  toast.info('Reprocess-All gestartet — Text-Extraktion + Embeddings für alle Docs laufen…')
   try {
     await api.post('/api/documents/reprocess-all')
-    toast.success('Reprocess-All gestartet')
+    toast.success('Reprocess-All abgeschlossen')
     await load()
   } catch (err: any) {
     toast.error(err.message || 'Reprocess-All fehlgeschlagen')
@@ -163,13 +188,23 @@ onMounted(load)
       </template>
       <template #cell-size_bytes="{ row }">{{ formatBytes(row.size_bytes || 0) }}</template>
       <template #cell-status="{ row }">
-        <span class="status-pill" :class="`status-${row.status}`">{{ row.status }}</span>
+        <span class="status-pill" :class="`status-${row.status}`">
+          <span v-if="processingIds.has(row.id) || row.status === 'processing'" class="status-spinner" aria-hidden="true"></span>
+          {{ row.status }}
+        </span>
       </template>
       <template #actions="{ row }">
         <button class="row-btn" title="View" @click="view(row)">Ansehen</button>
         <button class="row-btn" title="Download" @click="download(row)">Download</button>
-        <button class="row-btn" title="Re-process" @click="reprocess(row)">Reprocess</button>
-        <button class="row-btn row-btn-danger" title="Delete" @click="deleteTarget = row">Löschen</button>
+        <button
+          class="row-btn"
+          title="Re-process"
+          :disabled="processingIds.has(row.id)"
+          @click="reprocess(row)"
+        >
+          {{ processingIds.has(row.id) ? 'Läuft…' : 'Reprocess' }}
+        </button>
+        <button class="row-btn row-btn-danger" :disabled="processingIds.has(row.id)" title="Delete" @click="deleteTarget = row">Löschen</button>
       </template>
     </DataTable>
 
@@ -215,6 +250,26 @@ onMounted(load)
 .status-ready { background: color-mix(in srgb, var(--c-success, #2E7D4F) 15%, white); color: var(--c-success, #2E7D4F); }
 .status-processing { background: color-mix(in srgb, var(--c-warning, #C57B00) 15%, white); color: var(--c-warning, #C57B00); }
 .status-failed { background: color-mix(in srgb, var(--c-error, #B33A3A) 15%, white); color: var(--c-error, #B33A3A); }
+.status-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: doc-spin 0.75s linear infinite;
+}
+@keyframes doc-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.row-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: var(--c-bg);
+}
 
 .row-btn {
   margin-left: 4px;
