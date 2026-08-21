@@ -62,9 +62,12 @@ export default defineEventHandler(async (event) => {
     setResponseStatus(event, 415)
     return { ok: false, error: `Dateityp ".${ext}" nicht erlaubt. Zulässig: ${Array.from(ALLOWED_EXTENSIONS).join(', ')}` }
   }
-  if (!ALLOWED_CONTENT_TYPES.has(contentType)) {
-    setResponseStatus(event, 415)
-    return { ok: false, error: `Content-Type "${contentType}" nicht erlaubt` }
+  // Content-Type-Check ist bewusst tolerant: manche Browser (v.a. Edge/Firefox
+  // beim Drag&Drop) senden 'application/octet-stream' oder leeren Content-Type.
+  // Solange die Extension in ALLOWED_EXTENSIONS ist, akzeptieren wir das —
+  // der Server prüft eh via magic-bytes beim Text-Extract weiter.
+  if (contentType && !ALLOWED_CONTENT_TYPES.has(contentType) && !contentType.includes('octet-stream')) {
+    console.warn(`[upload] unusual content-type "${contentType}" for .${ext}, accepting anyway`)
   }
 
   const id = `local_${randomUUID()}`

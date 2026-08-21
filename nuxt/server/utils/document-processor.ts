@@ -1,11 +1,12 @@
 /**
  * Document Processor — extracts text from PDF/DOCX/TXT/CSV/XLSX, chunks it.
  *
- * pdf-parse and xlsx are loaded via createRequire() so Rollup does not try to
- * statically resolve them. Dynamic `import()` inside a function still gets
- * Rollup-analysed on Windows and produces `import('C:\\...\\pdf-parse\\...')`,
- * which the ESM loader rejects with "protocol 'c:'". createRequire uses Node's
- * CommonJS resolver directly, bypassing the bundler.
+ * PDF: `unpdf` — ein zero-dependency PDF-Extraktor speziell für serverless
+ * environments (Vercel, Cloudflare Workers). pdf-parse hat auf Vercel
+ * "Cannot find module 'pdf-parse/lib/pdf-parse.js'" geworfen, weil der
+ * Bundler das interne Modul nicht mitpackt (bekanntes pdf-parse-Bug).
+ *
+ * xlsx wird weiter über createRequire() geladen — hat kein Bundling-Problem.
  */
 
 import { createRequire } from 'node:module'
@@ -28,11 +29,13 @@ export async function extractText(buffer: Buffer, mime: string, filename: string
   const ext = (filename.split('.').pop() || '').toLowerCase()
 
   if (type.includes('pdf') || ext === 'pdf') {
-    // pdf-parse/lib/pdf-parse.js is the internal impl — the top-level index.js
-    // runs a debug PDF read on module load in ESM contexts, which fails.
-    const pdfParse = nodeRequire('pdf-parse/lib/pdf-parse.js') as (buf: Buffer) => Promise<{ text: string }>
-    const data = await pdfParse(buffer)
-    return data.text || ''
+    // unpdf ist ESM-nativ und braucht kein Bundler-Workaround. Liefert
+    // pages[]-Array — wir joinen mit doppeltem Newline damit Chunk-
+    // Grenzen später sinnvoll gesetzt werden.
+    const { extractText: unpdfExtract, getDocumentProxy } = await import('unpdf')
+    const pdf = await getDocumentProxy(new Uint8Array(buffer))
+    const { text } = await unpdfExtract(pdf, { mergePages: true })
+    return typeof text === 'string' ? text : (Array.isArray(text) ? text.join('\n\n') : '')
   }
 
   if (type.includes('spreadsheet') || ext === 'xlsx' || ext === 'xls') {

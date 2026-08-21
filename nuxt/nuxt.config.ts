@@ -153,7 +153,7 @@ export default defineNuxtConfig({
     // on Windows (pdf-parse) and Vercel (native canvas bindings). Keeping them
     // as runtime CommonJS deps is safer and closer to how Vercel resolves.
     externals: {
-      external: ['pdf-parse', 'xlsx', '@anthropic-ai/sdk', '@supabase/supabase-js']
+      external: ['xlsx', '@anthropic-ai/sdk', '@supabase/supabase-js']
     }
   }
 });
