@@ -153,7 +153,7 @@ async function resolveFilter(
     resolvedOptions = probed.options
   }
 
-  resolvedOptions.sort((a, b) => (b.count || 0) - (a.count || 0) || a.value.localeCompare(b.value))
+  resolvedOptions.sort((a, b) => a.value.localeCompare(b.value, undefined, { numeric: true, sensitivity: 'base' }))
 
   const values: FilterValues = {
     frontendField: filter.frontendField,
