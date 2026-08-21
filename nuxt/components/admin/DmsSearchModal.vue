@@ -24,6 +24,12 @@ const searching = ref(false)
 const rows = ref<any[]>([])
 const selected = ref<Set<string>>(new Set())
 const importing = ref(false)
+/** Wenn die Suche eine Server-Antwort mit ok:false liefert (z.B. weil DMS_API_KEY
+ *  auf Vercel nicht gesetzt ist, oder dms-prod.guentner.com aus dem Vercel-Netz
+ *  nicht erreichbar ist), zeigen wir den Fehlertext direkt in der Modal-Tabelle
+ *  statt die irreführende "keine Treffer"-Empty-Zeile. */
+const searchError = ref<string | null>(null)
+const hasSearched = ref(false)
 
 const columns = [
   { key: 'select', label: '', width: '40px' },
@@ -37,6 +43,8 @@ const canImport = computed(() => selected.value.size > 0 && !importing.value)
 async function runSearch() {
   if (!fulltext.value.trim()) return
   searching.value = true
+  searchError.value = null
+  hasSearched.value = true
   try {
     const res = await api.get<{ ok: boolean; hits?: any[] }>('/api/dms/search', {
       query: { fulltext: fulltext.value.trim(), pageSize: 25 }
@@ -50,11 +58,20 @@ async function runSearch() {
     }))
     selected.value = new Set()
   } catch (err: any) {
-    toast.error(err.message || 'DMS-Suche fehlgeschlagen')
+    const msg = err?.message || 'DMS-Suche fehlgeschlagen'
+    searchError.value = msg
+    rows.value = []
+    toast.error(msg)
   } finally {
     searching.value = false
   }
 }
+
+const emptyMessage = computed(() => {
+  if (searchError.value) return `DMS-Verbindung fehlgeschlagen: ${searchError.value}`
+  if (hasSearched.value) return `Keine Treffer für „${fulltext.value.trim()}".`
+  return 'Volltext eintippen und Enter drücken, um im DMS zu suchen.'
+})
 
 function toggleRow(dmsId: string) {
   if (selected.value.has(dmsId)) selected.value.delete(dmsId)
@@ -100,11 +117,22 @@ function close() { emit('update:open', false) }
       </button>
     </div>
 
+    <div v-if="searchError" class="dms-error-hint">
+      <strong>DMS-Verbindung fehlgeschlagen.</strong>
+      <p>{{ searchError }}</p>
+      <p class="dms-error-hint-tip">
+        Prüfe: <code>DMS_BASE_URL</code>, <code>DMS_REPOSITORY_ID</code>, <code>DMS_API_KEY</code>
+        in den Vercel Environment Variables — und ob <code>dms-prod.guentner.com</code> aus dem
+        Deploy-Netz erreichbar ist (VPN / IP-Allowlist).
+        Diagnose: <code>/api/dms/health</code> aufrufen.
+      </p>
+    </div>
+
     <DataTable
       :rows="rows"
       :columns="columns"
       :loading="searching"
-      empty-message="Noch keine Suche ausgeführt oder keine Treffer."
+      :empty-message="emptyMessage"
       :row-key="(r: any) => r.dmsId"
     >
       <template #cell-select="{ row }">
@@ -161,5 +189,30 @@ function close() { emit('update:open', false) }
   font-family: var(--font-ui);
   font-size: var(--font-3xs);
   color: var(--c-text-medium);
+}
+.dms-error-hint {
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, var(--c-error, #B33A3A) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--c-error, #B33A3A) 40%, transparent);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-value);
+}
+.dms-error-hint strong { display: block; margin-bottom: 4px; }
+.dms-error-hint p { margin: 0 0 6px; line-height: 1.5; }
+.dms-error-hint p:last-child { margin: 0; }
+.dms-error-hint-tip {
+  color: var(--c-text-medium);
+  font-size: var(--font-4xs);
+}
+.dms-error-hint code {
+  padding: 1px 5px;
+  background: white;
+  border: 1px solid var(--c-border);
+  border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 90%;
 }
 </style>
