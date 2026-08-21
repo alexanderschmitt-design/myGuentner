@@ -168,8 +168,8 @@ onMounted(load)
         <div class="field">
           <label>Mode</label>
           <select v-model="settings.embedding_mode">
-            <option value="local">Local (TF-IDF, 384-dim)</option>
-            <option value="openai">OpenAI API</option>
+            <option value="openai">OpenAI (text-embedding-3-small · 1536-dim)</option>
+            <option value="gemini">Google Gemini (gemini-embedding-001 · 1536-dim)</option>
           </select>
         </div>
         <div class="field">
@@ -177,7 +177,8 @@ onMounted(load)
           <input type="text" v-model="settings.embedding_model" placeholder="text-embedding-3-small" />
         </div>
         <p class="hint">
-          Bei Wechsel zwischen local ↔ openai muss der Vector Store neu berechnet werden (Reset unten + Documents → Reprocess All).
+          Bei Wechsel zwischen openai ↔ gemini muss der Vector Store neu berechnet werden (Reset unten + Documents → Reprocess All).
+          Beide Provider liefern 1536-dim Vektoren — pgvector-Schema bleibt unverändert.
         </p>
       </section>
 
