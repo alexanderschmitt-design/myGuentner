@@ -23,7 +23,14 @@ const selected = ref<Set<string>>(new Set())
 const importing = ref(false)
 const activeJobId = ref<string | null>(null)
 
-const filterDefs = ref<FilterDef[]>([])
+interface FilterDefDynamic extends FilterDef {
+  /** Wenn gesetzt (Dynamic-Discovery), ist der Filter kein Frontend-Alias
+   *  sondern eine direkte DMS-Property-ID. Muss beim Search-Query anders
+   *  gesendet werden (?prop.<id>=<value> statt ?filter.<field>=<value>). */
+  sourcePropertyId?: string
+}
+
+const filterDefs = ref<FilterDefDynamic[]>([])
 const activeFilters = ref<Record<string, string>>({})
 const filtersLoading = ref(false)
 
@@ -55,10 +62,22 @@ async function loadHealth() {
 async function loadFilters() {
   filtersLoading.value = true
   try {
-    const res = await api.get<{ ok: boolean; filters: FilterDef[] }>('/api/dms/facets', {
-      query: fulltext.value.trim() ? { fulltext: fulltext.value.trim() } : {}
-    })
+    const query: Record<string, string> = {}
+    if (fulltext.value.trim()) query.fulltext = fulltext.value.trim()
+    // objectCategory-Auswahl → Facets dynamisch pro ObjectDefinition laden.
+    if (activeFilters.value.objectCategory) {
+      query.objectDefinitionIds = activeFilters.value.objectCategory
+    }
+    const res = await api.get<{ ok: boolean; filters: FilterDefDynamic[] }>('/api/dms/facets', { query })
     filterDefs.value = res.filters || []
+    // Alte Filter-Werte cleanen die es in den neuen Definitions nicht mehr gibt
+    // (aber objectCategory beibehalten — der triggert ja den Reload).
+    const validFields = new Set(filterDefs.value.map(f => f.frontendField))
+    const pruned: Record<string, string> = {}
+    for (const [k, v] of Object.entries(activeFilters.value)) {
+      if (validFields.has(k) || k === 'objectCategory') pruned[k] = v
+    }
+    activeFilters.value = pruned
   } catch (err: any) {
     toast.error(err.message || 'Filter konnten nicht geladen werden')
   } finally {
@@ -70,10 +89,15 @@ function setFilter(field: string, value: string) {
   if (!value) delete activeFilters.value[field]
   else activeFilters.value[field] = value
   activeFilters.value = { ...activeFilters.value }
+  // Bei Kategorie-Wechsel: Filter-Set komplett neu laden (dynamische Discovery).
+  if (field === 'objectCategory') {
+    loadFilters()
+  }
 }
 
 function clearFilters() {
   activeFilters.value = {}
+  loadFilters()
 }
 
 const hasFilters = computed(() => Object.keys(activeFilters.value).length > 0)
@@ -81,8 +105,24 @@ const hasFilters = computed(() => Object.keys(activeFilters.value).length > 0)
 function buildSearchQuery() {
   const query: Record<string, string | number> = { pageSize: 50 }
   if (fulltext.value.trim()) query.fulltext = fulltext.value.trim()
+  const dynFields = new Map(filterDefs.value.map(f => [f.frontendField, f.sourcePropertyId]))
   for (const [k, v] of Object.entries(activeFilters.value)) {
-    query[`filter.${k}`] = v
+    if (k === 'objectCategory') {
+      // objectCategory ist ein sourcecategories-Filter → geht als
+      // `filter.objectCategory` durch die DMS_PROPERTY_MAP.translateFilters.
+      // Zusätzlich als objectDefinitionIds an den Server damit die Facets
+      // konsistent bleiben.
+      query[`filter.${k}`] = v
+      query.objectDefinitionIds = v
+      continue
+    }
+    // Dynamic-Discovery-Filter: direkter DMS-Property-Key → `prop.<id>=<value>`.
+    const propId = dynFields.get(k)
+    if (propId) {
+      query[`prop.${propId}`] = v
+    } else {
+      query[`filter.${k}`] = v
+    }
   }
   return query
 }

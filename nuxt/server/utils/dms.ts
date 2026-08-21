@@ -343,6 +343,94 @@ export async function getObjectDefinitions() {
   return data.objectDefinitions || []
 }
 
+/**
+ * Holt die Property-Definitionen für eine ObjectDefinition — liefert für
+ * jeden Property-Key auch den displayName (den d.velop in der Browser-UI
+ * zeigt: "Document Type", "Brand", "Region", …). Wenn der Endpoint nicht
+ * erreichbar ist, wird `null` geliefert (Discovery fällt dann auf reine
+ * IDs zurück).
+ */
+export async function getObjectDefinitionProperties(objDefId: string): Promise<Array<{ key: string; displayName: string }>> {
+  const cfg = getDmsConfig()
+  try {
+    const data = await dmsFetchJson(`/dms/r/${cfg.repositoryId}/objdef/${encodeURIComponent(objDefId)}`)
+    const raw = data.properties || data.propertyDefinitions || []
+    const out: Array<{ key: string; displayName: string }> = []
+    for (const p of raw as any[]) {
+      const key = p.key || p.id || p.propertyId
+      if (!key) continue
+      out.push({ key, displayName: p.displayName || p.label || p.name || key })
+    }
+    return out
+  } catch (err: any) {
+    console.warn(`[dms] getObjectDefinitionProperties(${objDefId}) failed:`, err.message)
+    return []
+  }
+}
+
+/**
+ * Sample-basierte Property-Discovery für eine gegebene ObjectDefinition.
+ * Sucht bis zu `sampleSize` Hits mit `objectdefinitionids=<objDefId>` und
+ * aggregiert daraus die verfügbaren Property-Keys + deren Werte-Verteilung.
+ * Ideal um in der Admin-UI dynamische Cascading-Filter zu bauen ohne
+ * statische Property-Maps zu pflegen.
+ */
+export async function discoverPropertiesForObjectDefinition(
+  objDefId: string,
+  opts: { sampleSize?: number; fulltext?: string } = {}
+): Promise<Array<{
+  key: string
+  displayName: string
+  occurrenceCount: number
+  values: Array<{ value: string; count: number }>
+}>> {
+  const sampleSize = Math.min(200, Math.max(10, opts.sampleSize || 100))
+  const [search, schema] = await Promise.all([
+    searchDocuments({
+      objectDefinitionIds: [objDefId],
+      fulltext: opts.fulltext,
+      pageSize: sampleSize
+    }),
+    getObjectDefinitionProperties(objDefId)
+  ])
+  const displayMap = new Map<string, string>()
+  for (const p of schema) displayMap.set(p.key, p.displayName)
+
+  const propAgg = new Map<string, { count: number; values: Map<string, number> }>()
+  for (const hit of search.items) {
+    const seenThisHit = new Set<string>()
+    for (const p of (hit.sourceProperties || []) as any[]) {
+      const key = p.key || p.id
+      if (!key || typeof key !== 'string') continue
+      if (!displayMap.has(key) && (p.displayName || p.label)) {
+        displayMap.set(key, p.displayName || p.label)
+      }
+      const val = Array.isArray(p.values) ? p.values[0] : p.value
+      if (val === null || val === undefined || val === '') continue
+      const strVal = String(val)
+      if (!propAgg.has(key)) propAgg.set(key, { count: 0, values: new Map() })
+      const slot = propAgg.get(key)!
+      if (!seenThisHit.has(key)) { slot.count += 1; seenThisHit.add(key) }
+      slot.values.set(strVal, (slot.values.get(strVal) || 0) + 1)
+    }
+  }
+
+  const out: Array<{ key: string; displayName: string; occurrenceCount: number; values: Array<{ value: string; count: number }> }> = []
+  for (const [key, slot] of propAgg) {
+    const values = Array.from(slot.values.entries())
+      .map(([value, count]) => ({ value, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 100)
+    out.push({
+      key,
+      displayName: displayMap.get(key) || key,
+      occurrenceCount: slot.count,
+      values
+    })
+  }
+  return out.sort((a, b) => b.occurrenceCount - a.occurrenceCount)
+}
+
 export async function getFacetValues(propertyId: string, filter: { objectDefinitionIds?: string | string[]; fulltext?: string } = {}) {
   const cfg = getDmsConfig()
   let objDefs: string
