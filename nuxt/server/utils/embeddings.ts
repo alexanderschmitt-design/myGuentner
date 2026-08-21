@@ -26,6 +26,10 @@ const OPENAI_BATCH_SIZE = 100
 
 const GEMINI_URL = 'https://generativelanguage.googleapis.com/v1beta/models'
 const GEMINI_DEFAULT_MODEL = 'gemini-embedding-001'
+// Gemini batchEmbedContents akzeptiert max 100 requests pro Batch
+// (INVALID_ARGUMENT sonst). Größere Dokumente werden in Chunks von 100
+// zerlegt und die Ergebnisse zusammengeführt.
+const GEMINI_BATCH_SIZE = 100
 
 export function getEmbeddingsConfig() {
   const cfg = useRuntimeConfig()
@@ -93,6 +97,10 @@ async function embedOpenAI(texts: string[]): Promise<number[][]> {
  *
  * Wichtig: `outputDimensionality=1536` erzwingt kompatible Vektoren zum
  * bestehenden pgvector-Schema. Ohne diesen Parameter wären es 3072 (default).
+ *
+ * Große Dokumente werden in Batches à GEMINI_BATCH_SIZE (100) zerlegt und
+ * sequenziell abgeschickt — Gemini lehnt größere Batches mit
+ * "INVALID_ARGUMENT" ab.
  */
 async function embedGemini(texts: string[]): Promise<number[][]> {
   const cfg = getEmbeddingsConfig()
@@ -100,32 +108,38 @@ async function embedGemini(texts: string[]): Promise<number[][]> {
     throw new Error('GEMINI_API_KEY (bzw. GOOGLE_API_KEY) is not set — set it in Vercel env vars.')
   }
   const url = `${GEMINI_URL}/${encodeURIComponent(cfg.geminiModel)}:batchEmbedContents?key=${encodeURIComponent(cfg.geminiKey)}`
-  const requests = texts.map((t) => ({
-    model: `models/${cfg.geminiModel}`,
-    content: { parts: [{ text: t }] },
-    outputDimensionality: DEFAULT_DIMENSION
-  }))
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ requests })
-  })
-  if (!res.ok) {
-    const detail = (await res.text().catch(() => '')).slice(0, 500)
-    throw new Error(`Gemini embeddings ${res.status}: ${detail}`)
-  }
-  const data = await res.json()
-  const out = (data.embeddings || []).map((e: any) => e.values as number[])
-  if (out.length !== texts.length) {
-    throw new Error(`Gemini returned ${out.length} embeddings for ${texts.length} inputs`)
-  }
-  // Safety: falls Gemini die Dimension ignoriert, hart abbrechen statt korruptes Vektor schreiben
-  for (const v of out) {
-    if (!Array.isArray(v) || v.length !== DEFAULT_DIMENSION) {
-      throw new Error(`Gemini returned unexpected embedding dimension ${v?.length} (expected ${DEFAULT_DIMENSION})`)
+  const results: number[][] = []
+
+  for (let i = 0; i < texts.length; i += GEMINI_BATCH_SIZE) {
+    const batch = texts.slice(i, i + GEMINI_BATCH_SIZE)
+    const requests = batch.map((t) => ({
+      model: `models/${cfg.geminiModel}`,
+      content: { parts: [{ text: t }] },
+      outputDimensionality: DEFAULT_DIMENSION
+    }))
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ requests })
+    })
+    if (!res.ok) {
+      const detail = (await res.text().catch(() => '')).slice(0, 500)
+      throw new Error(`Gemini embeddings ${res.status}: ${detail}`)
     }
+    const data = await res.json()
+    const batchOut = (data.embeddings || []).map((e: any) => e.values as number[])
+    if (batchOut.length !== batch.length) {
+      throw new Error(`Gemini returned ${batchOut.length} embeddings for ${batch.length} inputs (batch ${i}-${i + batch.length})`)
+    }
+    // Safety: falls Gemini die Dimension ignoriert, hart abbrechen statt korruptes Vektor schreiben
+    for (const v of batchOut) {
+      if (!Array.isArray(v) || v.length !== DEFAULT_DIMENSION) {
+        throw new Error(`Gemini returned unexpected embedding dimension ${v?.length} (expected ${DEFAULT_DIMENSION})`)
+      }
+    }
+    results.push(...batchOut)
   }
-  return out
+  return results
 }
 
 // ============================================================================
