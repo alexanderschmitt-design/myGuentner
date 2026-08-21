@@ -144,6 +144,10 @@ function trigger() {
   transition: border-color 0.15s, background 0.15s, color 0.15s;
   text-align: center;
 }
+/* Kinder dürfen keine drag/drop-Events klauen — sonst feuert dragover
+   auf dem <svg> statt auf dem Container, preventDefault greift nicht
+   und der Browser öffnet die Datei stattdessen im Tab. */
+.file-dropzone > * { pointer-events: none; }
 .file-dropzone:hover {
   border-color: var(--c-brand-blue);
   background: color-mix(in srgb, var(--c-brand-blue) 4%, white);

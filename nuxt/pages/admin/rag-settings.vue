@@ -299,7 +299,7 @@ onMounted(load)
      Row 3: [Danger]        (full width via .card.danger)
      Der auto-fit-Ansatz vorher produzierte auf großen Screens 3 Spalten
      mit unschönem Versatz. */
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
   align-items: start;
 }
@@ -314,6 +314,11 @@ onMounted(load)
   display: flex;
   flex-direction: column;
   gap: 14px;
+  /* min-width:0 + overflow:hidden ist Pflicht, damit ein Kind-Element mit
+     "natural width" > 1fr die Grid-Column nicht sprengt und beide Cards
+     verschieden breit werden (siehe Debug 2026-08-21). */
+  min-width: 0;
+  overflow: hidden;
 }
 .card h2 {
   margin: 0;
