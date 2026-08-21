@@ -40,22 +40,28 @@ const columns = [
 
 const canImport = computed(() => selected.value.size > 0 && !importing.value)
 
+const appliedObjectDefIds = ref<string[]>([])
+
 async function runSearch() {
   if (!fulltext.value.trim()) return
   searching.value = true
   searchError.value = null
   hasSearched.value = true
   try {
-    const res = await api.get<{ ok: boolean; hits?: any[] }>('/api/dms/search', {
+    const res = await api.get<{ ok: boolean; hits?: any[]; items?: any[]; appliedFilters?: any }>('/api/dms/search', {
       query: { fulltext: fulltext.value.trim(), pageSize: 25 }
     })
-    rows.value = (res.hits || []).map((h: any) => ({
+    const items = res.items || res.hits || []
+    rows.value = items.map((h: any) => ({
       dmsId: h.id || h.dmsId,
       filename: h.filename || h.title || h.name || '(no filename)',
-      category: h.category || h.objectType || '',
+      category: h.categoryLabel || h.category || h.objectType || '',
       modified: h.modified || h.lastModified || '',
       _raw: h
     }))
+    appliedObjectDefIds.value = Array.isArray(res.appliedFilters?.objectDefinitionIds)
+      ? res.appliedFilters.objectDefinitionIds
+      : []
     selected.value = new Set()
   } catch (err: any) {
     const msg = err?.message || 'DMS-Suche fehlgeschlagen'
@@ -116,6 +122,10 @@ function close() { emit('update:open', false) }
         {{ searching ? 'Suche…' : 'Suchen' }}
       </button>
     </div>
+    <p v-if="appliedObjectDefIds.length" class="dms-filter-chip">
+      Filter: <code>{{ appliedObjectDefIds.join(', ') }}</code>
+      <span class="dms-filter-hint">(via <code>DMS_DEFAULT_OBJECT_DEFINITION_IDS</code>)</span>
+    </p>
 
     <div v-if="searchError" class="dms-error-hint">
       <strong>DMS-Verbindung fehlgeschlagen.</strong>
@@ -214,5 +224,23 @@ function close() { emit('update:open', false) }
   border-radius: 3px;
   font-family: 'DM Mono', monospace;
   font-size: 90%;
+}
+.dms-filter-chip {
+  margin: -6px 0 12px;
+  font-family: var(--font-ui);
+  font-size: var(--font-4xs);
+  color: var(--c-text-medium);
+}
+.dms-filter-chip code {
+  padding: 1px 6px;
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 10%, white);
+  border: 1px solid color-mix(in srgb, var(--c-brand-blue, #0078BE) 30%, transparent);
+  border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+  color: var(--c-brand-blue, #0078BE);
+}
+.dms-filter-hint {
+  margin-left: 6px;
+  color: var(--c-text-light2);
 }
 </style>

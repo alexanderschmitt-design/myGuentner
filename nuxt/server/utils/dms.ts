@@ -9,6 +9,7 @@ interface DmsConfig {
   apiKey: string
   authMode: string
   propertySyntax: string
+  defaultObjectDefinitionIds: string
 }
 
 interface DmsBufferResult {
@@ -158,6 +159,12 @@ async function getSourceId(cfg: DmsConfig): Promise<string | null> {
 export interface DmsSearchParams {
   fulltext?: string
   categoryId?: string
+  /** d.velop ObjectDefinition-IDs (z.B. ["DMANU"]) — schränkt Ergebnisse auf
+   *  bestimmte Dokumenttypen ein. Analog zum Preset "Portal Public Documents"
+   *  in der d.velop-Browser-Suche (URL-Param `objectdefinitionids=["DMANU"]`).
+   *  Wenn nicht gesetzt, greift der Default aus `runtimeConfig.dms.
+   *  defaultObjectDefinitionIds`. Leerer Array = keine Filterung. */
+  objectDefinitionIds?: string[]
   properties?: Record<string, string | number>
   page?: number
   pageSize?: number
@@ -192,6 +199,20 @@ export async function searchDocuments(params: DmsSearchParams = {}) {
   qs.set('page', String(params.page || 1))
   qs.set('pagesize', String(params.pageSize || 25))
   if (params.fulltext) qs.set('fulltext', params.fulltext)
+
+  // ObjectDefinition-Filter (default aus Env übernehmen wenn Client nichts
+  // explizit setzt). Format spiegelt die d.velop-Browser-Suche wider:
+  // `objectdefinitionids=["DMANU"]`.
+  const explicitObjDefs = Array.isArray(params.objectDefinitionIds) ? params.objectDefinitionIds : null
+  const objDefs = explicitObjDefs
+    ? explicitObjDefs.filter((s) => typeof s === 'string' && s.trim())
+    : cfg.defaultObjectDefinitionIds
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean)
+  if (objDefs.length > 0) {
+    qs.set('objectdefinitionids', JSON.stringify(objDefs))
+  }
 
   const hasCategory = !!params.categoryId
   const hasProperties = params.properties && typeof params.properties === 'object' && Object.keys(params.properties).length > 0
@@ -348,7 +369,8 @@ export async function dmsHealthCheck() {
       baseUrl: cfg.baseUrl,
       authMode: cfg.authMode,
       hasLinks: typeof root._links === 'object',
-      linkCount: root._links ? Object.keys(root._links).length : 0
+      linkCount: root._links ? Object.keys(root._links).length : 0,
+      defaultObjectDefinitionIds: cfg.defaultObjectDefinitionIds || null
     }
   } catch (err: any) {
     return {

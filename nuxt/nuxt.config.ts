@@ -90,7 +90,12 @@ export default defineNuxtConfig({
       repositoryId: process.env.DMS_REPOSITORY_ID || '',
       apiKey: process.env.DMS_API_KEY || '',
       authMode: (process.env.DMS_AUTH_MODE || 'bearer').toLowerCase(),
-      propertySyntax: (process.env.DMS_PROPERTY_SYNTAX || 'bracket').toLowerCase()
+      propertySyntax: (process.env.DMS_PROPERTY_SYNTAX || 'bracket').toLowerCase(),
+      // Kommagetrennte Liste von d.velop-ObjectDefinition-IDs, gegen die
+      // standardmäßig gefiltert wird (analog zum "Search in Portal Public
+      // Documents"-Preset in der d.velop-Browser-Suche). Leer = alle Typen.
+      // Beispiel: DMS_DEFAULT_OBJECT_DEFINITION_IDS=DMANU
+      defaultObjectDefinitionIds: (process.env.DMS_DEFAULT_OBJECT_DEFINITION_IDS || '').trim()
     },
 
     // LLM providers (Anthropic Bella / Google Gemini / OpenRouter). Provider-Wahl

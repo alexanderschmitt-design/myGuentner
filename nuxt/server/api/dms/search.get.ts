@@ -4,11 +4,15 @@
  * Query:
  *   ?fulltext=<text>
  *   ?page=1&pageSize=25
+ *   ?objectDefinitionIds=DMANU              — Overrides den Env-Default
+ *                                             (kommagetrennt für mehrere)
  *   ?prop.<dmsPropertyId>=<value>          — Roh-Property-Filter (legacy)
  *   ?filter.<frontendField>=<value>        — Frontend-Filter (siehe dms-property-map.ts)
  *
  * Frontend-Filter werden via `translateFilters()` in DMS-Syntax übersetzt,
  * damit UI-Consumer die kryptischen DMS-Property-IDs nicht kennen müssen.
+ * Bei fehlendem `objectDefinitionIds` greift `runtimeConfig.dms.
+ * defaultObjectDefinitionIds` (Env `DMS_DEFAULT_OBJECT_DEFINITION_IDS`).
  */
 
 import { searchDocuments } from '../../utils/dms'
@@ -26,14 +30,19 @@ export default defineEventHandler(async (event) => {
 
     const mergedProps = { ...legacyProps, ...properties }
 
+    const objectDefinitionIds = typeof q.objectDefinitionIds === 'string'
+      ? q.objectDefinitionIds.split(',').map((s: string) => s.trim()).filter(Boolean)
+      : undefined
+
     const result = await searchDocuments({
       fulltext: (q.fulltext as string) || undefined,
       categoryId: categoryId || (q.categoryId as string) || undefined,
+      objectDefinitionIds,
       page: q.page ? parseInt(q.page as string, 10) : 1,
       pageSize: q.pageSize ? parseInt(q.pageSize as string, 10) : 25,
       properties: Object.keys(mergedProps).length ? mergedProps : undefined
     })
-    return { ok: true, ...result, appliedFilters: { ...frontendFilters, categoryId } }
+    return { ok: true, ...result, appliedFilters: { ...frontendFilters, categoryId, objectDefinitionIds } }
   } catch (err: any) {
     setResponseStatus(event, 502)
     return { ok: false, error: err.message }
