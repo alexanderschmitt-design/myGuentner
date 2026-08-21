@@ -221,13 +221,21 @@ export async function searchDocuments(params: DmsSearchParams = {}) {
     qs.set('objectdefinitionids', JSON.stringify(objDefs))
   }
 
-  if (hasCategory || hasProperties) {
+  // sourceid ist Pflicht wenn irgendein Filter (Kategorie, Properties oder
+  // ObjectDefinition) gesetzt ist — ohne den liefert d.velop 0 Hits.
+  // (Debug 2026-08-21: `allDiscovered: []` bei ObjectDef-only Search.)
+  if (hasCategory || hasProperties || objDefs.length > 0) {
     const sid = await getSourceId(cfg)
     if (sid) qs.set('sourceid', sid)
   }
 
   if (hasCategory) {
     qs.set('sourcecategories', `[${params.categoryId}]`)
+  } else if (objDefs.length > 0) {
+    // Im Güntner-DMS sind ObjectDef-IDs auch als sourceCategories nutzbar
+    // (siehe dms-property-map.ts). d.velop-SRM braucht meist BEIDE Filter
+    // damit die Ergebnismenge tatsächlich eingeschränkt wird.
+    qs.set('sourcecategories', `[${objDefs.join(',')}]`)
   }
 
   if (hasProperties && params.properties) {
@@ -447,6 +455,10 @@ export async function getFacetValues(propertyId: string, filter: { objectDefinit
   qs.set('propertyid', propertyId)
   qs.set('objectdefinitionids', objDefs)
   if (filter.fulltext) qs.set('fulltext', filter.fulltext)
+  // sourceid ergänzen — dmsobjectPropFacet warf sonst HTTP 500 auch für
+  // valide Property-IDs. (Debug 2026-08-21.)
+  const sid = await getSourceId(cfg)
+  if (sid) qs.set('sourceid', sid)
 
   return dmsFetchJson(`/dms/r/${cfg.repositoryId}/dmsobjectPropFacet?${qs.toString()}`)
 }

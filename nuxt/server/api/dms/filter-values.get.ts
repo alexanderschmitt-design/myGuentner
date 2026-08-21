@@ -49,12 +49,16 @@ async function readFromDbCache(objDefId: string, field: string): Promise<FilterV
       .maybeSingle()
     if (error || !data) return null
     if (new Date(data.expires_at).getTime() < Date.now()) return null
+    // Leere Auflösungen ignorieren — sonst bleibt der Cache 24h auf einem
+    // gescheiterten Probe-Run hängen und der User sieht dauerhaft nichts.
+    const options = Array.isArray(data.options) ? data.options : []
+    if (!data.property_id && options.length === 0) return null
     const filter = PORTAL_PUBLIC_DOCUMENTS_FILTERS.find((f) => f.frontendField === field)
     return {
       frontendField: field,
       label: filter?.label || field,
       propertyId: data.property_id,
-      options: Array.isArray(data.options) ? data.options : []
+      options
     }
   } catch {
     return null
@@ -156,9 +160,13 @@ async function resolveFilter(
     options: resolved.options.slice(0, 200)
   }
   if (debug && dbg) debug[filter.frontendField] = dbg
-  memCache.set(cacheKey, { at: now, values })
-  // Fire-and-forget DB-Cache-Write — blockiert Response nicht.
-  writeToDbCache(objDefId, values).catch(() => {})
+  // Nur erfolgreiche Auflösungen cachen — leere Ergebnisse sind meist
+  // transiente DMS-Fehler (HTTP 500) und sollen beim nächsten Aufruf
+  // neu probiert werden.
+  if (values.propertyId || values.options.length > 0) {
+    memCache.set(cacheKey, { at: now, values })
+    writeToDbCache(objDefId, values).catch(() => {})
+  }
   return values
 }
 
