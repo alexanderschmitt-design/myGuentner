@@ -59,6 +59,14 @@ const loading = ref(true)
 const saving = ref(false)
 const resetOpen = ref(false)
 const resetting = ref(false)
+// Snapshot der zuletzt gespeicherten Settings — für Dirty-State-Erkennung.
+// Ohne diesen Vergleich wusste der Admin nicht, dass sein Mode-Wechsel
+// nur im UI ist bis Save gedrückt wird (siehe Debug 2026-08-21).
+const savedSnapshot = ref<string>('')
+const isDirty = computed(() => {
+  if (!settings.value) return false
+  return JSON.stringify(settings.value) !== savedSnapshot.value
+})
 
 /** Wenn der Admin den Embedding-Mode umschaltet, automatisch den passenden
  *  Modell-Default eintragen — sonst bleibt z.B. "text-embedding-3-small"
@@ -86,6 +94,7 @@ async function load() {
   try {
     const res = await api.get<{ ok: boolean; settings: RagSettings }>('/api/rag/settings')
     settings.value = res.settings
+    savedSnapshot.value = JSON.stringify(res.settings)
   } catch (err: any) {
     toast.error(`Konnte Settings nicht laden: ${err.message}`)
   } finally {
@@ -100,6 +109,7 @@ async function save() {
     const { id, updated_at, updated_by, ...patch } = settings.value
     const res = await api.put<{ ok: boolean; settings: RagSettings }>('/api/rag/settings', patch)
     settings.value = res.settings
+    savedSnapshot.value = JSON.stringify(res.settings)
     toast.success('Settings gespeichert')
   } catch (err: any) {
     toast.error(err.message || 'Speichern fehlgeschlagen')
@@ -145,8 +155,14 @@ onMounted(load)
       description="LLM-Provider, Embedding-Modell, Chunking, Top-K und System-Prompt."
     >
       <template #actions>
-        <button class="btn btn-primary" :disabled="saving || loading" @click="save">
-          {{ saving ? 'Speichern…' : 'Speichern' }}
+        <span v-if="isDirty" class="dirty-pill" title="Änderungen sind noch nicht in der DB">● Ungespeichert</span>
+        <button
+          class="btn btn-primary"
+          :class="{ 'is-dirty': isDirty }"
+          :disabled="saving || loading || !isDirty"
+          @click="save"
+        >
+          {{ saving ? 'Speichern…' : (isDirty ? 'Änderungen speichern' : 'Gespeichert') }}
         </button>
       </template>
     </AdminPageHeader>
@@ -270,8 +286,18 @@ onMounted(load)
 }
 .settings-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  /* Feste 2-Spalten-Struktur — die 4 Sections sortieren sich zu:
+     Row 1: [Chat-LLM]     [Embedding-Provider]
+     Row 2: [Retrieval]    [System Prompt]
+     Row 3: [Danger]        (full width via .card.danger)
+     Der auto-fit-Ansatz vorher produzierte auf großen Screens 3 Spalten
+     mit unschönem Versatz. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .settings-grid { grid-template-columns: 1fr; }
 }
 .card {
   background: white;
@@ -358,6 +384,28 @@ onMounted(load)
 }
 .pipeline-badge-chat  { background: var(--c-brand-blue, #0078BE); }
 .pipeline-badge-embed { background: var(--c-success, #2E7D4F); }
+
+/* Dirty-State — signalisiert dass der Save-Button geklickt werden muss,
+   sonst wirkt der geänderte Mode nicht in der DB. */
+.dirty-pill {
+  margin-right: 10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--c-warning, #C57B00) 15%, white);
+  color: var(--c-warning, #C57B00);
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  font-weight: 600;
+  animation: dirty-pulse 1.6s ease-in-out infinite;
+}
+.btn-primary.is-dirty {
+  animation: dirty-pulse 1.6s ease-in-out infinite;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-warning, #C57B00) 40%, transparent);
+}
+@keyframes dirty-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.65; }
+}
 .btn-danger {
   background: var(--c-error, #B33A3A);
   color: white;

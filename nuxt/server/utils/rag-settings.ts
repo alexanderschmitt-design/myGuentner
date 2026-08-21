@@ -21,7 +21,11 @@ export interface RagSettings {
 
 let cached: RagSettings | null = null
 let cachedAt = 0
-const CACHE_TTL_MS = 30_000
+// Kurzer Cache-TTL — nach einem Admin-Save soll der nächste Test-Call
+// (z.B. /api/rag/test-embeddings) sofort das neue embedding_mode sehen,
+// auch auf einer parallelen Vercel-Function-Instanz (die den PUT nicht
+// selbst ausgeführt hat und deshalb den Cache lokal nicht invalidiert).
+const CACHE_TTL_MS = 5_000
 
 export async function getRagSettings(): Promise<RagSettings> {
   if (cached && Date.now() - cachedAt < CACHE_TTL_MS) return cached
