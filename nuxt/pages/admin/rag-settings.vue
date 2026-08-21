@@ -321,6 +321,11 @@ onMounted(load)
   flex: 0 0 100%;
   max-width: 100%;
 }
+/* Override die globale `.card + .card { margin-top: var(--space-sm) }`
+   Regel aus components.css — die ist für gestapelte Cards, aber hier
+   sitzen mehrere Cards in einer Flex-Row und die margin-top würde die
+   zweite Row-Card nach unten schieben (sichtbarer Versatz). */
+.settings-grid > .card + .card { margin-top: 0; }
 @media (max-width: 900px) {
   .settings-grid > .card {
     flex: 0 0 100%;

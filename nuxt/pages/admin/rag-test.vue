@@ -221,6 +221,10 @@ onMounted(loadDocs)
 @media (max-width: 900px) {
   .rag-test-grid { grid-template-columns: 1fr; }
 }
+/* Override die globale `.card + .card { margin-top }` Regel aus
+   components.css — würde sonst die rechte "Antwort"-Card nach unten
+   schieben und aus der Top-Alignment mit der linken Query-Card werfen. */
+.rag-test-grid > .card + .card { margin-top: 0; }
 .card {
   background: white;
   border: 1px solid var(--c-border);
