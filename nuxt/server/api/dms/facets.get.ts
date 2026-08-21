@@ -33,7 +33,10 @@ interface FilterOut {
   options: FilterOption[]
 }
 
-const PRODUCT_OBJDEF_HINTS = /product|technical|drawing|specification|dossier/i
+// Objekttypen, die für den DMS-Import in myGPC überhaupt relevant sind.
+// „portal" + „public" wurden ergänzt (2026-08-21), damit "Portal Public
+// Documents" — die freigegebenen Kunden-Dokumente — im Dropdown auftaucht.
+const PRODUCT_OBJDEF_HINTS = /product|technical|drawing|specification|dossier|portal|public|manual/i
 
 export default defineEventHandler(async (event) => {
   await requireUser(event)

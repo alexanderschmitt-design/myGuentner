@@ -200,22 +200,26 @@ export async function searchDocuments(params: DmsSearchParams = {}) {
   qs.set('pagesize', String(params.pageSize || 25))
   if (params.fulltext) qs.set('fulltext', params.fulltext)
 
+  const hasCategory = !!params.categoryId
+  const hasProperties = params.properties && typeof params.properties === 'object' && Object.keys(params.properties).length > 0
+
   // ObjectDefinition-Filter (default aus Env übernehmen wenn Client nichts
   // explizit setzt). Format spiegelt die d.velop-Browser-Suche wider:
-  // `objectdefinitionids=["DMANU"]`.
+  // `objectdefinitionids=["DMANU"]`. Wenn der Client bereits eine
+  // `categoryId` (via UI-Dropdown "Dokumenten-Kategorie") mitgibt, greift
+  // dieser Env-Default NICHT — sonst kollidieren zwei Object-Type-Filter.
   const explicitObjDefs = Array.isArray(params.objectDefinitionIds) ? params.objectDefinitionIds : null
   const objDefs = explicitObjDefs
     ? explicitObjDefs.filter((s) => typeof s === 'string' && s.trim())
-    : cfg.defaultObjectDefinitionIds
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean)
+    : (hasCategory
+        ? []
+        : cfg.defaultObjectDefinitionIds
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean))
   if (objDefs.length > 0) {
     qs.set('objectdefinitionids', JSON.stringify(objDefs))
   }
-
-  const hasCategory = !!params.categoryId
-  const hasProperties = params.properties && typeof params.properties === 'object' && Object.keys(params.properties).length > 0
 
   if (hasCategory || hasProperties) {
     const sid = await getSourceId(cfg)

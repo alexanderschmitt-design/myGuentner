@@ -37,6 +37,16 @@ const columns = [
 async function loadHealth() {
   try {
     health.value = await api.get('/api/dms/health')
+    // Env-Default DMS_DEFAULT_OBJECT_DEFINITION_IDS als Vorauswahl übernehmen
+    // — der Server rankt Templates gegen diese ObjDef, der User sieht den
+    // aktiven Filter aber im Dropdown und kann ihn ändern.
+    const defaults: string = health.value?.defaultObjectDefinitionIds || ''
+    if (defaults && !activeFilters.value.objectCategory) {
+      const first = defaults.split(',').map((s: string) => s.trim()).filter(Boolean)[0]
+      if (first) {
+        activeFilters.value = { ...activeFilters.value, objectCategory: first }
+      }
+    }
   } catch (err: any) {
     health.value = { ok: false, error: err.message }
   }
