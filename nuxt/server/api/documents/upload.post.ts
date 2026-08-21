@@ -17,12 +17,16 @@ import { checkRateLimit } from '../../utils/rate-limit'
 const MAX_SIZE_BYTES = 50 * 1024 * 1024 // 50 MB
 const UPLOAD_LIMIT_PER_HOUR = 20
 
-const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'csv', 'xlsx'])
+// Muss mit dem `accept`-Attribut in FileDropzone.vue synchron sein
+// (nuxt/components/FileDropzone.vue defaultProps.accept).
+const ALLOWED_EXTENSIONS = new Set(['pdf', 'docx', 'txt', 'md', 'csv', 'xlsx'])
 const ALLOWED_CONTENT_TYPES = new Set([
   'application/pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/msword',
   'text/plain',
+  'text/markdown',
+  'text/x-markdown',
   'text/csv',
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
