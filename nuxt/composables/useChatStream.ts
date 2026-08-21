@@ -141,6 +141,10 @@ export function useChatStream() {
   const error = ref<string | null>(null)
   const isStreaming = ref(false)
   const conversationId = ref<string | null>(null)
+  /** Signalisiert dass der Server für diese Query keine RAG-Sources gefunden
+   *  hat (leerer Vector-Match oder Retrieval-Fehler). UI zeigt daraufhin einen
+   *  Hinweis "Keine passenden Dokumente — bitte via /admin/dms importieren". */
+  const noSources = ref<null | { reason: 'no_match' | 'retrieval_error' }>(null)
 
   let controller: AbortController | null = null
 
@@ -152,6 +156,7 @@ export function useChatStream() {
     templateApply.value = null
     done.value = null
     error.value = null
+    noSources.value = null
   }
 
   async function send(req: ChatRequest) {
@@ -230,6 +235,11 @@ export function useChatStream() {
         break
       case 'sources':
         sources.value = Array.isArray(payload.sources) ? payload.sources : []
+        break
+      case 'no_sources':
+        noSources.value = {
+          reason: payload?.reason === 'retrieval_error' ? 'retrieval_error' : 'no_match'
+        }
         break
       case 'text':
         if (typeof payload.text === 'string') text.value += payload.text
@@ -321,6 +331,7 @@ export function useChatStream() {
     sources: sources as Readonly<typeof sources>,
     toolCalls: toolCalls as Readonly<typeof toolCalls>,
     templateApply: templateApply as Readonly<typeof templateApply>,
+    noSources: noSources as Readonly<typeof noSources>,
     done: done as Readonly<typeof done>,
     error: error as Readonly<typeof error>,
     isStreaming: isStreaming as Readonly<typeof isStreaming>,

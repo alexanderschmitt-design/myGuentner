@@ -171,6 +171,7 @@ export default defineEventHandler(async (event) => {
 
   try {
     let chunks: any[] = []
+    let retrievalFailed = false
     try {
       const retrieval = await retrieve(query, {
         topK: body.topK || 5,
@@ -179,7 +180,19 @@ export default defineEventHandler(async (event) => {
       })
       chunks = retrieval.chunks
     } catch (err: any) {
-      console.warn('[chat] RAG retrieval failed, continuing without context:', err.message)
+      // Strict-source-Modus: bei Retrieval-Fehler DÜRFEN wir nicht still
+      // aus LLM-Trainingswissen antworten. Wir markieren den Kontext als
+      // fehlerhaft, damit der Prompt-Empty-State-Zweig greift.
+      retrievalFailed = true
+      console.warn('[chat] RAG retrieval failed:', err.message)
+    }
+
+    // Wenn Retrieval OK aber leer → send explicit no_sources signal an Client
+    // (UI kann Hinweis anzeigen: "Keine passenden Dokumente — bitte importieren").
+    if (!retrievalFailed && chunks.length === 0) {
+      send('no_sources', { reason: 'no_match' })
+    } else if (retrievalFailed) {
+      send('no_sources', { reason: 'retrieval_error' })
     }
 
     // DB-Setting (Admin-UI) hat Vorrang vor env LLM_PROVIDER. Model-Override analog.
