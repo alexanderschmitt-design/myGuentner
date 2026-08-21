@@ -30,6 +30,8 @@ interface FilterDef {
   loading?: boolean
 }
 
+const filterTree = useDmsPortalFilterTree()
+
 // Portal Public Documents ist der Default-Objekttyp — die Guntner-DMS-
 // Suche findet hier die freigegebenen Kunden-Manuals + Broschüren.
 const PORTAL_PUBLIC_DOCUMENTS_OBJDEF_ID = 'DMANU'
@@ -109,11 +111,43 @@ async function loadPortalFilterValues() {
   }
 }
 
+// Kaskaden-Reihenfolge: wenn ein Parent geändert wird, werden alle Child-
+// Filter, deren aktueller Wert nicht mehr in der neuen Menge erlaubter Werte
+// enthalten ist, automatisch zurückgesetzt.
+const CASCADE_ORDER = ['productCategory', 'productLevel1', 'productGroup', 'productFamily', 'productSeries']
+
 function setFilter(field: string, value: string) {
   if (!value) delete activeFilters.value[field]
   else activeFilters.value[field] = value
   activeFilters.value = { ...activeFilters.value }
+
+  // Cascade-Reset: alle Child-Filter prüfen ob ihr Wert noch valide ist.
+  const parentIdx = CASCADE_ORDER.indexOf(field)
+  if (parentIdx < 0) return
+  for (let i = parentIdx + 1; i < CASCADE_ORDER.length; i++) {
+    const child = CASCADE_ORDER[i]
+    const active = activeFilters.value[child]
+    if (!active) continue
+    const allowed = filterTree.allowedValuesFor(child as any, activeFilters.value)
+    if (allowed.size && !allowed.has(active)) {
+      delete activeFilters.value[child]
+      activeFilters.value = { ...activeFilters.value }
+    }
+  }
 }
+
+// Options der 5 Cascading-Filter live gegen die CSV filtern. Non-Cascade-
+// Filter (Document Type, Permission, Brand, Region, Language Portal) bleiben
+// unverändert — die haben keine Abhängigkeit untereinander.
+const cascadedFilterDefs = computed<FilterDef[]>(() => {
+  return filterDefs.value.map((f) => {
+    if (!filterTree.isCascadeField(f.frontendField)) return f
+    return {
+      ...f,
+      options: filterTree.filterOptions(f.frontendField as any, f.options, activeFilters.value)
+    }
+  })
+})
 
 function clearFilters() {
   activeFilters.value = {}
@@ -180,8 +214,9 @@ async function runImport() {
 
 onMounted(async () => {
   await loadHealth()
-  // Filter-Values laden asynchron im Hintergrund — Page ist sofort sichtbar.
+  // Filter-Values + CSV-Kaskaden parallel laden — Page ist sofort sichtbar.
   loadPortalFilterValues()
+  filterTree.ensureLoaded()
 })
 </script>
 
@@ -220,8 +255,8 @@ onMounted(async () => {
         <span class="dms-scope-chip">Portal Public Documents <code>({{ objectCategory }})</code></span>
       </div>
 
-      <div v-if="filterDefs.length" class="dms-filter-row">
-        <div v-for="f in filterDefs" :key="f.frontendField" class="dms-filter">
+      <div v-if="cascadedFilterDefs.length" class="dms-filter-row">
+        <div v-for="f in cascadedFilterDefs" :key="f.frontendField" class="dms-filter">
           <label>{{ f.label }}<span v-if="f.options.length" class="dms-filter-count">{{ f.options.length }}</span></label>
           <select
             :value="activeFilters[f.frontendField] || ''"
