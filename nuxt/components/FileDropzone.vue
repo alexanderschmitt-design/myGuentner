@@ -28,6 +28,9 @@ const emit = defineEmits<{
 
 const inputRef = ref<HTMLInputElement | null>(null)
 const isDragging = ref(false)
+/** Zähler für dragenter/dragleave — sonst blinkt der Highlight-State, weil
+ *  dragleave auch feuert wenn der Cursor über ein Kind-Element wandert. */
+let dragCounter = 0
 
 function validate(f: File): string | null {
   if (props.maxSizeMb > 0 && f.size > props.maxSizeMb * 1024 * 1024) {
@@ -56,16 +59,38 @@ function onPick(e: Event) {
 }
 
 function onDrop(e: DragEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  dragCounter = 0
   isDragging.value = false
   if (props.disabled) return
   const f = e.dataTransfer?.files?.[0]
   if (f) handleFile(f)
+  else emit('error', 'Kein Datei-Objekt im Drop — bitte Datei erneut aus dem Explorer ziehen.')
+}
+
+function onDragEnter(e: DragEvent) {
+  if (props.disabled) return
+  e.preventDefault()
+  e.stopPropagation()
+  dragCounter++
+  isDragging.value = true
+}
+
+function onDragLeave(e: DragEvent) {
+  e.preventDefault()
+  e.stopPropagation()
+  dragCounter = Math.max(0, dragCounter - 1)
+  if (dragCounter === 0) isDragging.value = false
 }
 
 function onDragOver(e: DragEvent) {
-  if (props.disabled) return
-  isDragging.value = true
+  // dragover muss IMMER preventDefault haben — sonst blockt Browser das
+  // drop-Event ganz und die Datei wird stattdessen im Tab geöffnet.
   e.preventDefault()
+  e.stopPropagation()
+  if (props.disabled) return
+  if (e.dataTransfer) e.dataTransfer.dropEffect = 'copy'
 }
 
 function trigger() {
@@ -79,9 +104,10 @@ function trigger() {
     class="file-dropzone"
     :class="{ 'is-dragging': isDragging, 'is-disabled': disabled }"
     @click="trigger"
+    @dragenter="onDragEnter"
     @dragover="onDragOver"
-    @dragleave="isDragging = false"
-    @drop.prevent="onDrop"
+    @dragleave="onDragLeave"
+    @drop="onDrop"
   >
     <input
       ref="inputRef"

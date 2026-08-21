@@ -95,12 +95,23 @@ async function processOne(dmsId: string, force: boolean) {
 
   if (existing) await deleteChunksForDocument(localId)
 
-  const text = await extractText(buffer, contentType, filename)
-  const chunks = chunkText(text, {
-    chunkSize: settings.chunk_size,
-    chunkOverlap: settings.chunk_overlap
-  })
-  await insertChunks(localId, chunks)
+  // Text-Extraktion + Chunking + Embedding in try/catch — bei Fehler den
+  // documents-Row auf 'failed' mit error.message setzen. Ohne diesen
+  // Fallback bleiben Rows für immer auf 'processing' hängen (Bug 2026-08-21).
+  try {
+    const text = await extractText(buffer, contentType, filename)
+    const chunks = chunkText(text, {
+      chunkSize: settings.chunk_size,
+      chunkOverlap: settings.chunk_overlap
+    })
+    await insertChunks(localId, chunks)
+  } catch (err: any) {
+    const errMsg = err?.message || String(err)
+    await sb.from('documents')
+      .update({ status: 'failed', error: errMsg, processed_at: new Date().toISOString() })
+      .eq('id', localId)
+    throw err
+  }
 
   return { status: 'imported' as const, localId }
 }

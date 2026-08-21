@@ -88,7 +88,11 @@ export async function deleteDocument(id: string): Promise<void> {
 }
 
 export async function insertChunks(documentId: string, chunks: Array<{ text: string; index: number; metadata: Record<string, any> }>): Promise<void> {
-  if (!chunks.length) return
+  if (!chunks.length) {
+    // Kein Text extrahierbar (image-only PDF, leere Datei, chunker failed) →
+    // Fehlerstatus setzen statt silent auf 'processing' hängen zu bleiben.
+    throw new Error('No text extractable from document (0 chunks)')
+  }
   const sb = getSupabaseServiceClient()
   const texts = chunks.map((c) => c.text)
   const embeddings = await embedTexts(texts)
