@@ -200,10 +200,15 @@ onMounted(load)
           </p>
         </div>
         <div class="tester-row">
-          <ApiKeyTester label="Chat-Anthropic" endpoint="/api/rag/test-anthropic-key" />
           <ApiKeyTester label="Chat-Gemini" endpoint="/api/rag/test-gemini-key" />
           <ApiKeyTester label="Chat-OpenRouter" endpoint="/api/rag/test-openrouter-key" />
+          <ApiKeyTester label="Anthropic-Direct" endpoint="/api/rag/test-anthropic-key" />
         </div>
+        <p class="hint hint-small">
+          <strong>Anthropic-Direct</strong> testet den direkten <code>ANTHROPIC_API_KEY</code> (eigenes Guthaben nötig).
+          Für Claude-Modelle empfohlen: über <strong>OpenRouter</strong> als Provider (nutzt dein OpenRouter-Guthaben,
+          Claude Sonnet/Opus/Haiku als Modell wählbar).
+        </p>
       </section>
 
       <section class="card pipeline-card">
@@ -384,6 +389,18 @@ onMounted(load)
   font-family: var(--font-ui);
   font-size: var(--font-3xs);
   color: var(--c-text-medium);
+}
+.hint-small {
+  font-size: var(--font-4xs);
+  line-height: 1.4;
+  padding-top: 4px;
+}
+.hint code {
+  padding: 1px 5px;
+  background: var(--c-bg);
+  border-radius: 3px;
+  font-family: 'DM Mono', monospace;
+  font-size: 92%;
 }
 .card.danger { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--c-error, #B33A3A) 25%, var(--c-border)); }
 .card.danger h2 { color: var(--c-error, #B33A3A); }
