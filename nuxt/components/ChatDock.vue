@@ -271,55 +271,18 @@ interface RecommendationTemplate {
   configuration: any
   updatedAt: string
   paramCount: number
-  isDemo?: boolean
+  matchScore?: number
+  matchedFields?: string[]
 }
 
-/** Dev-Demo-Fallback: wenn die DB gar keine Matches liefert, zeigen wir 3
- *  plausible Produkt-Vorschläge. Nur für die Entwicklungsphase — die Configuration
- *  ist bewusst leer, damit die im Q&A gesetzten Store-Werte erhalten bleiben. */
-const DEMO_RECOMMENDATIONS: RecommendationTemplate[] = [
-  {
-    id: 'demo-1',
-    name: 'GACV CX 040.2B/16',
-    categorySlug: 'demo',
-    isDefaultForCategory: false,
-    isSystem: false,
-    isOwn: false,
-    configuration: {},
-    updatedAt: new Date().toISOString(),
-    paramCount: 34,
-    isDemo: true
-  },
-  {
-    id: 'demo-2',
-    name: 'GACC CX 040.2/2WN',
-    categorySlug: 'demo',
-    isDefaultForCategory: false,
-    isSystem: false,
-    isOwn: false,
-    configuration: {},
-    updatedAt: new Date().toISOString(),
-    paramCount: 28,
-    isDemo: true
-  },
-  {
-    id: 'demo-3',
-    name: 'GADC CX 025.1FE/2E-40',
-    categorySlug: 'demo',
-    isDefaultForCategory: false,
-    isSystem: false,
-    isOwn: false,
-    configuration: {},
-    updatedAt: new Date().toISOString(),
-    paramCount: 21,
-    isDemo: true
-  }
-]
 const recTargetSlug = ref<string | null>(null)
 const recTargetCatId = ref<number | null>(null)
 const recTemplates = ref<RecommendationTemplate[]>([])
 const recLoading = ref(false)
-const recAutoSkipped = ref(false)
+/** Cross-Category-Confirm: nicht-null wenn das gewählte Template zu einer
+ *  anderen Kategorie gehört als die vom Guided-Entry-Flow resolvete
+ *  Ziel-Kategorie. UI zeigt dann einen Confirm-Turn statt still zu redirekten. */
+const pendingCrossCategory = ref<{ template: RecommendationTemplate; step: GuidedStep; sourceSlug: string; targetSlug: string } | null>(null)
 const { trigger: triggerFlash } = useTemplateFlash()
 
 function countConfigParams(cfg: any): number {
@@ -333,14 +296,35 @@ function countConfigParams(cfg: any): number {
   return n
 }
 
+/**
+ * Baut die "answered-params"-Subset für POST /api/recommendations. Sendet
+ * nur Keys die der User via Guided-Q&A tatsächlich gesetzt hat, statt aller
+ * (defaults-lastigen) Store-Parameter. Der Server rankt Templates gegen die
+ * Werte und liefert die besten Matches zurück.
+ */
+function collectAnsweredParams(): Record<string, unknown> {
+  const answered = configStore.answeredParams || {}
+  const src: any = configStore.parameters
+  const out: Record<string, unknown> = {}
+  for (const key of Object.keys(answered)) {
+    if (!answered[key]) continue
+    const v = src?.[key]
+    if (v === null || v === undefined || v === '') continue
+    out[key] = v
+  }
+  return out
+}
+
 async function loadRecommendationsForStep(step: GuidedStep) {
   if (step.kind !== 'recommendations' || !step.recommendationCtx) return
   recTemplates.value = []
-  recAutoSkipped.value = false
+  pendingCrossCategory.value = null
 
   const target = step.recommendationCtx.resolveTarget(configStore)
   recTargetSlug.value = target.slug
   recTargetCatId.value = target.catId
+
+  const params = collectAnsweredParams()
 
   recLoading.value = true
   try {
@@ -353,20 +337,27 @@ async function loadRecommendationsForStep(step: GuidedStep) {
       isOwn: t.isOwn === true,
       configuration: t.configuration,
       updatedAt: t.updatedAt,
-      paramCount: countConfigParams(t.configuration)
+      paramCount: countConfigParams(t.configuration),
+      matchScore: typeof t.matchScore === 'number' ? t.matchScore : undefined,
+      matchedFields: Array.isArray(t.matchedFields) ? t.matchedFields : undefined
     })
-    // 1) Primär: user- + shared-Rows für die exakte Ziel-Kategorie.
-    const res = await $fetch<{ ok: boolean; templates: any[] }>(`/api/templates?category=${encodeURIComponent(target.slug)}`)
+    // 1) Primär: /api/recommendations mit Category + Params-Matching.
+    const res = await $fetch<{ ok: boolean; templates: any[]; totalCandidates?: number }>('/api/recommendations', {
+      method: 'POST',
+      body: { categorySlug: target.slug, params, limit: 3 }
+    })
     let collected: RecommendationTemplate[] = []
     if (res.ok && Array.isArray(res.templates)) {
-      collected = res.templates.slice(0, 3).map(mapRow)
+      collected = res.templates.map(mapRow)
     }
-    // 2) Fallback: bei < 3 Matches mit System-Templates aus ANDEREN Kategorien
-    //    auffüllen — der User sieht immer bis zu 3 sinnvolle Vorschläge, statt
-    //    einer einsamen Karte, wenn seine Ziel-Kategorie schwach bestückt ist.
+    // 2) Cross-Category-Fallback: bei < 3 Treffern mit System-Templates aus
+    //    ANDEREN Kategorien auffüllen (aber gescored gegen dieselben Params).
     if (collected.length < 3) {
       try {
-        const cross = await $fetch<{ ok: boolean; templates: any[] }>('/api/templates')
+        const cross = await $fetch<{ ok: boolean; templates: any[] }>('/api/recommendations', {
+          method: 'POST',
+          body: { params, limit: 6 }
+        })
         if (cross.ok && Array.isArray(cross.templates)) {
           const existingIds = new Set(collected.map(t => t.id))
           const pool = cross.templates
@@ -376,25 +367,17 @@ async function loadRecommendationsForStep(step: GuidedStep) {
         }
       } catch { /* silent fallback */ }
     }
-    // Dev-Demo-Fallback: wenn die DB gar nichts liefert, immer 3
-    // Beispiel-Produkte anzeigen — dient der Entwicklungs-Demo damit
-    // die Recommendation-Karte nie leer aussieht.
-    if (collected.length === 0) {
-      collected = DEMO_RECOMMENDATIONS
-    }
     recTemplates.value = collected
   } catch (err: any) {
     console.warn('[recommendations] fetch failed:', err?.message || err)
-    // Auch bei Fetch-Error die Demo-Vorschläge zeigen
-    recTemplates.value = DEMO_RECOMMENDATIONS
+    recTemplates.value = []
   } finally {
     recLoading.value = false
   }
 
   // KEIN Auto-Skip — auch bei 0 Templates bleibt die Empfehlungs-Karte
   // sichtbar. User entscheidet selbst wann er in den Wizard weitergeht
-  // (via Skip-Link oder Template-Klick). Kein unerwartetes „App springt
-  // plötzlich zur Thermodynamik-Seite".
+  // (via Skip-Link oder Template-Klick).
 }
 
 function runRecommendationFinalize(step: GuidedStep) {
@@ -406,6 +389,23 @@ function runRecommendationFinalize(step: GuidedStep) {
 }
 
 async function onRecommendationPick(t: RecommendationTemplate, step: GuidedStep) {
+  // Cross-Category-Check: gehört das Template zu einer anderen Kategorie
+  // als vom Guided-Entry resolvet? Dann Confirm-Turn statt still-redirect.
+  const wantSlug = recTargetSlug.value
+  if (wantSlug && t.categorySlug && t.categorySlug !== wantSlug) {
+    pendingCrossCategory.value = {
+      template: t,
+      step,
+      sourceSlug: wantSlug,
+      targetSlug: t.categorySlug
+    }
+    return
+  }
+  await applyRecommendation(t, step)
+}
+
+async function applyRecommendation(t: RecommendationTemplate, step: GuidedStep) {
+  pendingCrossCategory.value = null
   // 1) Template applien (existing store action aus Templates-Feature)
   configStore.applyTemplate(t.configuration)
   configStore.noteTemplateApplied(t.id ?? null, t.name ?? null)
@@ -442,7 +442,18 @@ async function onRecommendationPick(t: RecommendationTemplate, step: GuidedStep)
   void step
 }
 
+async function onCrossCategoryConfirm() {
+  const pending = pendingCrossCategory.value
+  if (!pending) return
+  await applyRecommendation(pending.template, pending.step)
+}
+
+function onCrossCategoryCancel() {
+  pendingCrossCategory.value = null
+}
+
 function onRecommendationSkip(step: GuidedStep) {
+  pendingCrossCategory.value = null
   history.value = [
     ...history.value,
     { role: 'user', content: 'Skip — configure from scratch' }
@@ -982,6 +993,28 @@ function pickPreset(p: PresetIntent) {
 
                 <div v-if="recLoading" class="rec-loading">Identifying matching products…</div>
 
+                <!-- Cross-Category-Confirm: das gewählte Template gehört zu
+                     einer anderen Kategorie als der Q&A-Zielkategorie. User
+                     bestätigt oder korrigiert. -->
+                <div v-else-if="pendingCrossCategory" class="rec-cross-confirm">
+                  <p class="rec-cross-title">This template is for a different category</p>
+                  <p class="rec-cross-detail">
+                    <strong>{{ pendingCrossCategory.template.name }}</strong> is configured for
+                    <em>{{ getCategoryBySlug(pendingCrossCategory.targetSlug)?.title || pendingCrossCategory.targetSlug }}</em>,
+                    but your entry was
+                    <em>{{ getCategoryBySlug(pendingCrossCategory.sourceSlug)?.title || pendingCrossCategory.sourceSlug }}</em>.
+                    Load it and switch to that category?
+                  </p>
+                  <div class="rec-cross-actions">
+                    <button type="button" class="config-action-btn" @click="onCrossCategoryConfirm">
+                      Load &amp; switch category
+                    </button>
+                    <button type="button" class="config-action-btn config-action-btn-muted" @click="onCrossCategoryCancel">
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+
                 <div v-else-if="recTemplates.length" class="config-choice-list">
                   <button
                     v-for="t in recTemplates"
@@ -998,9 +1031,11 @@ function pickPreset(p: PresetIntent) {
                     <span class="config-choice-body">
                       <span class="config-choice-label">
                         {{ t.name }}
-                        <span v-if="t.isDemo" class="rec-badge rec-badge-demo" title="Demo product — dev placeholder">DEMO</span>
-                        <span v-else-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated">★ SYSTEM</span>
+                        <span v-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated">★ SYSTEM</span>
                         <span v-else-if="t.isDefaultForCategory" class="rec-star" title="Your default for this category">★</span>
+                        <span v-if="t.matchedFields && t.matchedFields.length" class="rec-badge rec-badge-match" :title="`Matches: ${t.matchedFields.join(', ')}`">
+                          {{ t.matchedFields.length }} match{{ t.matchedFields.length === 1 ? '' : 'es' }}
+                        </span>
                       </span>
                       <span class="config-choice-detail">
                         {{ t.paramCount }} parameter{{ t.paramCount === 1 ? '' : 's' }} pre-filled
@@ -1014,16 +1049,19 @@ function pickPreset(p: PresetIntent) {
                   </button>
                 </div>
 
-                <div v-else-if="!recAutoSkipped" class="rec-empty">
-                  No matching products yet — you'll configure from scratch.
+                <div v-else class="rec-empty">
+                  <p class="rec-empty-title">No matching templates for your answers.</p>
+                  <p class="rec-empty-detail">
+                    Continue to Thermodynamics and configure the unit from scratch — your Q&amp;A values stay filled in.
+                  </p>
                 </div>
 
-                <div class="config-question-actions">
+                <div v-if="!pendingCrossCategory" class="config-question-actions">
                   <button
                     type="button"
                     class="config-action-btn config-action-btn-muted"
                     @click="onRecommendationSkip(msg.guidedStep!)"
-                  >Skip — configure from scratch →</button>
+                  >Continue without template →</button>
                 </div>
               </div>
             </template>
@@ -1850,15 +1888,60 @@ function pickPreset(p: PresetIntent) {
 .rec-card-body :deep(strong) { font-weight: 600; }
 
 .rec-loading, .rec-empty {
-  padding: 12px;
+  padding: 12px 14px;
   color: var(--c-text-medium);
   font-family: var(--font-ui);
   font-size: var(--font-3xs, 12.81px);
-  font-style: italic;
-  text-align: center;
+  text-align: left;
   background: white;
   border-radius: var(--radius-xs);
-  border: 1px dashed color-mix(in srgb, var(--c-success, #2E7D4F) 20%, transparent);
+  border: 1px dashed color-mix(in srgb, var(--c-brand-blue, #0078BE) 25%, transparent);
+}
+.rec-loading { font-style: italic; text-align: center; }
+.rec-empty-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: var(--c-text-value);
+}
+.rec-empty-detail {
+  margin: 0;
+  font-size: var(--font-4xs, 11.58px);
+  line-height: 1.5;
+}
+
+/* Cross-Category-Confirm — sichtbarer Confirm-Turn wenn ein
+   Recommendation-Template zu einer anderen Kategorie gehört als der
+   Guided-Entry-Ziel-Kategorie. */
+.rec-cross-confirm {
+  padding: 14px;
+  background: color-mix(in srgb, var(--c-warning, #F5B800) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--c-warning, #F5B800) 45%, transparent);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+}
+.rec-cross-title {
+  margin: 0 0 6px;
+  font-size: var(--font-2xs, 14.17px);
+  font-weight: 600;
+  color: var(--c-text-value);
+}
+.rec-cross-detail {
+  margin: 0 0 12px;
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-medium);
+  line-height: 1.5;
+}
+.rec-cross-detail strong { color: var(--c-text-value); }
+.rec-cross-detail em { font-style: normal; color: var(--c-brand-blue, #0078BE); font-weight: 500; }
+.rec-cross-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.rec-badge-match {
+  background: color-mix(in srgb, var(--c-success, #2E7D4F) 15%, white);
+  color: color-mix(in srgb, var(--c-success, #2E7D4F) 80%, black);
+  border: 1px solid color-mix(in srgb, var(--c-success, #2E7D4F) 45%, transparent);
 }
 
 .rec-choice-list {
