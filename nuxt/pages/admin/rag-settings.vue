@@ -236,19 +236,26 @@ onMounted(load)
 
       <section class="card">
         <h2>Retrieval</h2>
+        <p class="pipeline-sub">
+          Steuert wie Dokumente beim Import in kleine Text-Blöcke ("Chunks") zerteilt werden
+          und wie viele davon der Chatbot pro Frage zurückbekommt.
+        </p>
         <div class="row-2">
           <div class="field">
-            <label>Chunk size</label>
+            <label>Chunk size <span class="field-unit">Zeichen</span></label>
             <input type="number" min="100" step="50" v-model.number="settings.chunk_size" />
+            <p class="field-hint">Wie lang ist ein einzelner Text-Block? Typisch 800–1500. Größer = weniger Kontext-Fragmentierung, aber ungenaueres Retrieval.</p>
           </div>
           <div class="field">
-            <label>Chunk overlap</label>
+            <label>Chunk overlap <span class="field-unit">Zeichen</span></label>
             <input type="number" min="0" step="10" v-model.number="settings.chunk_overlap" />
+            <p class="field-hint">Wie viele Zeichen des vorherigen Chunks wiederholen sich am Anfang des nächsten. Verhindert dass ein Satz an der Chunk-Grenze zerrissen wird. Typisch 10–20 % der Chunk size.</p>
           </div>
         </div>
         <div class="field">
-          <label>Top K</label>
+          <label>Top K <span class="field-unit">Anzahl</span></label>
           <input type="number" min="1" max="50" v-model.number="settings.top_k" />
+          <p class="field-hint">Wie viele der ähnlichsten Chunks werden dem Chatbot als Kontext übergeben. Typisch 3–8. Höher = mehr Kontext aber teurer + evtl. Rauschen.</p>
         </div>
       </section>
 
@@ -322,6 +329,13 @@ onMounted(load)
   color: var(--c-text-light2);
 }
 .field input, .field select, .field textarea {
+  /* min-width:0 + width:100% ist Pflicht, sonst dehnt ein <select> mit
+     langem Options-Text (z.B. "OpenRouter (Multi-Provider Gateway)")
+     die eigene Grid-Column über das minmax(0,1fr) hinaus — dann sind
+     die zwei Karten in Row 1 unterschiedlich breit. */
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
   padding: 8px 10px;
   border: 1px solid var(--c-border-input);
   border-radius: var(--radius-xs);
@@ -384,6 +398,20 @@ onMounted(load)
 }
 .pipeline-badge-chat  { background: var(--c-brand-blue, #0078BE); }
 .pipeline-badge-embed { background: var(--c-success, #2E7D4F); }
+
+/* Retrieval-Feld-Erklärungen (Chunk size, Chunk overlap, Top K). */
+.field-unit {
+  color: var(--c-text-light2);
+  font-weight: 400;
+  font-size: 90%;
+}
+.field-hint {
+  margin: 4px 0 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-4xs);
+  color: var(--c-text-medium);
+  line-height: 1.4;
+}
 
 /* Dirty-State — signalisiert dass der Save-Button geklickt werden muss,
    sonst wirkt der geänderte Mode nicht in der DB. */
