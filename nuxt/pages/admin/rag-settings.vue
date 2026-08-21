@@ -60,6 +60,27 @@ const saving = ref(false)
 const resetOpen = ref(false)
 const resetting = ref(false)
 
+/** Wenn der Admin den Embedding-Mode umschaltet, automatisch den passenden
+ *  Modell-Default eintragen — sonst bleibt z.B. "text-embedding-3-small"
+ *  auch nach dem Wechsel auf Gemini stehen und wird als (invalider) Model-
+ *  Name an die falsche API geschickt. */
+const EMBEDDING_MODE_DEFAULTS: Record<string, string> = {
+  openai: 'text-embedding-3-small',
+  gemini: 'gemini-embedding-001'
+}
+function onEmbeddingModeChange() {
+  if (!settings.value) return
+  const mode = settings.value.embedding_mode
+  const currentModel = (settings.value.embedding_model || '').trim()
+  // Nur überschreiben wenn der aktuelle Wert der Default des ANDEREN Providers ist.
+  const otherDefaults = Object.entries(EMBEDDING_MODE_DEFAULTS)
+    .filter(([k]) => k !== mode)
+    .map(([, v]) => v)
+  if (!currentModel || otherDefaults.includes(currentModel)) {
+    settings.value.embedding_model = EMBEDDING_MODE_DEFAULTS[mode] || currentModel
+  }
+}
+
 async function load() {
   loading.value = true
   try {
@@ -133,8 +154,14 @@ onMounted(load)
     <div v-if="loading" class="loading">Lade Settings…</div>
 
     <div v-else-if="settings" class="settings-grid">
-      <section class="card">
-        <h2>LLM Provider</h2>
+      <section class="card pipeline-card">
+        <div class="pipeline-head">
+          <span class="pipeline-badge pipeline-badge-chat">1</span>
+          <div>
+            <h2>Chat-LLM · Antwort-Generierung</h2>
+            <p class="pipeline-sub">Beantwortet User-Fragen. Bekommt die RAG-Chunks als Kontext-Block. Ändert nichts am Vektor-Store.</p>
+          </div>
+        </div>
         <div class="field">
           <label>Provider</label>
           <select v-model="settings.llm_provider">
@@ -157,17 +184,23 @@ onMounted(load)
           </p>
         </div>
         <div class="tester-row">
-          <ApiKeyTester label="Anthropic" endpoint="/api/rag/test-anthropic-key" />
-          <ApiKeyTester label="Gemini" endpoint="/api/rag/test-gemini-key" />
-          <ApiKeyTester label="OpenRouter" endpoint="/api/rag/test-openrouter-key" />
+          <ApiKeyTester label="Chat-Anthropic" endpoint="/api/rag/test-anthropic-key" />
+          <ApiKeyTester label="Chat-Gemini" endpoint="/api/rag/test-gemini-key" />
+          <ApiKeyTester label="Chat-OpenRouter" endpoint="/api/rag/test-openrouter-key" />
         </div>
       </section>
 
-      <section class="card">
-        <h2>Embeddings</h2>
+      <section class="card pipeline-card">
+        <div class="pipeline-head">
+          <span class="pipeline-badge pipeline-badge-embed">2</span>
+          <div>
+            <h2>Embedding-Provider · Dokument-Vektorisierung</h2>
+            <p class="pipeline-sub">Wandelt PDF/DOCX-Textblöcke in 1536-dim Vektoren. Läuft beim Import + Reprocess. Wird auch bei jedem Chat-Query genutzt, um die Frage in denselben Vektor-Raum zu embedden.</p>
+          </div>
+        </div>
         <div class="field">
           <label>Mode</label>
-          <select v-model="settings.embedding_mode">
+          <select v-model="settings.embedding_mode" @change="onEmbeddingModeChange">
             <option value="openai">OpenAI (text-embedding-3-small · 1536-dim)</option>
             <option value="gemini">Google Gemini (gemini-embedding-001 · 1536-dim)</option>
           </select>
@@ -292,6 +325,39 @@ onMounted(load)
 }
 .card.danger { grid-column: 1 / -1; border-color: color-mix(in srgb, var(--c-error, #B33A3A) 25%, var(--c-border)); }
 .card.danger h2 { color: var(--c-error, #B33A3A); }
+
+/* Pipeline-Kopf: farbige Nummer + Rollen-Beschreibung — macht sofort klar,
+   welche Section welche Pipeline steuert (Chat-Antworten vs. Vektor-Store). */
+.pipeline-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.pipeline-head h2 {
+  margin: 0 0 4px;
+}
+.pipeline-sub {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-medium);
+  line-height: 1.5;
+}
+.pipeline-badge {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs);
+  font-weight: 600;
+  color: white;
+}
+.pipeline-badge-chat  { background: var(--c-brand-blue, #0078BE); }
+.pipeline-badge-embed { background: var(--c-success, #2E7D4F); }
 .btn-danger {
   background: var(--c-error, #B33A3A);
   color: white;
