@@ -175,10 +175,10 @@ onMounted(loadDocs)
             :sources="stream.sources.value"
             :streaming="stream.isStreaming.value"
           />
-          <div v-if="stream.thinking.value" class="thinking">
+          <details v-if="stream.thinking.value" class="thinking">
             <summary>Thinking (streamed)</summary>
             <pre>{{ stream.thinking.value }}</pre>
-          </div>
+          </details>
           <div v-if="stream.done.value" class="stream-meta">
             <small>
               Provider: {{ stream.done.value.provider }} ·
