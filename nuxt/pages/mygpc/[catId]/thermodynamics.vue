@@ -280,7 +280,37 @@ const canProceed = computed(() => capacityKw.value != null)
 
 function goNext() { if (canProceed.value) router.push(step3Url()) }
 function goBack() { router.push('/') }
-function resetToDefaults() { store.resetWizard() }
+async function resetToDefaults() {
+  // resetWizard() clear alle Store-Parameter + answeredParams. Ohne den
+  // Guard-Reset würde die Fixture-Sync bei diesem Kategorie-slug NICHT
+  // erneut laufen (Guard sagt "schon angewendet"). Deshalb Kategorie
+  // explizit aus dem Guard löschen und Watcher-Logik manuell triggern.
+  store.resetWizard()
+  const slug = current.value.slug
+  if (slug) {
+    appliedDefaultsFor.value.delete(slug)
+    store.currentCategory = slug
+    appliedDefaultsFor.value.add(slug)
+    // paramDefaults erneut anwenden
+    const defaults = current.value.paramDefaults
+    if (defaults && Object.keys(defaults).length > 0) {
+      store.updateParameters(defaults)
+    }
+    // Fixture-Sync erneut anwenden (User hat resetWizard bewusst
+    // ausgelöst — jetzt sollen alle Backend-Defaults greifen)
+    const backend = await fetchBackendDefaults(current.value.id)
+    if (backend) {
+      const patch: Record<string, unknown> = {}
+      for (const [key, val] of Object.entries(backend)) {
+        if (val === null || val === undefined) continue
+        patch[key] = val
+      }
+      if (Object.keys(patch).length > 0) {
+        store.updateParameters(patch as any)
+      }
+    }
+  }
+}
 
 // Templates modal + Auto-Apply Private-Default (Etappe 3)
 const templatesOpen = ref(false)
