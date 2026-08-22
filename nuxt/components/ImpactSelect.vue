@@ -22,16 +22,24 @@ export interface ImpactSelectOption {
   hasImpact?: boolean
 }
 
-const props = defineProps<{
-  modelValue: string | number | null | undefined
-  options: readonly ImpactSelectOption[]
-  disabled?: boolean
-  /** Aria-label for the trailing impact-info button. */
-  impactAriaLabel?: string
-  /** When false, hide the trailing Impact° info button (rare — most callers
-   *  want it because the icon is what makes this component distinct). */
-  showTrailingImpactButton?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    modelValue: string | number | null | undefined
+    options: readonly ImpactSelectOption[]
+    disabled?: boolean
+    /** Aria-label for the trailing impact-info button. */
+    impactAriaLabel?: string
+    /** When false, hide the trailing Impact° info button (rare — most callers
+     *  want it because the icon is what makes this component distinct). */
+    showTrailingImpactButton?: boolean
+  }>(),
+  {
+    // Explicit default — Vue 3 coerces an omitted Boolean prop to `false`,
+    // which previously turned the trailing icon off for every caller that
+    // didn't pass the prop. Default `true` restores the intended behavior.
+    showTrailingImpactButton: true
+  }
+)
 
 const emit = defineEmits<{
   (e: 'update:modelValue', v: string | number): void
@@ -120,12 +128,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
       @click="toggle"
       @keydown="onKey"
     >
-      <img
-        v-if="selectedHasImpact"
-        src="/icons/icon_impact.svg"
-        class="imp-combo-leading"
-        alt=""
-      />
+      <ImpactLeaf v-if="selectedHasImpact" class="imp-combo-leading" />
       <span class="imp-combo-label">{{ selectedLabel }}</span>
       <svg
         class="imp-combo-chevron"
@@ -157,12 +160,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
         @mousedown.prevent="select(o.value)"
         @mousemove="highlight = i"
       >
-        <img
-          v-if="o.hasImpact"
-          src="/icons/icon_impact.svg"
-          class="imp-opt-icon"
-          alt=""
-        />
+        <ImpactLeaf v-if="o.hasImpact" class="imp-opt-icon" />
         <span v-else class="imp-opt-icon-placeholder" aria-hidden="true"></span>
         <span class="imp-opt-label">{{ o.label }}</span>
       </li>
@@ -176,7 +174,7 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
       :disabled="disabled"
       @click="emit('impact-info')"
     >
-      <img src="/icons/icon_impact.svg" alt="" />
+      <ImpactLeaf class="imp-trailing-icon" />
     </button>
   </div>
 </template>
@@ -269,23 +267,35 @@ onBeforeUnmount(() => document.removeEventListener('mousedown', onDocClick))
   white-space: nowrap;
 }
 
-/* Trailing Impact° button */
+/* Trailing Impact° button — persistent icon to the right of the combo that
+   opens the Impact° explainer modal. `appearance: none` neutralises the
+   default native button chrome that would otherwise fight the flex sizing
+   (e.g. min-content width in some browsers). A subtle tinted background
+   ring plus 30 × 30 hit area make the button obvious as a clickable
+   affordance without competing visually with the combo. */
 .imp-trailing {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  flex: 0 0 30px;
+  width: 30px;
+  height: 30px;
   padding: 0;
-  border: none;
-  background: transparent;
+  margin: 0;
+  border: 1px solid color-mix(in srgb, var(--c-impact-green) 35%, transparent);
+  background: color-mix(in srgb, var(--c-impact-green) 10%, white);
   cursor: pointer;
-  border-radius: 4px;
-  flex-shrink: 0;
-  transition: background 0.15s;
+  border-radius: 6px;
+  -webkit-appearance: none;
+     -moz-appearance: none;
+          appearance: none;
+  transition: background 0.15s, border-color 0.15s;
 }
-.imp-trailing:hover { background: color-mix(in srgb, var(--c-impact-green) 12%, transparent); }
+.imp-trailing:hover {
+  background: color-mix(in srgb, var(--c-impact-green) 22%, white);
+  border-color: var(--c-impact-green);
+}
 .imp-trailing:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-impact-green) 25%, transparent); }
-.imp-trailing img { width: 18px; height: 18px; display: block; }
+.imp-trailing-icon { width: 18px; height: 18px; display: block; }
 .imp-trailing:disabled { cursor: not-allowed; opacity: 0.5; }
 </style>

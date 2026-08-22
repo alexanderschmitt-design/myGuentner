@@ -16,6 +16,7 @@
  */
 
 import { legacyParametersFromUnitInputData } from '~/utils/unitInputDataMapper'
+import { fluidCanonicalSlug } from '~/utils/fluidIdMap'
 
 const store = useConfigStore()
 const gpceu = useGpceu()
@@ -56,17 +57,50 @@ async function fetchBackendDefaults(catId: number): Promise<Partial<ReturnType<t
     const raw = await $fetch<any>(`/productCategory${catId}.json`)
     const content = raw?.content || raw
     if (!content || typeof content !== 'object') return null
-    return legacyParametersFromUnitInputData(content)
+    // categoryMediumType erlaubt dem Mapper, mehrdeutige FluidIDs korrekt
+    // dem Refrigerant- vs. Glycol-Slot zuzuordnen.
+    return legacyParametersFromUnitInputData(content, {
+      categoryMediumType: current.value.mediumType
+    })
   } catch {
     return null
   }
 }
+
+// Kategorie-inhärente Felder — inhärent an die Kategorie gebunden. Werden
+// IMMER aus der Fixture geladen (unabhängig vom appliedDefaultsFor-Guard
+// und vom answeredParams-Guard). Sonst würde ein "gemerktes" refrigerant
+// aus Cat 0 (R744) im Store bleiben, wenn der User zu Cat 1 (NH3, R717)
+// wechselt — Dropdowns würden leer oder falsch anzeigen.
+const CATEGORY_INHERENT_KEYS = new Set([
+  'refrigerant', 'glycolType', 'concentrationVolPct',
+  'multipleCircuits', 'gravityFlooded', 'pumpFeedRate',
+  'transcritic'
+])
 
 watch(
   () => current.value.slug,
   async (slug) => {
     if (!slug) return
     store.currentCategory = slug
+
+    // Kategorie-inhärente Fixture-Werte immer neu laden — unabhängig vom
+    // Session-Guard. Beim Kategorien-Wechsel gehört das Fluid dazu.
+    const backendAlways = await fetchBackendDefaults(current.value.id)
+    if (backendAlways) {
+      const inherentPatch: Record<string, unknown> = {}
+      for (const [key, val] of Object.entries(backendAlways)) {
+        if (val === null || val === undefined) continue
+        if (CATEGORY_INHERENT_KEYS.has(key)) inherentPatch[key] = val
+      }
+      if (Object.keys(inherentPatch).length > 0) {
+        store.updateParameters(inherentPatch as any)
+      }
+      for (const key of CATEGORY_INHERENT_KEYS) delete store.answeredParams[key]
+    }
+
+    // Rest-Sync (nicht-inhärente Felder) nur einmal pro Session-Category,
+    // damit User-Änderungen bei Rück-Navigation nicht clobbern werden.
     if (appliedDefaultsFor.value.has(slug)) return
     appliedDefaultsFor.value.add(slug)
 
@@ -80,12 +114,13 @@ watch(
     //    der User nicht bereits selbst gesetzt hat (answeredParams-Guard aus
     //    dem Guided-Flow-Refactor). So bleiben Q&A-Werte aus dem Chatbot
     //    erhalten selbst wenn sie mit den Backend-Defaults kollidieren.
-    const backend = await fetchBackendDefaults(current.value.id)
+    const backend = backendAlways
     if (backend) {
       const patch: Record<string, unknown> = {}
       for (const [key, val] of Object.entries(backend)) {
         if (val === null || val === undefined) continue
-        if (store.hasAnsweredParam(key)) continue // User-Wert nicht überschreiben
+        if (CATEGORY_INHERENT_KEYS.has(key)) continue // schon oben gesetzt
+        if (store.hasAnsweredParam(key)) continue    // User-Wert nicht überschreiben
         patch[key] = val
       }
       if (Object.keys(patch).length > 0) {
@@ -164,12 +199,15 @@ const REFRIGERANT_FALLBACK: readonly FluidOption[] = [
   { value: 'R508B', label: 'R508B (GWP 13400 | A1)',            hasImpact: false }
 ]
 
+// Coolants sind größtenteils "impact-fähig" (natürlich / niedriger Umwelt-
+// impact im Vergleich zu synthetischen Thermalflüssigkeiten). Live-Referenz
+// public/cat2.png rechts: Ethylene glycol trägt das grüne Impact°-Icon.
 const LIQUID_FALLBACK: readonly FluidOption[] = [
-  { value: 'ethylene',   label: 'Ethylene glycol',   hasImpact: false },
-  { value: 'propylene',  label: 'Propylene glycol',  hasImpact: false },
-  { value: 'water',      label: 'Water',             hasImpact: true },
-  { value: 'brineNaCl',  label: 'Brine (NaCl)',      hasImpact: false },
-  { value: 'brineCaCl2', label: 'Brine (CaCl₂)',     hasImpact: false },
+  { value: 'ethylene',   label: 'Ethylene glycol',   hasImpact: true  },
+  { value: 'propylene',  label: 'Propylene glycol',  hasImpact: true  },
+  { value: 'water',      label: 'Water',             hasImpact: true  },
+  { value: 'brineNaCl',  label: 'Brine (NaCl)',      hasImpact: true  },
+  { value: 'brineCaCl2', label: 'Brine (CaCl₂)',     hasImpact: true  },
   { value: 'methanol',   label: 'Methanol / water',  hasImpact: false }
 ]
 
@@ -183,28 +221,47 @@ const fluidOptions = computed<FluidOption[]>(() => {
     null
 
   if (!fluidsError.value && list && list.length > 0) {
-    return list
+    const mt = current.value.mediumType
+    const opts = list
       .map((f: any): FluidOption | null => {
         const label = String(f.fluidName ?? f.name ?? f.refrigerantCode ?? f.id ?? '').trim()
         if (!label) return null
-        // Derive `value` — prefer refrigerant code from the label ("… (R744) …")
-        // so store.parameters.refrigerant stays a stable string across sessions.
-        const codeMatch = label.match(/\((R\d{2,4}[A-Za-z]?)\)/)
-        const value = codeMatch ? codeMatch[1] : String(f.fluidID ?? label)
-        return {
-          value,
-          label,
-          hasImpact: Boolean(f.hasImpact)
-        }
+        // Delegiert an fluidCanonicalSlug — identische Regel wird vom
+        // Fixture-Sync-Mapper genutzt (mit demselben expectedMediumType),
+        // damit Store-Wert und Option-Value garantiert übereinstimmen.
+        const value = fluidCanonicalSlug(f.fluidID, label, mt)
+        if (!value) return null
+        return { value, label, hasImpact: Boolean(f.hasImpact) }
       })
       .filter((x): x is FluidOption => x !== null)
+    return withSyntheticFallback(opts)
   }
-  return isLiquid.value ? [...LIQUID_FALLBACK] : [...REFRIGERANT_FALLBACK]
+  return withSyntheticFallback(isLiquid.value ? [...LIQUID_FALLBACK] : [...REFRIGERANT_FALLBACK])
 })
 
+/**
+ * Fixture-Fluids können in einer anderen Backend-Version definiert sein
+ * (z. B. Prod-fluidID 2009 = NH3, aber das lokale Test-Backend liefert
+ * fluidID 2009 gar nicht). Damit die Medium-Dropdown nicht leer bleibt,
+ * synthetisieren wir eine Option aus dem aktuellen Store-Slug, falls dieser
+ * nicht bereits in der API-Liste steht. Das Label wird bevorzugt aus dem
+ * REFRIGERANT_FALLBACK / LIQUID_FALLBACK gezogen (menschenlesbar).
+ */
+function withSyntheticFallback(opts: FluidOption[]): FluidOption[] {
+  const current = isLiquid.value ? store.parameters.glycolType : store.parameters.refrigerant
+  if (!current || opts.some(o => o.value === current)) return opts
+  const friendlyList: readonly FluidOption[] = isLiquid.value ? LIQUID_FALLBACK : REFRIGERANT_FALLBACK
+  const friendly = friendlyList.find(o => o.value === current)
+  const synthetic: FluidOption = friendly
+    ? { value: friendly.value, label: friendly.label, hasImpact: friendly.hasImpact }
+    : { value: current, label: current, hasImpact: false }
+  return [synthetic, ...opts]
+}
+
 const calculationModeOptions = [
-  { value: 'fixed-capacity', label: 'State fixed capacity (adjust surface reserve)' },
-  { value: 'fixed-surface',  label: 'State fixed surface reserve (adjust capacity)' }
+  { value: 'fixed-capacity',                  label: 'State fixed capacity (adjust surface reserve)' },
+  { value: 'fixed-surface',                   label: 'State fixed surface reserve (adjust capacity)' },
+  { value: 'fixed-capacity-adjust-cond-temp', label: 'State fixed capacity (adjust condensation temperature)' }
 ]
 
 const parameterModeOptions = [
@@ -255,6 +312,13 @@ const subcoolingK = bind('subcoolingK')
 const dewPointMode = bind('dewPointMode')
 const inletByTempPressure = bind('inletByTempPressure')
 const maxPressureDropK = bind('maxPressureDropK')
+
+// Pump-Felder (Evaporator Pump, Cat 1)
+const gravityFlooded = bind('gravityFlooded')
+const pumpFeedRate = bind('pumpFeedRate')
+
+// Multiple-Circuits-Checkbox (Condenser Cat 3 u. ä.)
+const multipleCircuits = bind('multipleCircuits')
 
 const airOptionsOpen = ref(false)
 const impactModalOpen = ref(false)
@@ -312,7 +376,12 @@ async function resetToDefaults() {
   }
 }
 
-// Templates modal + Auto-Apply Private-Default (Etappe 3)
+// Templates modal (Auto-Apply-Private-Default wurde entfernt — es hat
+// gegen den Fixture-Sync gerennt: kurz nach dem korrekten Merge aus
+// productCategory{N}.json überschrieb applyTemplate() die Werte wieder
+// mit dem gespeicherten Default, was die medium-/refrigerant-Felder auf
+// veraltete Werte zurücksprang. Templates lassen sich weiterhin manuell
+// über den "Templates"-Button im Sub-Toolbar laden.)
 const templatesOpen = ref(false)
 const toast = useToast()
 
@@ -323,28 +392,6 @@ const { highlightActive: templateHighlightActive } = useTemplateFlash()
 function onTemplateApplied(t: { name: string }) {
   toast.success(`Template "${t.name}" applied`)
 }
-// Auto-Apply Private-Default beim ersten Öffnen einer Kategorie in dieser
-// Session. sessionStorage-Flag verhindert dass wir bei jeder Navigation
-// zurück in die Kategorie den Default reinladen und User-Edits clobbern.
-// resetWizard() im Store löscht alle gpc:autoApplied:* Flags, sodass der
-// nächste Category-Open den Default wieder greift.
-onMounted(async () => {
-  const slug = current.value?.slug
-  if (!slug || typeof window === 'undefined') return
-  const flagKey = `gpc:autoApplied:${slug}`
-  if (window.sessionStorage.getItem(flagKey)) return
-  try {
-    const res = await $fetch<{ ok: boolean; templates: any[]; defaultId: string | null }>(`/api/templates?category=${encodeURIComponent(slug)}`)
-    if (!res.ok || !res.defaultId) return
-    const def = res.templates.find(t => t.id === res.defaultId)
-    if (def) {
-      store.applyTemplate(def.configuration)
-      store.noteTemplateApplied(def.id ?? null, def.name ?? null)
-      window.sessionStorage.setItem(flagKey, '1')
-      toast.info(`Loaded your default template for ${slug}`)
-    }
-  } catch { /* not authenticated or offline — silently skip */ }
-})
 
 // Unified fluid v-model — picks the right store binding based on the
 // category's medium type. Refrigerant categories write to `refrigerant`;
@@ -434,6 +481,14 @@ const fluidValue = computed<string>({
             </div>
           </div>
           <div v-if="!isCoil && viewMode.isExpert.value" class="field-spacer"></div>
+
+          <!-- Multiple circuits — nur Condenser Cat 3 & verwandte, aus
+               Fixture-Feld `multipleCircuits` hydriert. Live-Referenz:
+               public/cat3.png rechts, linke Spalte über dem Medium-Feld. -->
+          <label v-if="current.showMultipleCircuits" class="checkbox multi-circuits">
+            <input type="checkbox" v-model="multipleCircuits" />
+            Multiple circuits
+          </label>
         </div>
       </section>
 
@@ -489,7 +544,7 @@ const fluidValue = computed<string>({
           </div>
         </template>
 
-        <!-- Refrigerant variant (DX / Condenser / Gas cooler) -->
+        <!-- Refrigerant variant (DX / Pump / Condenser / Subcooler / Gas cooler) -->
         <template v-else>
           <div class="field" data-learn-id="thermo-refrigerant" data-field-name="Refrigerant" data-api-param="fluidID">
             <label>Refrigerant</label>
@@ -500,31 +555,51 @@ const fluidValue = computed<string>({
             />
           </div>
 
-          <div class="field" data-learn-id="thermo-evap-temp" data-field-name="Evaporating Temperature t₀" data-api-param="fluidTempInlet">
-            <label>Evaporation temp.</label>
-            <UnitValueInput v-model="evapTempC" quantity="temperature" unit="C" :step="0.5" />
-          </div>
-
-          <div v-if="viewMode.isExpert.value" class="radio-group">
-            <label class="radio" :class="{ disabled: isCoil || !dewPointModeAvailable }">
-              <input type="radio" value="dew-point" v-model="dewPointMode" :disabled="isCoil || !dewPointModeAvailable" />
-              Dew point at inlet (DIN EN328)
+          <!-- Pump-Felder (Cat 1 Evaporator Pump). Live-Referenz cat1.png
+               rechts: gravity-flooded-Checkbox + Feed rate direkt unter
+               dem Refrigerant-Dropdown. -->
+          <template v-if="current.showPumpFields">
+            <label class="checkbox">
+              <input type="checkbox" v-model="gravityFlooded" />
+              gravity flooded
             </label>
-            <label class="radio" :class="{ disabled: isCoil || !dewPointModeAvailable }">
-              <input type="radio" value="mean" v-model="dewPointMode" :disabled="isCoil || !dewPointModeAvailable" />
-              Mean
+            <div class="field">
+              <label>Feed rate</label>
+              <input type="number" v-model.number="pumpFeedRate" step="0.1" />
+            </div>
+          </template>
+
+          <!-- Verdampfer-Seite: Evap-Temp + Superheating + Dew-Point +
+               Inlet-State. Für Condenser / Subcooler / Gas cooler
+               (hideEvaporatorSide=true) ausgeblendet — die haben nur eine
+               Kondensationsseite. -->
+          <template v-if="!current.hideEvaporatorSide">
+            <div class="field" data-learn-id="thermo-evap-temp" data-field-name="Evaporating Temperature t₀" data-api-param="fluidTempInlet">
+              <label>Evaporation temp.</label>
+              <UnitValueInput v-model="evapTempC" quantity="temperature" unit="C" :step="0.5" />
+            </div>
+
+            <div v-if="viewMode.isExpert.value" class="radio-group">
+              <label class="radio" :class="{ disabled: isCoil || !dewPointModeAvailable }">
+                <input type="radio" value="dew-point" v-model="dewPointMode" :disabled="isCoil || !dewPointModeAvailable" />
+                Dew point at inlet (DIN EN328)
+              </label>
+              <label class="radio" :class="{ disabled: isCoil || !dewPointModeAvailable }">
+                <input type="radio" value="mean" v-model="dewPointMode" :disabled="isCoil || !dewPointModeAvailable" />
+                Mean
+              </label>
+            </div>
+
+            <div v-if="viewMode.isExpert.value" class="field">
+              <label>Superheating</label>
+              <UnitValueInput v-model="superheatingK" quantity="temperatureDelta" unit="K" />
+            </div>
+
+            <label v-if="!isCoil && viewMode.isExpert.value" class="checkbox">
+              <input type="checkbox" v-model="inletByTempPressure" />
+              Inlet state by temperature and pressure
             </label>
-          </div>
-
-          <div v-if="viewMode.isExpert.value" class="field">
-            <label>Superheating</label>
-            <UnitValueInput v-model="superheatingK" quantity="temperatureDelta" unit="K" />
-          </div>
-
-          <label v-if="!isCoil && viewMode.isExpert.value" class="checkbox">
-            <input type="checkbox" v-model="inletByTempPressure" />
-            Inlet state by temperature and pressure
-          </label>
+          </template>
 
           <div class="field">
             <label>Cond. temp.</label>
@@ -621,6 +696,13 @@ const fluidValue = computed<string>({
           body="When enabled, the specified capacity already accounts for the humidity load. Uncheck it to specify Rel humidity manually on the Air card."
         />
       </section>
+
+      <!-- =========== Cat 10 Transcritic Zwei-Sektionen-Layout ============
+           Bei Gas cooler CO₂ (Cat 10) sind die tatsächlichen Auslegungs-
+           parameter auf zwei Karten aufgeteilt (Supercritic + Subcritic).
+           Werte kommen aus dem Fixture-Feld `isSupercritic`/`isSubcritic`
+           samt `subcritic*`-Zusatzfeldern. -->
+      <WizardTranscriticSections v-if="current.showTranscriticSection" />
     </div>
 
     <!-- ================== Air Options Panel (Modal) ==================
@@ -681,7 +763,7 @@ const fluidValue = computed<string>({
       <div v-if="impactModalOpen" class="modal-backdrop" @click.self="impactModalOpen = false">
         <div class="modal impact-modal" role="dialog" aria-labelledby="impact-modal-title">
           <header class="modal-head">
-            <h3 id="impact-modal-title">Impact° label</h3>
+            <h3 id="impact-modal-title">Information</h3>
             <button type="button" class="modal-close" aria-label="Close" @click="impactModalOpen = false">
               <svg viewBox="0 0 16 16" width="16" height="16"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
             </button>
@@ -909,6 +991,10 @@ const fluidValue = computed<string>({
   padding: var(--space-xs) var(--space-sm);
 }
 .humidity-factor-checkbox { flex: 0 0 auto; }
+
+/* Multiple circuits checkbox lives inside the capacity-grid but should span
+   both columns so it aligns with the field labels above. */
+.multi-circuits { grid-column: 1 / -1; margin-top: var(--space-a4); }
 
 /* Bottom nav */
 .bottom-nav {

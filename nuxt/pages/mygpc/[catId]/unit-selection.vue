@@ -11,9 +11,11 @@
  */
 
 import { emptyUnitSelectionOpts } from '~/stores/configuration'
+import { seriesForCategory, type SeriesStatus } from '~/data/seriesCatalog'
 
 const router = useRouter()
 const viewMode = useViewMode()
+const { current } = useCategory()
 
 interface SeriesCard {
   id: string
@@ -21,9 +23,16 @@ interface SeriesCard {
   subtitle: string
   image: string
   status: 'available' | 'unavailable'
+  /** Optionaler Tooltip-Grund — bei roten Serien gefüllt. */
+  reason?: string
 }
 
-const SERIES: SeriesCard[] = [
+/**
+ * Legacy-Fallback für Kategorien ohne gepflegten Katalog. Wird sukzessive
+ * durch `seriesForCategory(catId, refrigerant, accessories)` ersetzt —
+ * Cat 0 (Evaporator DX) läuft bereits über den Katalog.
+ */
+const LEGACY_SERIES: SeriesCard[] = [
   { id: 'gamc-cx', title: 'Mini COMPACT – GAMC CX',    subtitle: 'Air cooler – ultra slim design',              image: '/icons/coil-air-cooler.svg', status: 'available' },
   { id: 'gasc-cx', title: 'Slim COMPACT – GASC CX',    subtitle: 'Air cooler – slimline design',                image: '/icons/coil-air-cooler.svg', status: 'available' },
   { id: 'gadc-cx', title: 'Dual COMPACT – GADC CX',    subtitle: 'Air cooler – dual discharge, compact',        image: '/icons/coil-air-cooler.svg', status: 'available' },
@@ -84,7 +93,7 @@ function clearModelFilter() {
 }
 
 function toggleSeries(id: string) {
-  const s = SERIES.find(x => x.id === id)
+  const s = SERIES.value.find(x => x.id === id)
   if (!s || s.status === 'unavailable') return
   if (selectedSeries.value.has(id)) selectedSeries.value.delete(id)
   else selectedSeries.value.add(id)
@@ -186,6 +195,83 @@ watch(terminalBoxEnabled, (v) => { if (v) ensureOpen('terminal') })
 // Load kommen sie live in die UI zurück (Pinia-State ist deep-reactive).
 const store = useConfigStore()
 const opts = store.unitSelectionOpts
+
+/**
+ * Aktives Fluid je nach Kategorie. Refrigerant-Kategorien (Cat 0, 1, 3,
+ * 5, 10) nutzen `store.parameters.refrigerant`, Coolant-Kategorien
+ * (Cat 2 Air Cooler, Cat 4 Dry Cooler, Cat 6 Oil Cooler) nutzen
+ * `store.parameters.glycolType`. Der Katalog interpretiert beide
+ * Slugs über ein gemeinsames `IMPACT_FLUIDS`-Set.
+ */
+const activeFluidSlug = computed<string | null>(() =>
+  current.value.mediumType === 'liquid'
+    ? store.parameters.glycolType
+    : store.parameters.refrigerant
+)
+
+/**
+ * Reaktive Serien-Liste. Für Kategorien, die im `SERIES_CATALOG`
+ * gepflegt sind (aktuell Cat 0-2), wird die Liste dynamisch aus dem
+ * Katalog + aktuellem Fluid + aktivierten Accessories abgeleitet.
+ * Andernfalls fällt sie auf die statische `LEGACY_SERIES` zurück, damit
+ * noch nicht gepflegte Kategorien optisch unverändert bleiben.
+ */
+const SERIES = computed<SeriesCard[]>(() => {
+  const dynamic = seriesForCategory(
+    current.value.id,
+    activeFluidSlug.value,
+    // Nur die relevanten Boolean-Accessory-Flags weiterreichen. Reactivity
+    // ist erhalten, weil `opts` ein deep-reactiver Store-Slice ist.
+    {
+      epoxyCoatedFins:             opts.epoxyCoatedFins,
+      airSockWithStreamer:         opts.airSockWithStreamer,
+      coilDefender:                opts.coilDefender,
+      guentnerStreamer:            opts.guentnerStreamer,
+      hotGasInterconnectingTubing: opts.hotGasInterconnectingTubing,
+      repairSwitch:                opts.repairSwitch,
+      fanRingHeater:               opts.fanRingHeater,
+      doubleTrayInsulated:         opts.doubleTrayInsulated,
+      casingSimpleTraySs:          opts.casingSimpleTraySs,
+      casingDoubleTraySs:          opts.casingDoubleTraySs,
+      legsForFloorMounting:        opts.legsForFloorMounting,
+      inletHood:                   opts.inletHood,
+      louvreWithDrive:             opts.louvreWithDrive
+    }
+  )
+  if (!dynamic) return LEGACY_SERIES
+  return dynamic.map<SeriesCard>((s: SeriesStatus) => ({
+    id: s.id,
+    title: s.title,
+    subtitle: s.subtitle,
+    image: s.image,
+    status: s.status,
+    reason: s.reason
+  }))
+})
+
+/**
+ * Wenn der User in Thermodynamics das Kältemittel wechselt (Impact ↔ Non-
+ * Impact), ändern sich die verfügbaren Serien-IDs komplett (CX vs. RX-Suffix).
+ * Alte Selection-IDs zeigen dann auf nicht mehr existierende Einträge, was
+ * die Selektion unsichtbar aber weiterhin gültig hält. Wir bereinigen die
+ * Selection automatisch auf die tatsächlich sichtbaren Serien; wenn nichts
+ * übrig bleibt, wird der jeweils erste verfügbare Eintrag vorausgewählt.
+ */
+watch(
+  SERIES,
+  (list) => {
+    const visibleIds = new Set(list.map(s => s.id))
+    const filtered = new Set(
+      [...selectedSeries.value].filter(id => visibleIds.has(id))
+    )
+    if (filtered.size === 0) {
+      const firstAvailable = list.find(s => s.status === 'available')
+      if (firstAvailable) filtered.add(firstAvailable.id)
+    }
+    selectedSeries.value = filtered
+  },
+  { immediate: true, deep: false }
+)
 
 const powerSupplyOptions = [
   { value: 0,  label: 'All 50Hz' },
@@ -293,7 +379,7 @@ const defrostOptionsHint = computed(() => {
 
 const canProceed = computed(() => selectedSeries.value.size > 0)
 
-const { current, thermoUrl, searchUrl } = useCategory()
+const { thermoUrl, searchUrl } = useCategory()
 useHead({ title: `myGPC — Unit Selection (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
 // Templates modal state
@@ -415,6 +501,7 @@ function resetConfig() {
             v-for="s in SERIES"
             :key="s.id"
             :class="{ 'is-selected': selectedSeries.has(s.id), 'is-unavailable': s.status === 'unavailable' }"
+            :title="s.status === 'unavailable' ? s.reason : ''"
             @click="toggleSeries(s.id)"
           >
             <span class="status-dot" :class="s.status"></span>
