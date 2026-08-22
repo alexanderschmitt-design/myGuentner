@@ -1,21 +1,22 @@
 /**
- * Embeddings — Multi-Provider (OpenAI + Google Gemini + OpenRouter).
+ * Embeddings — Multi-Provider (OpenAI + Google Gemini).
  *
  * Schema-Constraint: Supabase `document_chunks.embedding` ist vector(1536).
- * Alle Provider müssen 1536-dim Vektoren liefern:
+ * Beide Provider müssen 1536-dim Vektoren liefern:
  *   • OpenAI text-embedding-3-small: nativ 1536.
  *   • Google Gemini gemini-embedding-001: parametrisierbar via
  *     `outputDimensionality`, wir setzen fix 1536.
- *   • OpenRouter openai/text-embedding-3-small: OpenAI-kompatibles Interface
- *     unter openrouter.ai/api/v1/embeddings, proxy'ed die OpenAI-Modelle
- *     (auch cohere/*, voyageai/* wenn 1536-dim). Nutzt OpenRouter-Guthaben.
+ *
+ * OpenRouter (Anmerkung 2026-08-22): unterstützt aktuell KEINE Embeddings
+ * — der `/api/v1/embeddings`-Endpoint wirft HTTP 404. OpenRouter ist ein
+ * reines Chat-Completions-Gateway. Wenn du OpenRouter-Guthaben hast und
+ * Embeddings brauchst, musst du zusätzlich einen OpenAI- oder Gemini-Key
+ * einrichten. Der Provider-Slot bleibt im Code aber im UI ausgeblendet.
  *
  * Provider-Wahl kommt aus `rag_settings.embedding_mode`:
- *   • 'openai'     → OpenAI-API direkt (braucht OPENAI_API_KEY)
- *   • 'gemini'     → Google Generative Language API (braucht GEMINI_API_KEY
- *                     oder GOOGLE_API_KEY)
- *   • 'openrouter' → OpenRouter-Gateway (braucht OPENROUTER_API_KEY, nutzt
- *                     OpenRouter-Guthaben statt separatem OpenAI/Gemini-Konto)
+ *   • 'openai' → OpenAI-API direkt (braucht OPENAI_API_KEY)
+ *   • 'gemini' → Google Generative Language API (braucht GEMINI_API_KEY
+ *                oder GOOGLE_API_KEY)
  *
  * Wechsel des Providers erfordert Re-Embedding aller bestehenden Chunks —
  * sonst ist die Retrieval-Qualität schlecht (unterschiedliche Vektor-Räume).
@@ -64,7 +65,14 @@ async function getActiveProvider(): Promise<Provider> {
     const settings = await getRagSettings()
     const mode = (settings.embedding_mode || 'openai').toLowerCase()
     if (mode === 'gemini' || mode === 'google') return 'gemini'
-    if (mode === 'openrouter') return 'openrouter'
+    if (mode === 'openrouter') {
+      // Legacy: rag_settings hat noch 'openrouter' aus einer früheren
+      // Iteration. Der Provider unterstützt aber keine Embeddings — wir
+      // fallen zu OpenAI zurück. Der Admin sollte im UI auf gemini/openai
+      // wechseln, dann verschwindet die Warning.
+      console.warn('[embeddings] embedding_mode=openrouter is unsupported (404 from /embeddings). Falling back to openai.')
+      return 'openai'
+    }
     return 'openai'
   } catch {
     return 'openai'

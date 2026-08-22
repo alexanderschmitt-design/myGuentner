@@ -111,9 +111,15 @@ chunkSize = chunkSize ?? 1000
 chunkOverlap = chunkOverlap ?? 200
 
 const PROVIDER_DEFAULTS = {
-  openai:     'text-embedding-3-small',
-  gemini:     'gemini-embedding-001',
-  openrouter: 'openai/text-embedding-3-small'
+  openai: 'text-embedding-3-small',
+  gemini: 'gemini-embedding-001'
+  // openrouter: OpenRouter unterstützt keine Embeddings (HTTP 404 auf
+  // /embeddings, verifiziert 2026-08-22). Fällt automatisch auf openai
+  // zurück wenn im rag_settings gesetzt.
+}
+if (provider === 'openrouter') {
+  console.warn('[warn] provider=openrouter wird nicht unterstützt (OpenRouter hat keinen /embeddings-Endpoint). Falle auf openai zurück.')
+  provider = 'openai'
 }
 providerModel = providerModel || PROVIDER_DEFAULTS[provider] || 'text-embedding-3-small'
 
