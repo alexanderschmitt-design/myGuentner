@@ -21,6 +21,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm test        # No test framework configured yet
+
+# Dokumente lokal in den RAG einpflegen (ohne Vercel-Umweg):
+node scripts/vectorize.mjs manual.pdf                    # einzelne Datei
+node scripts/vectorize.mjs docs/*.pdf                    # Glob (Shell-expand)
+node scripts/vectorize.mjs --dir=docs/                   # Ordner rekursiv
+node scripts/vectorize.mjs manual.pdf --provider=openrouter --force
+node scripts/vectorize.mjs test.pdf --dry-run            # nur Extract-Preview
+# `node scripts/vectorize.mjs --help` für alle Optionen.
+# Env: SUPABASE_URL, SUPABASE_SECRET_KEY + Provider-Key (OPENAI_/GEMINI_/OPENROUTER_API_KEY).
+# Duplikat-Erkennung via SHA-256-Content-Hash; --force überschreibt.
 ```
 
 ## Current State (Stand: 2026-05-10)
