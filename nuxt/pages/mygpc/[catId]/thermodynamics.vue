@@ -15,6 +15,8 @@
  *                              / Max ΔP in K with Auto checkbox
  */
 
+import { legacyParametersFromUnitInputData } from '~/utils/unitInputDataMapper'
+
 const store = useConfigStore()
 const gpceu = useGpceu()
 const router = useRouter()
@@ -38,16 +40,57 @@ const dewPointModeAvailable = computed(() => current.value.dewPointModeAvailable
 // +2 °C), it adds the slug to this set so the more generic category default
 // doesn't clobber the preset here on mount.
 const appliedDefaultsFor = useCategoryDefaultsGuard()
+
+/**
+ * Backend-Defaults werden aus `nuxt/public/productCategory{N}.json` geladen —
+ * das sind Snapshots der Live-Backend-Response von myguntner.com. So sind
+ * die Wizard-Startwerte identisch zur Live-Referenz-Seite, ohne dass die
+ * App vom Backend-Roundtrip abhängig ist (funktioniert auch offline).
+ *
+ * Die JSONs liegen im /public/-Ordner und sind zur Runtime als
+ * `/productCategoryN.json` erreichbar. Legacy-Rück-Mapping erzeugt aus
+ * `UnitInputData`-Shape → `ConfigurationParameters`-Slice.
+ */
+async function fetchBackendDefaults(catId: number): Promise<Partial<ReturnType<typeof legacyParametersFromUnitInputData>> | null> {
+  try {
+    const raw = await $fetch<any>(`/productCategory${catId}.json`)
+    const content = raw?.content || raw
+    if (!content || typeof content !== 'object') return null
+    return legacyParametersFromUnitInputData(content)
+  } catch {
+    return null
+  }
+}
+
 watch(
   () => current.value.slug,
-  (slug) => {
+  async (slug) => {
     if (!slug) return
     store.currentCategory = slug
     if (appliedDefaultsFor.value.has(slug)) return
     appliedDefaultsFor.value.add(slug)
+
+    // 1) Kategorie-lokale paramDefaults (aus useCategory.ts, sofort verfügbar)
     const defaults = current.value.paramDefaults
     if (defaults && Object.keys(defaults).length > 0) {
       store.updateParameters(defaults)
+    }
+
+    // 2) Backend-Defaults aus dem Fixture-JSON — überschreibt nur Felder die
+    //    der User nicht bereits selbst gesetzt hat (answeredParams-Guard aus
+    //    dem Guided-Flow-Refactor). So bleiben Q&A-Werte aus dem Chatbot
+    //    erhalten selbst wenn sie mit den Backend-Defaults kollidieren.
+    const backend = await fetchBackendDefaults(current.value.id)
+    if (backend) {
+      const patch: Record<string, unknown> = {}
+      for (const [key, val] of Object.entries(backend)) {
+        if (val === null || val === undefined) continue
+        if (store.hasAnsweredParam(key)) continue // User-Wert nicht überschreiben
+        patch[key] = val
+      }
+      if (Object.keys(patch).length > 0) {
+        store.updateParameters(patch as any)
+      }
     }
   },
   { immediate: true }
