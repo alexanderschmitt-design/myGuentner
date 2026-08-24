@@ -1,0 +1,905 @@
+
+
+UnitInputData Attribute Documentation
+NameUsedUnitInfoTextDatatypeGroup
+1AdjustableFlapWithDriveNoneIndicates whether a louvre, also known as a defrost flap made of galvanized steel and with
+drive is required as an accessory.
+Int32Options
+0Indicates that the louvre is not necessarily needed.
+1Indicates that the louvre is definitely needed.
+2AirBlowOffTypeNoneSpecifies the air blow direction (only relevant for Downblow Accessory)Int32Options
+0no restrictions
+1vertically up
+2horizontally
+345° down
+4vertically down
+3AirDuctNoneIndicates whether an air duct is required as an accessory.Int32Options
+0Indicates that the air duct is not necessarily needed.
+1Indicates that the air duct is definitely needed.
+4AirHoseConnectionNoneIndicates whether a air sock connection without Güntner Streamer is required as an accessory.Int32Options
+0Indicates that the air sock connection is not necessarily needed.
+1Indicates that the air sock connection is definitely needed.
+5AirHoseConnectionInclStr
+eamer
+NoneIndicates whether a air sock connection with Güntner Streamer is required as an accessory.Int32Options
+0Indicates that the air sock connection is not necessarily needed.
+1Indicates that the air sock connection is definitely needed.
+Version: GPC.EU Customer 2026.1-310 (64 Bit)
+
+NameUsedUnitInfoTextDatatypeGroup
+6AirHumidityInputModeNoneDefines the input mode for the air humidity.Int32Thermodynamics
+0MODE_AUTO Relative humidity will be calculated automatically
+1MODE_REL_HUMIDITY AirRelHumidity must be set
+2MODE_WET_BULB_TEMP AirWetBulbTemp must be set
+7AirPressurembarDefines the air pressure at the inlet.DoubleThermodynamics
+8AirPressureInputModeNoneDefines the input mode for the air pressure. Accordingly, either the AirPressure or Altitude input
+parameter is relevant/used.
+Int32Thermodynamics
+0to define the air pressure itself
+1to define the geodetic height/altitude = height above sea level
+9AirRelHumidityPercentDefines the relative air humidity at the inlet.DoubleThermodynamics
+10AirTemperatureDegree_CDefines the air temperature. Which air temperature (inlet, room as average between inlet/outlet,
+room as LMTD) is defined, depends on the AirTemperatureMode.
+DoubleThermodynamics
+11AirTemperatureModeNoneDefines the input mode for the air temperature.Int32Thermodynamics
+0to define the air inlet temperature.
+1to define the room temperature of the air as mean value between inlet and outlet
+2
+to define the room temperature of the air as LMTD, with room temperature (LMTD) = t_0 + LMTD (was only temporarily allowed for
+ProductCategory 1 for Guntner America and until April 2010) [???]
+12AirVelocityClassNoneDefines the air velocity class (only relevant if UnitSelectionMode = 0 (unit search mode) and
+ProductCategory = 0,1,2 (evaporator or aircooler (brine)).
+Int32Options
+0no restrictions (mapped to AIR_VELOCITY_CLASS_ALL)
+1standard air velocity
+2high air velocity (only suitable for low temperatures)
+3low air velocity (e.g. used for processing rooms)
+13AirWetBulbTempDegree_CDefines the wet bulb temperature = lowest temperature that can be achieved by evaporationDoubleThermodynamics
+14AltitudemDefines the height above sea level = geodetic height/altitude.DoubleThermodynamics
+
+NameUsedUnitInfoTextDatatypeGroup
+15AxitopFansNoneIndicates whether a diffuser for the fans, also known as a Axitop, is required as an accessory.Int32Unknown
+0Indicates that the diffuser is not necessarily needed.
+1Indicates that the diffuser is definitely needed.
+16Ball_Valve_Half_For_Ven
+tilation
+NoneIndicates whether a ball valve 1/2” for ventilation/drain is required as an accessory.Int32Options
+0Indicates that the ball valve is not necessarily needed.
+1Indicates that the ball valve is definitely needed.
+17BaseUnitFunctionNoneDefines the needed product categoryInt32Startpage
+0DX evaporator (Cold Indoor)
+1Flooded evaporator (Cold Indoor)
+10DX evaporator heat collector (Heat Collectors, Outdoor)
+2Flooded evaporator (Cold Indoor)
+3Condenser (Warm Outdoor)
+4Brine cooler (Warm Outdoor)
+5Sub cooler (Warm Outdoor)
+6Oil cooler (Warm Outdoor)
+7Gas cooler (Warm Outdoor)
+8One phase air cooler heat collector (Heat Collectors, Outdoor)
+9Flooded evaporator heat collector (Heat Collectors, Outdoor)
+18BaseUnitIDNoneDefines the BaseUnitID, which is needed only for the recalculation of KDB units
+(UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the output of a
+given selection.
+Int64Recalculation
+19BrineDefrostConcentratio
+n
+VolPercentDefines the concentration of the warm brine defrost fluid.DoubleUnknown
+20BrineDefrostFluidNoneDefines the fluid used for the warm brine defrost accessory. Relevant only, if accessory “warm
+brine defrost” is selected.
+Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+21BrineDefrostPressuredro
+p
+barDefines the pressure drop of the warm brine defrost fluid. Relevant only, if accessory “warm
+brine defrost” is selected.
+DoubleUnknown
+22CanvasSleevesNoneIndicates whether canvas sleeves are required as an accessory.Int32Unknown
+0Indicates that the canvas sleeves are not necessarily needed.
+1Indicates that the canvas sleeves are definitely needed.
+23CapacitySensibleHeatOnl
+y
+NoneAdditional flag for the thermal capacity, whether it defines only the sensible heat. Used only for
+America. Sensible heat refers to the thermal energy that is added to or removed from a system
+without a phase transition taking place. It is the heat that directly influences the temperature of
+a substance without changing its physical state. The formula ""Sensible heat = total power -
+heat of condensation"" shows how to calculate sensible heat by subtracting the total power of a
+system from the heat of condensation.
+BooleanThermodynamics
+FALSEThermalCapacity defines the completely needed thermal capacity.
+TRUEThermalCapacity defines the sensible heat only.
+24CasingAndDoubleTrayNoneIndicates whether a casing and a double tray made of stainless steel are required as an
+accessory.
+Int32Unknown
+0Indicates that they are not necessarily needed.
+1Indicates that they are definitely needed.
+25CasingAndFullCoverage
+DoubleTraySS
+NoneIndicates whether a casing and a full coverage double tray made of stainless steel are required
+as an accessory.
+Int32Unknown
+0Indicates that they are not necessarily needed.
+1Indicates that they are definitely needed.
+26CasingAndHygienicDoubl
+eTraySS
+NoneIndicates whether a casing and a hygienic double tray made of stainless steel are required as
+an accessory.
+Int32Unknown
+0Indicates that they are not necessarily needed.
+1Indicates that they are definitely needed.
+
+NameUsedUnitInfoTextDatatypeGroup
+27CasingAndSimplyTrayNoneIndicates whether a casing and a simple tray made of stainless steel are required as an
+accessory.
+Int32Unknown
+0Indicates that they are not necessarily needed.
+1Indicates that they are definitely needed.
+28ClimaCoilOptionNoneDefines whether a climatization coil is selected, which is needed only for the recalculation of
+TDB units (UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the
+output of a given selection.
+Int32Unknown
+29ClimatizationCoilNoneIndicates whether a climatization coil is required as an accessory.Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+30Coil_DefenderNoneIndicates whether a Coil Defender is required as an accessory, which means that the heat
+exchanger incl. connection system is fully powder-coated to extend the service life of the
+product thanks to optimum corrosion protection.
+Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+31CoilDefrostTypeNoneDefines which specific type of coil defrost is selected, which is needed only for the recalculation
+of TDB units (UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the
+output of a given selection.
+Int64Unknown
+32ConceptNameNoneDefines the ConceptName of the unit, which is needed for the recalculation of KDB units
+(UnitSelectionMode = 1 = recalculation of existing unit). Has to be taken from the output of a
+given selection.
+StringRecalculation
+33CondensatePumpNoneIndicates whether a condensate pump is required as an accessory.Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+34ConnectionAndBowCover
+ing
+NoneIndicates whether a connection and bow covering is required as an accessory.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+35ConnectionRoofNoneIndicates whether a header cover, also known as a connection roof, is required as an
+accessory.
+Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+36ConnectionSystemNoneIndicates whether a thread or flange connection is required as an accessory.BooleanUnknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+37ConnectionTypeNoneDefines which type of thread or flange connection is required as an accessory, if it is required
+via ConnectionSystem = true.
+Int32Unknown
+3Lapped flanges
+4Welding neck flanges
+5Thread connection
+38ContainerTransportRailNoneIndicates whether guide rails for container transport are required as an accessoryInt32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+39ControllerAllocationNoneIf a switch cabinet or terminal box is selected, this defines the allocation of the controller to the
+unit:
+Int32Unknown
+1Allocation is set automatically
+3One controller per unit
+4One controller per fluid circuit
+5No controller selected
+40ControllerByPassObligato
+ry
+NoneSpecifies if a bypass is required for the controller.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+0Bypass is not needed
+1Bypass is needed
+41ControllerInterfaceNoneDefines the required interface for the controllerInt32Unknown
+1Undefined
+2No Interface needed
+3Modbus RTU
+4Profibus DP
+5Profinet
+6Bacnet IP
+7Bacnet MS/TP
+42ControllerTypeNoneDefines the needed controller typeInt32Unknown
+10GMM EC with remote display (only for EC fans)
+2Controller type is selected automatically
+3Only continuous controllers (EC, sinus or phase cut controllers)
+4Phase cut (only for AC fans)
+6Step controller (only for AC fans)
+7GMM EC (only for EC fans)
+8GMM Sincon lite (only for AC fans)
+9GMM phase cut lite (only for AC fans)
+43CoreTubeMaterialNoneDefines the needed core tube material (without inner structure type). Only relevant if
+UnitSelectionMode = 0 (unit search mode).
+Int32Unknown
+0no restriction
+CCopper
+FHot dip galvanized steel
+VStainless steel type A (normal quality)
+WStainless steel type B (higher quality)
+ZGalvanized steel
+
+NameUsedUnitInfoTextDatatypeGroup
+44CorrosionProtectionClassNoneDefines the needed corrosion protection classInt32Unknown
+0no special corrosion protection class needed
+335corrosion protection class 4 needed
+336corrosion protection class 5 needed
+45CountryID_HydroPadNoneDefines for which country, specified via an ID, the option hydroBLU, known also as HydroPad
+or evaporative cooling pad, (or the option hydroSPRAY???) the thermodynamics should be
+calculated, if it is selected.
+Int32Hydro
+46DefaultIndoorVarnishingNoneIndicates whether for a unit, which as standard is not varnished, the option “varnishing with the
+standard indoor color” [e.g. Europe: 9003] is required as an accessory.
+Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+47DefaultOutdoorVarnishingNoneIndicates whether for a unit, which as standard is not varnished, the option “varnishing with the
+standard outdoor color” is required as an accessory.
+Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+48DefrostFlapNoneIndicates whether a defrost flap with heated frame is required as an accessory.Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+49DefrostingNoneDefines the needed standard defrosting.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+0No defrosting needed
+258Electric defrost kit to be installed by customer
+263Electric defrost mounted and wired at factory (meta option, no details for coil or tray).
+264Hot gas defrost (meta option, no details for coil or tray).
+265Warm brine defrost (meta option, no details for coil or tray).
+339Electric defrost efficiency-optimized (meta option, no details for coil or tray).
+80Air Defrost
+50DefrostingHotGasFeedNoneDefines explicitely the position of the feed of the hot gas defrost in coil. Currently this is only
+used, if a user defined defrosting is selected, and there a hot gas defrosting in coil or hot gas
+defrosting without connection is selected, and it’s a unit for the Eurasian market.
+Int32Unknown
+0Feed at the top
+1Feed at the bottom
+2Feed at the center
+51DefrostingUserDefinedNoneDefines the needed user defined defrosting. Empty list: no user defined defrosting. Otherwise:
+List of defrosting options, selected via their IDs.
+List`1Unknown
+11Electric defrost coil (standard)
+12Electric defrost tray (standard)
+13Hot gas defrost coil (standard)
+14Hot gas defrost tray (standard)
+23Electric defrost in coil and tray (combined).
+261Warm brine defrost coil
+262Warm brine defrost tray
+264Hot gas defrost (meta option, no details for coil or tray).
+312El. defrost coil light for t0>=-10°C
+338Electric defrost in coil and tray efficiency-optimized (combined).
+340Electric defrost kit to be installed by customer efficiency-optimized
+73Electric defrost coil heavy for t0<-40°C
+74Electric defrost tray heavy for t0<-40°C
+
+NameUsedUnitInfoTextDatatypeGroup
+52DeliveryTimeFilterWorkDaysDefines the delivery time filter typeInt32Limitations
+-1Only available units
+-2Only units that are in stock
+0No filter defined
+1Unit shippd within 1 business day
+2Unit shippd within 2 business days
+3Unit shippd within 3 business days
+4Unit shippd within 4 business days
+5Unit shippd within 5 business days
+6Unit shippd within 6 business days
+53DoubleFanPlatesNoneDefines whether a set of double fan plates is required as an accessory:Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+54DoubleTrayInsulatedNoneDefines whether an insulated double tray is required as an accessory.Int32Unknown
+0Indicates that it is not necessarily needed.
+1Indicates that it is definitely needed.
+55ECFanOptionNoneSpecifies whether the unit must have fans with EC motor technology.Int32Unknown
+0EC technology is not required.
+1EC technology is required.
+56ECJunctionBoxWithMain
+Switch
+NoneIf there is the controls accessory "EC junction box" selected (when SwitchCabinetType=8) then
+this value specifies whether the junction box must have a main switch.
+Int32Unknown
+0Main switch is not required
+1Main switch is required
+57EfficiencyClassNoneSpecifies the at least required efficiency class of the found units.StringUnknown
+
+NameUsedUnitInfoTextDatatypeGroup
+No filter defined { get; set; } All efficiency classes allowed
+AOnly units with efficiency class A or better should be found
+A+Only units with efficiency class A+ or better should be found
+A++Only units with efficiency class A++ or better should be found
+BOnly units with efficiency class B or better should be found
+COnly units with efficiency class C or better should be found
+DOnly units with efficiency class D or better should be found
+EOnly units with efficiency class E or better should be found
+58EmptyCasingNoneSpecifies whether an the accessory empty casing is requiredInt32Unknown
+0an empty casing is not required
+1an empty casing is required
+59EmptyCasingBottomShee
+t
+NoneIf an empty casing is selected this value defines whether a bottom sheet must be includedBooleanUnknown
+0A bottom sheet is not required
+1A bottom sheet is required
+60EmptyCasingHeightmmIf an empty casing is selected this value defines the required height of the empty casing in mmInt32Unknown
+61EmptyCasingIsolationNoneIf an empty casing is selected this value defines whether an isolation must be includedBooleanUnknown
+0An isolation is not required
+1An isolation is required
+62EmptyCasingLengthmmIf an empty casing is selected this value defines the required length of the empty casing in mmInt32Unknown
+63EnableForMountingNoneIf there is any switch cabinet or terminal box selected, then this value specifies whether it must
+be mountable.
+Int32Unknown
+0AirHeater: The switch cabinet or terminal box does not have to be mountable. AirCooler: 0-10V signal not required.
+1AirHeater: The switch cabinet or terminal box must be mountable. AirCooler: 0-10V signal required (only EC!)
+64Epoxy_FinsNoneIndicates whether epoxy fins are required.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+65ErP_CompliantmmFilter to show only units that apply to EU’s Energy-Related Products Directive (ErP Directive
+2009/125/EC).
+BooleanUnknown
+66ESPMaxPaUpper limit for external static pressure. (Used in GPC.AM.)DoubleOptions
+67ESPMinPaLower limit for external static pressure. (Used in GPC.AM.)DoubleOptions
+68EspMinMaxDescriptionNoneString that can describe the lower and upper limit for external static pressure. (Used in
+GPC.AM.)
+StringOptions
+69ExhaustDuctNoneIndicates whether an exhaust duct is required as an accessory.Int32Unknown
+70ExtendedLegsNoneDefines the length of (extended) legs.Int32Unknown
+213Set of extended legs 1100 mm
+214Set of extended legs 1200 mm
+6Set of extended legs 600 mm
+7Set of extended legs 800 mm
+8Set of extended legs 1000 mm
+71ExternalPressingPaExternal static pressing (ESP) for standard fans (only for KDB units).DoubleOptions
+72FanFuseSpecNoneDefines the fan protection.Int32Unknown
+0Undefined
+1Consider all types
+2Best price
+3High fail safe
+4Fans individually fused
+5Up to two fans per fuse
+6Up to four fans per fuse
+7Up to three fans per fuse
+73FanRingHeaterNoneIndicates whether fan ring heaters are required as an accessory.Int32Unknown
+74FinConinIDNoneSpecifies the internal FinConinID.Int32Unknown
+75FinPitch0MaxmmMax. fin pitchDoubleUnknown
+
+NameUsedUnitInfoTextDatatypeGroup
+76FinPitch0MinmmMin. fin pitchDoubleUnknown
+77FinPitchVariableOnlyNoneSpecifies whether there should only units with variable (staged) fin pitch (different fin pitch
+values within one unit)
+Int32Unknown
+0No restriction for the fin pitch
+1Only units with variable fin pitch should be found
+78FinSpacingInputModeNoneDefines the mode how the fin spacing filter is specified in the input dataInt32Unknown
+0
+Minimum and maximum fin spacing is given (FinPitch0Min and FinPitch0Max must contain the minimum and maximum fin spacing
+values in mm)
+1
+Minimum and maximum number of fins per inc is given (FinPitch0Min and FinPitch0Max must contain the minimum and maximum
+number of fins per inch)
+79FluidIDNoneDefines the ID number of the fluid, that is used in the heat exchanger's main or first circuit.Int32Thermodynamics
+80FluidID_2NoneDefines the ID number of the fluid, that is used in the heat exchanger's second circuit when
+multiple circuits option is selected.
+Int32Thermodynamics
+81FluidInputModeNoneDefines the input modes for the fluid that says, which input values for the fluid must be set. This
+value is needed when ProductCategory is 3, 5 or 6 (air cooler for coolant, fluid cooler, sub
+cooler). For ProductCategory 6 (sub cooler), only FluidInputMode 0 is allowed.
+Int32Thermodynamics
+0FluidTempInlet and FluidTempOutlet must be set
+1FluidTempInlet and FluidVolumeFlow must be set
+2FluidTempOutlet and FluidVolumeFlow must be set
+3FluidTempInlet and FluidPressureDropMax must be set
+4FluidTempOutlet and FluidPressureDropMax must be set
+5FluidTempInlet and FluidMassFlow must be set
+6FluidTempOutlet and FluidMassFlow must be set
+82FluidMassFlowkg_per_hDefines the mass flow of the fluid. This value is needed, when FluidInputMode is 5
+(FluidTempInlet and FluidMassFlow) or 6 (FluidTempOutlet and FluidVolumeFlow)
+DoubleThermodynamics
+83FluidPressurembarDefines the pressure of the fluid. This value is needed for ProductCategory 0 (DX evaporator)
+or 10 (gas cooler).
+DoubleThermodynamics
+
+NameUsedUnitInfoTextDatatypeGroup
+84FluidPressureDropMaxK_TDDefines the maximum allowed pressure drop of the fluid inside the heat exchanger. This value
+is considered for ProductCategory 3, 5 or 6 (air cooler for coolant, fluid cooler, sub cooler). For
+other product categories a valid value will be set internally. For other product categories a valid
+value will be set internally.
+DoubleThermodynamics
+85FluidPumpModeNoneDefines, how the fluid is pumped through the flooded evaporator. Depending on the mode,
+different internal limit values are set, in particular the maximum pressure drop in the fluid. This
+value is needed for ProductCategory 1 (flooded evaporator).
+Int32Thermodynamics
+0Fluid circulation by a pump
+1Fluid circulation by gravity or natural circulation
+86FluidPumpRateNoneDefines how often a fluid part must pass through the evaporator until it is completely
+evaporated. This value is needed for ProductCategory 1 (flooded evaporator).
+DoubleThermodynamics
+87FluidSubCoolingK_TDSubcooling of the fluid after condensation. Specification relative to the condensation
+temperature at the end of the condensation process. Note: If the fluid has a temperature glide
+or a pressure loss occurs during condensation, the condensation temperature at the end of the
+condensation process is lower than FluidTempCond. If ProductCategory = 3 (condenser), a
+fixed subcooling of 1 K is assumed internally. Rule: The resulting subcooling temperature must
+not be lower than the evaporation temperature.
+DoubleThermodynamics
+88FluidSuperHeatingK_TDSuperheating of the fluid after evaporation. Specification relative to the evaporation
+temperature FluidTempEvap.
+DoubleThermodynamics
+89FluidTempCondDegree_CFluid condensation temperature at the inlet or in the middle of the first fluid circuit.DoubleThermodynamics
+90FluidTempCond_2Degree_CFluid condensation temperature at the inlet or in the middle of the second fluid circuit.DoubleThermodynamics
+91FluidTempEvapDegree_CFluid evaporation temperature at the inlet or in the middle. The dew popublic int must be
+specified for fluids with temperature glide.
+DoubleThermodynamics
+92FluidTempInletDegree_CFluid temperature at inlet of the first circuit. If ProductCategory = 2, 4 or 5 (refrigerant air cooler,
+dry cooler, subcooler) and FluidInputMode = 0 or 1. If ProductCategory = 3 (condenser), the
+following must apply: Hot gas temperature >= condensing temperature. Specifies the hot gas
+temperature for condensers. Rule: The following must apply: FluidTempInlet >= -40.0 °C if it is
+used (FluidInputMode = 0 or 1).
+DoubleThermodynamics
+
+NameUsedUnitInfoTextDatatypeGroup
+93FluidTempInlet_2Degree_CFluid temperature at inlet of the second circuit. If ProductCategory = 2, 4 or 5 (refrigerant air
+cooler, dry cooler, subcooler) and FluidInputMode = 0 or 1. If ProductCategory = 3 (condenser),
+the following must apply: Hot gas temperature >= condensing temperature. Specifies the hot
+gas temperature for condensers. Rule: The following must apply: FluidTempInlet >= -40.0 °C if
+it is used (FluidInputMode = 0 or 1).
+DoubleThermodynamics
+94FluidTempOutletDegree_CFluid temperature at outlet. Rule for ProductCategory = 3 = refrigerant air cooler: The following
+must apply: FluidTempOutlet > FluidTempInlet if both are specified (FluidInputMode = 0). Rule
+for ProductCategory = 5/6 = drycooler/subcooler:The following must apply: FluidTempOutlet <
+FluidTempInlet,if both are specified (FluidInputMode = 0). Rule: The following must apply:
+FluidTempOutlet >= -40.0 °C if it is used (FluidInputMode = 0 or 2).
+DoubleThermodynamics
+95FluidVolConcentrationVolPercentConcentration of the fluid in volume-%. Only relevant if fluid allows a fluid concentration
+specification.
+DoubleThermodynamics
+96FluidVolumeFlowm3_per_hVolume flow of the fluid. Only relevant if FluidInputMode = 1 or 2.DoubleThermodynamics
+97ForEnergySavingControll
+er
+NoneFor energy-saving applications, if a switch cabinet or terminal box is selected.Int32Unknown
+98ForNoiseUseNoneFor noise-sensitive applications, if a switch cabinet or terminal box is selected.Int32Unknown
+99FrostedCoilNoneFlag for frost on the block with 0.01 in as the default value for the frost thickness. Only in
+GPC.AM!
+BooleanThermodynamics
+100FrostThicknessmThickness of the frost layer to be considered in meters. Values greater than 0.0 are only
+permissible for evaporators and air coolers.
+DoubleThermodynamics
+101FullCoverageDoubleTrayI
+nsulated
+NoneIndicates whether a full coverage double tray with insulation is required as an accessory.Int32Unknown
+0Indicates that the full coverage double tray with insulation is not necessarily needed.
+1Indicates that the full coverage double tray with insulation is definitely needed.
+102Geo_AirTemp_HydroPadDegree_CAir temperature from the selected location. Only relevant if HydroPad is selected.DoubleHydro
+103Geo_Altitude_HydroPadmDefines the height above sea level = geodetic height/altitude from the selected location.DoubleHydro
+104Geo_Length_HydroPadDMSLongitude coordinates from the selected location.DoubleHydro
+
+NameUsedUnitInfoTextDatatypeGroup
+105Geo_MaxAirTemp_Hydro
+Pad
+mDefines the maximum air temperature from the selected location. Only relevant if HydroPad is
+selected.
+DoubleHydro
+106Geo_RelHumidity_Hydro
+Pad
+PercentDefines the relative air humidity at the inlet from the selected location.DoubleHydro
+107Geo_Search_HydroPadNoneFlag, if nearest location to custom coordinates should be searched.BooleanHydro
+108Geo_Width_HydroPadDMSLatitude coordinates from the selected location.DoubleHydro
+109GuentnerStreamerNoneIndicates whether a Streamer (for an increased air throw) is required as an accessory.Int32Unknown
+0Indicates that the streamer is not necessarily needed.
+1Indicates that the streamer is definitely needed.
+110HBLKValveNoneIndicates whether a HBLK valve is required as an accessory.Int32Unknown
+111HeatingStrapsAtAirOutletNoneIndicates whether el. heating straps (at air outlet) are required as an accessory.Int32Unknown
+112HingedFanPlateNoneIndicates whether hinged fan plates are required as an option.Int32Unknown
+113HotGasInterConnectingT
+ubing
+NoneIndicates whether hot gas interconnecting tubing is required as an accessory.Int32Unknown
+34with check value
+66without check value
+114HydroPadNoneIndicates whether hydroBLU is required as an accessory.Int32Hydro
+234hydroBLU is required as an accessory
+115InletHoodNoneIndicates whether an inlet hood is required as an accessory.Int32Unknown
+116InletNippleOuterDiametermmDefines the diameter of nipple(s) at the inlet.StringUnknown
+117InletPosLeftNoneIndicates whether connections in air flow direction left is required as an option.Int32Unknown
+118InletPosRightNoneIndicates whether connections in air flow direction right is required as an option.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+119InletStateByTempAndPre
+ssure
+NoneOnly relevant for CX evaporators! Normally, the pressure is calculated via the condensation
+temperature and subcooling. However, if you are in the supercritical range, this flag must be
+set! The inlet temperature and pressure must then be specified.
+BooleanThermodynamics
+120InputModeCapacityNoneCapacity calculation modeInt32Unknown
+0The capacity is fixed, the area reserve is adapted to the capacity.
+1The specified capacity is a target value, the actual capacity is optimized individually for each device or coil.
+2The capacity is fixed indirectly via the air-side specifications; the area reserve is adapted to the capacity. Only possible for coils.
+3The capacity is fixed, the condensing temperature is adapted to the capacity. Only possible for condenser coils.
+121InspectionCoverNoneIndicates whether an inspection cover is required as an accessory.Int32Unknown
+122IoTModuleNoneIndicates whether an aicore link (IoT-Module) is required as an accessory.Int32Unknown
+123IsAirRelHumidityAutoNoneFlag, if the relative air humidity at the inlet should be set automatically. Only available in
+GPC.AM.
+BooleanThermodynamics
+124IsContainerTransportNoneTransport from the unit in a container.BooleanLimitations
+FALSEIndicates no transport preference.
+TRUEIndicates that the device is to be transported in a container.
+125IsHotGasAutoNoneFlag, if hot gas temperature should be set automatically. Only relevant for condensers.BooleanThermodynamics
+126IsMaxFluidPressureDrop
+Auto
+NoneFlag, if max. fluid pressure drop should be set automatically.BooleanThermodynamics
+127isSubcriticNoneSubcritical CO2 gas coolers operate below the critical point of carbon dioxide, where CO2
+exists in a two-phase state as both a liquid and a gas. In these systems, CO2 gas is condensed
+into a liquid state through heat exchange with a cooler medium, such as air or water. This
+process relies on the properties of CO2 as it undergoes phase change, transitioning from a gas
+to a liquid.
+BooleanThermodynamics
+FALSEIndicates that the unit will not operate in subcritical mode.
+TRUEIndicates that the unit will operate in subcritical mode.
+
+NameUsedUnitInfoTextDatatypeGroup
+128IsSubcriticMaxFluidPress
+ureDropAuto
+NoneThe max fluid pressre drop can be defined automatically.BooleanExtras
+FALSEIndicates that the user must define the threshold.
+TRUEIndicates that Güntner decides for a fitting value.
+129isSupercriticNoneSupercritical CO2 gas coolers, on the other hand, operate above the critical point of carbon
+dioxide. In this state, CO2 behaves as a supercritical fluid, exhibiting properties of both a gas
+and a liquid. These coolers utilize the unique properties of supercritical CO2 to achieve efficient
+heat transfer, particularly in applications where high pressures and temperatures are involved.
+The cooling process involves heat exchange to transition the supercritical CO2 fluid into a
+subcritical state, where it exhibits more conventional refrigeration behavior.
+BooleanThermodynamics
+FALSEIndicates that the unit will not operate in supercritical mode.
+TRUEIndicates that the unit will operate in supercritical mode.
+130LastChangedKeyNoneThis parameter is not relevant for findunits but UI.StringUnknown
+131LocationID_HydroPadNoneThe ID of the place to use for Hydropad calculationInt32Hydro
+132LowEvapTempDesignNoneIndicates whether a the device must handle low temeratures.Int32Unknown
+133ManualSpeedControllerNoneIndicates whether a manual speed controller is required as an accessory.Int32Unknown
+134MarketNoneSelects the market the device will be delivered toInt32Startpage
+101Europa (EU)
+201Asia, Pacific and Oceania (APO)
+401North and Latin America (NLA)
+135MaxNumberOfHitsNoneMaximum number of results.Int32Unknown
+136MaxOperatingPressurebarIndicates the maximum fluid pressure of the device.Int32Unknown
+137MaxSoundInputModeNoneSelects the mode the sound is filtered.Int32Limitations
+138MaxSoundTolerancedBASpecifies how loud a unit may be.DoubleUnknown
+
+NameUsedUnitInfoTextDatatypeGroup
+139MiniumRequiredSubcooli
+ng
+K_TDIf a subcooler is selected, how big is the temerature difference between the primary and
+secondard circuit.
+DoubleUnknown
+140MotorTechnologyNoneThis parameter defines the fan motor technology, or fan motor type of the unit.Int32Options
+141MountedAndWiredNoneSpecifies if the fans have to be mounted and wired or delivered seperately.Int32Unknown
+142MountedLegsNoneIndicates whether legs will be attached to the device so it can stand. If not included, the device
+has to be mounted.
+Int32Unknown
+143MountedLegsGSNoneWhen MountedLegs are included, these are in galvanized steel and therefore have no
+corrosion protection.
+Int32Unknown
+144MountedLegsSSNoneWhen MountedLegs are included, these are made of stainless steel and therefore have a
+corrosion protection.
+Int32Unknown
+145MultipleCircuitsNoneIndicates if the device can have multiple circuits.Int32Unknown
+146NippleTubeMaterialNoneIndicates whether a different material should be used for NippleTubeInt32Options
+147NoInletNipplesNoneDefines the number of nipples at the inlet.StringUnknown
+148NoOfCircuitsThermoNoneNumber of required thermo circuits.Int32Unknown
+149NoOfDevicesNoneNumber of required units.Int32Limitations
+150NoOfFansNoneNumber of required fans.Int32Limitations
+151NoOfPassesNoneNumber of required passes.Int32Unknown
+152NoOutletNipplesNoneDefines the number of nipples at the outlet.StringUnknown
+153OnlyStockUnitsNoneOnly products that are ready to ship.BooleanLimitations
+154OutletNippleOuterDiamet
+er
+mmDefines the diameter of nipple(s) at the outlet.StringUnknown
+155OverpressureFlapNoneIndicates whether an OverpressureFlap is required as accessory.Int32Unknown
+156PadTypes_HydroPadNoneSpecifies Pad Type ID.Int32Hydro
+157PassNumberConstraintNoneConstraints for the number of passesInt32Extras
+
+NameUsedUnitInfoTextDatatypeGroup
+0All numbers between nNumberOfPassesMin and nNumberOfPassesMax
+1Only even number of passes between nNumberOfPassesMin and nNumberOfPassesMax
+2Discrete values must be given in DiscreteNumberOfPasses
+158PowerSupplyNoneSpecification of the voltage supply network for which the unit should be suitable.Int32Options
+0no constraint
+10400V 3~ 60Hz
+11460V 1~ 60Hz
+12460V 3~ 60Hz
+13575V 3~ 60Hz
+14230V 3~ 50Hz
+15230V 3~ 60Hz
+16230V 1~ 60Hz
+18110V 1~ 50Hz
+19110V 1~ 60Hz
+3115V 1~ 60Hz
+4208-230V 1~ 60Hz
+5208-230V 3~ 60Hz
+6230V 1~ 50Hz
+7380V 1~ 50Hz
+8380V 3~ 60Hz
+9400V 3~ 50Hz
+159PreSelectionNoneThis parameter is not relevant for findunits but UI.Int32Unknown
+160PressureSensorNoneIndicates whether a pressure sensor is required as an accessory.Int32Unknown
+161PreviousChangedValueNoneThis parameter is not relevant for findunits but UI.StringUnknown
+162ProductCategoryNoneDefines the product categoryInt32Startpage
+
+NameUsedUnitInfoTextDatatypeGroup
+0DX evaporator (Cold Indoor)
+1Flooded evaporator (Cold Indoor)
+10Gas Cooler
+2One phase air cooler (Cold Indoor)
+3Condenser (Warm Outdoor)
+4Brine cooler (Warm Outdoor)
+5Sub cooler (Warm Outdoor)
+6Oil cooler (Warm Outdoor)
+163RalNumberNoneDefiner RAL number for special varnishing.Int32Unknown
+164ReducedLegsNoneIndicates whether reduced legs are required as an accessory.Int32Unknown
+165RepairSwitchNoneIndicates whether a repair switch is required as an accessory.Int32Unknown
+0No Repair switch
+233Repair switch selected
+166RepairSwitchPositionNoneDefines position of repair switch.Int32Unknown
+0Undefined
+1Mounted close to the fan
+2Mounted at the front
+3Standard
+167RepairSwitchTypeNoneDefines type of repair switch.Int32Unknown
+0Undefined
+1Two-turn (star/delta switchable) (9-pole)
+2Single-speed (7-pole)
+168RepairSwitchWiringNoneDefines wiring type for repair switch.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+0Undefined
+1Preferably individually wired, i.e. one rep. switch per fan
+2Single wired, i.e. one rep. switch per fan
+3Preferably wired in pairs, i.e. two fans are switched with one rep. switch
+4Wired in pairs, i.e. two fans are switched with one repair switch
+5Preferably a single repair switch for all fans
+6A single repair switch for all fans
+169SeparationSheetWithHea
+ter
+NoneIndicates whether a separation sheet with heater is required as an accessory.Int32Unknown
+170ShutupNoneIndicates whether a defrost hose is required as an accessory.Int32Unknown
+171SoundAbsorberNoneIndicates whether a sound absorber is required as an accessory.Int32Unknown
+172SoundPressureDistancemDistance for which the sound pressure level is to be calculated [m].
+Only relevant if
+- ProductCategory = 4 to 6 (condenser, drycooler or subcooler)
+- For ProductCatetory 1 to 3 (evaporator and refrigerant air cooler), this input parameter is
+ignored and set internally to 3 m
+- Distance specification according to enveloping surface method EN 13487, i.e. distance
+between appliance and the enveloping surface that is placed around the appliance.
+- Value range: >= 0 m
+DoubleLimitations
+173SoundPressureMaxdBAOnly relevant if - UnitSelectionMode = 0 ('unit search mode').
+- The limit value applies to a distance corresponding to SoundPressureDistance.
+- The sound pressure level is calculated using the enveloping surface method in accordance
+with EN 13487.
+- If the sound pressure level is not to be limited, it is advisable to specify a high value(e.g. 99.0
+dB(A)).
+In the selection program, the specified maximum sound pressure level is eventually increased
+internally by an additional 4 dB(A) tolerance.
+DoubleLimitations
+0Max. sound power
+1Max. sound pressure
+174SpecialVarnishingNoneIndicates whether special varnishing is required as an option.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+175SubcoolerNoneIndicates whether a subcooler is required as an option.Int32Unknown
+176SubcriticAirRelHumidityPercentThis parameter defines the subcritical air absolute humidity in %, for CO2 gas coolers.DoubleUnknown
+177SubcriticAirTemperatureDegree_CThis parameter defines the subcritical air dry bulb temperature in °C, for CO2 gas coolers.DoubleUnknown
+178SubcriticAirWetBulbTempDegree_CThis parameter defines the subcritical air wet bulb temperature in °C, for CO2 gas coolers.DoubleUnknown
+179SubcriticFluidPressureDr
+opMax
+KThis parameter defines the maximum allowable subcritical pressure drop in K for CO2 gas
+coolers.
+DoubleUnknown
+180SubcriticFluidTempCondDegree_CThis parameter defines the subcritical condensing temperature in °C, for CO2 gas coolersDoubleUnknown
+181SubcriticFluidTempInletDegree_CThis parameter defines the subcritical inlet temperature, aka the hot gas temperature in °C, for
+CO2 gas coolers.
+DoubleUnknown
+182SubcriticIsHotGasAutoNoneThis parameter defines whether the subcritical inlet temperature, aka hot gas temperature
+should be set automatically or set using the subcriticFluidTempInlet input.
+BooleanUnknown
+FALSEThe subcritical inlet temperature is defined using the subcriticFluidTempInlet input
+TRUEThe subcritical inlet temperature is set automatically
+183SubcriticThermalCapacityWThis parameter defines the target subcritical capacity in W for CO2 gas coolers.DoubleThermodynamics
+184SwitchCabinetNoneIndicates whether a switch cabinet is required as an accessory.Int32Unknown
+0Indicates that the switch cabinet is not necessarily needed.
+1Indicates that the switch cabinet is definitely needed.
+185SwitchCabinetAllocationNoneThis parameter defines the allocation type for the switch cabinet. Either the allocation is
+automatically set, or it is set to one switch cabinet per unit.
+Int32Unknown
+1The allocation is automatic
+3There is one switch cabinet or terminal box allocated per unit
+4There is one switch cabinet or terminal box allocated per fluid circuit
+5There is no switch cabinet or terminal box selected
+186SwitchCabinetMotorTech
+nology
+NoneThis parameter defines the fan motor technology, or fan motor type, for the switch cabinet.Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+-1All fan motor technologies are considered
+-2The fan motor technology is energy optimized
+-3The fan motor technology is cost optimized
+1The motor technology is AC
+2The motor technology is EC (electronically commutated)
+187SwitchCabinetTypeNoneThis parameter defines the type of the switch cabinet.Int32Unknown
+0Undefined
+1Consider all types
+10Switch cabinet with stand cabinet
+11Switch cabinet with terminal box
+12Switch cabinet with 0 to 10V terminal box
+13Modbus Daisy Chain
+2Set the switch cabinet automatically
+3Small switch cabinet
+4GIS-type switch cabinet
+5GWS-type switch cabinet
+6GSS-type switch cabinet
+7GKS-type switch cabinet
+8Switch cabinet with EC junction box
+9Switch cabinet with a panel
+188SwivelingFansNoneIndicates whether a swiveling fans, aka hinged fans, is required as an accessory.Int32Unknown
+0Indicates that the swiveling fans accessory is not necessarily needed.
+329Indicates that the swiveling fan plate accessory is definitely needed.
+68Indicates that the swiveling fans accessory is definitely needed.
+189TC_Tolerance_HPercentThis parameters specifies the upper limit for the surface reserve tolerance.DoubleExtras
+190TC_Tolerance_LPercentThis parameters specifies the lower limit for the surface reserve tolerance.DoubleExtras
+
+NameUsedUnitInfoTextDatatypeGroup
+191TCondInputModeNoneThis parameters defines the convention for defining where the condensing temperature of the
+input fluid is defined. This is required for refrigerants that have a significant temperature glide..
+If the refrigerant considered doesn’t have a glide, then this parameter is not relevant.
+Int32Unknown
+0The input condensing temperature is defined at the fluid’s dew point, aka at the condenser’s inlet
+1The input condensing temperature is defined as a mean, at vapor quality of 0.5s inlet
+2The input condensing temperature is defined at the fluid’s bubble point, aka at the condenser’s outlet
+192TelescopicLegsNoneIndicates whether telescopic legs, are required as an accessory.Int32Unknown
+0Indicates that the telescopic legs accessory is not necessarily needed.
+1Indicates that the telescopic legs accessory is definitely needed.
+193TerminalBoxTypeNoneDefines the fan wiring type.Int32Unknown
+1AUTO
+2All fans grouped together to form a group.
+4Fans not grouped and individually connected.
+194ThermalCapacityWThis parameters sets the target thermal capacity, in W, for the main circuit of the heat
+exchanger.
+DoubleThermodynamics
+195ThermalCapacity_2WThis parameters sets the target thermal capacity, in W, for the secondary circuit of the heat
+exchanger.
+DoubleThermodynamics
+196ThermoContactTypeNoneThis parameter defines the type of the thermo contact cabinet.Int32Unknown
+0Undefined
+1Consider all types
+2Set the thermo contact automatically
+3Set the thermo contact to manual reset
+4Set the thermo contact to remote reset
+197ThermosiphonOilCoolingNoneOnly available for NH3 condenser. This checkbox has an effect on the max. pressure drop in
+coil.
+Int32Thermodynamics
+
+NameUsedUnitInfoTextDatatypeGroup
+0AUTO max. pressure drop in coil equals 5.0 K.
+1AUTO max. pressure drop in coil equals 0.3 K.
+198ThreadConnectionMateri
+al
+NoneThis parameter defines the material of the connection if a thread connection is selected as a
+connection type.
+Int32Unknown
+0Undefined
+1Set the thread connection material automatically
+2Consider all materials
+3Set the thread connection material to steel
+4Set the thread connection material to red brass
+5Set the thread connection material to stainless steel 304L
+6Set the thread connection material to stainless steel 316L
+199Tubing_Of_Integrated_Su
+bcooler_With_Syphon
+NoneIndicates whether tubing of integrated subcooler with syphon required as an accessory (only if
+subcooler is already selected as an accessory)
+Int32Unknown
+0Indicates that the tubing of integrated subcooler with syphon accessory is not necessarily needed.
+1Indicates that the tubing of integrated subcooler with syphon accessory is definitely needed.
+200UnitFilterListNoneSpecifies the filter a list of single units that should be calculated/validated.List`1Unknown
+201UnitHeightMaxmThis parameters sets the maximum height in meters that should be considered for the units
+returned during a unit search.
+DoubleLimitations
+202UnitLengthMaxmThis parameters sets the maximum length in meters that should be considered for the units
+returned during a unit search.
+DoubleLimitations
+0no constraint
+68high-strength copper (D)
+87stainl. steel (W)
+203UnitModelID_MRNameEx
+ternal
+NoneFor recalculation (KDB): Model type name external.StringRecalculation
+
+NameUsedUnitInfoTextDatatypeGroup
+204UnitModelID_MRNameInt
+ernal
+NoneFor recalculation (TDB): Model range name internal.StringRecalculation
+205UnitModelID_MTNameEx
+ternal
+NoneFor recalculation (TDB): Model type name external.StringRecalculation
+206UnitModelID_MTNameInt
+ernal
+NoneFor recalculation (TDB): Model type name internal.StringRecalculation
+207UnitsNoneSpecification of the model ranges.List`1UnitSelection
+208UnitSelectionModeNoneSelection mode of the unit calculation.Int32UnitSelection
+0unit search
+1recalculation of a defined individual unit { get; set; } some other parameters are then ignored
+209UnitWidthMaxmThis parameters sets the maximum width in meters that should be considered for the units
+returned during a unit search.
+DoubleLimitations
+210UVC_LampNoneIndicates whether UVC lamp is required as an accessory,Int32Unknown
+0Indicates that the UVC lamp accessory is not necessarily needed.
+1Indicates that the UVC lamp accessory is definitely needed.
+211VersionNumberNoneVersion number of the Guentner APIInt32Unknown
+212VibrationDampersNoneIndicates whether Vibration dampers are required as an accessory.Int32Unknown
+0Indicates that the Vibration dampers accessory is not necessarily needed.
+1Indicates that the Vibration dampers accessory is definitely needed.
+213WallSuspensionNoneIndicates whether Wall suspension is required as an accessory.Int32Unknown
+0Indicates that the Wall suspension accessory is not necessarily needed.
+1Indicates that the Wall suspension accessory is definitely needed.
+214WaterConsumptionCalcul
+ation_HydroPad
+NoneThe parameter defines whether or not a water consumption calculation is required to be
+perfumed for the unit selected, and output to the data sheet
+BooleanHydro
+
+NameUsedUnitInfoTextDatatypeGroup
+0Indicates that the water consumption calculation should not be performed
+1Indicates that the water consumption calculation should be performed
+215WaterConsumptionCalcul
+ation_Mode_HydroPad
+NoneThis parameter defines the way the water consumption calculation should be performed for
+units with the HydroSpray option, if the water calculation is requested.
+Int32Hydro
+0The wetting duration is set, and the switch point is then calculated (this is the default setting for the calculation mode)
+1The switch point is set, and the wetting duration is then calculated
+216WaterConsumptionCalcul
+ation_SwitchPoint_Hydro
+Pad
+NoneIf the water calculation mode for a unit with a hydroSpray option is set to calculation of the
+wetting duration with a set switch point, this parameter sets the wetting duration to be used.
+DoubleHydro
+217WaterConsumptionCalcul
+ation_WettingDuration_H
+ydroPad
+NoneIf the water calculation mode for a unit with a hydroSpray option is set to calculation of the
+switch point with a set wetting duration, this parameter sets the wetting duration to be used.
+DoubleHydro
+218Watering_HydroPadNoneFor a unit with the hydroBLU option selected, this parameter defines the opretation mode for
+the watering system:
+Int32Hydro
+0The unit is operating in wet mode, with pads installed and water fed to the pads
+1The unit is operating dry (no water fed for the pads), but with the pads installed on the unit
+2The unit is operating dry with the pads uninstalled on the unit
+219WateringRate_HydroPadNoneThis parameter sets the watering rate for the hydroBLU system. The available values are 1.2,
+1.6, 2.0 and 2.8 (default of 2.)
+DoubleHydro
+220WeldingNeckFlangeNomi
+nalPressure
+NoneThis parameters defines the nominal pressure rating for flanges (lapped flanges or welding
+neck flanges):
+Int32Unknown
+3PN16 B1 (DIN EN 1092-1) (only available for welding neck flanges)
+4PN40 B1 (DIN EN 1092-1) (only available for welding neck flanges)
+5PN40 D+C (DIN EN 1092-1) (only available for welding neck flanges)
+7PN10 (only available for lapped flanges, with brazing neck)
+221Wiring_To_Junction_Box
+_At_Side
+NoneIndicates whether Wiring to the terminal box is required as an accessory only for the old TDB
+series.
+Int32Unknown
+
+NameUsedUnitInfoTextDatatypeGroup
+0Indicates that the Wiring to the terminal box accessory is not necessarily needed.
+1Indicates that the Wiring to the terminal box accessory is definitely needed.
+222Wiring_To_Terminal_BoxNoneIndicates whether Wiring to the terminal box is required as an accessory for the newer KDB
+series.
+Int32Unknown
+0Indicates that the Wiring to the terminal box accessory is not necessarily needed.
+1Indicates that the Wiring to the terminal box accessory is definitely needed.

@@ -47,6 +47,20 @@ export interface CategoryDef {
   /** When false, the dew-point/mean radio group on the Thermodynamics
    *  Medium card is rendered but disabled. Defaults to true. */
   dewPointModeAvailable?: boolean
+  /** Evaporator Pump (Cat 1) blendet zusätzliche Felder ein:
+   *  "gravity flooded" + "Feed rate". */
+  showPumpFields?: boolean
+  /** Condenser (Cat 3) und ähnliche Refrigerant-Kategorien mit Kreis-Wahl
+   *  zeigen die "Multiple circuits"-Checkbox. */
+  showMultipleCircuits?: boolean
+  /** Gas cooler CO₂ (Cat 10) blendet die Standard-Refrigerant-Karte aus
+   *  und rendert stattdessen zwei separate Karten
+   *  (Subcooler/supercritic + Condenser/subcritic). */
+  showTranscriticSection?: boolean
+  /** Condenser / Dry cooler / Subcooler / Oil cooler haben keine
+   *  Verdampferseite — Evap-Temp / Superheating / Dew-Point-Radio /
+   *  Inlet-by-Temperature-and-Pressure werden ausgeblendet. */
+  hideEvaporatorSide?: boolean
 }
 
 // Medium-type mapping — drives which Thermodynamics field-set is shown
@@ -59,13 +73,16 @@ export const CATEGORIES: CategoryDef[] = [
   { id: 0,  slug: 'evaporator-dx',   title: 'Evaporator', sublabel: 'DX',        productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_dx.svg',   image: '/images/Evaporator-dx.png',
     paramDefaults: { airInletTempC: 0 },
     dewPointModeAvailable: false },
-  { id: 1,  slug: 'evaporator-pump', title: 'Evaporator', sublabel: 'Pump',      productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_pump.svg', image: '/images/Evaporator-Pump.png' },
+  { id: 1,  slug: 'evaporator-pump', title: 'Evaporator', sublabel: 'Pump',      productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_pump.svg', image: '/images/Evaporator-Pump.png',
+    showPumpFields: true },
   { id: 2,  slug: 'air-cooler',      title: 'Air cooler', sublabel: 'Coolant',   productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_aircooler.svg',       image: '/images/Aircooler.png' },
-  { id: 3,  slug: 'condenser',       title: 'Condenser',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_condenser.svg',       image: '/images/Condenser.png' },
+  { id: 3,  slug: 'condenser',       title: 'Condenser',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_condenser.svg',       image: '/images/Condenser.png',
+    showMultipleCircuits: true, hideEvaporatorSide: true },
   { id: 4,  slug: 'dry-cooler',      title: 'Dry cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_drycooler.svg',       image: '/images/Drycooler.png' },
-  { id: 5,  slug: 'subcooler',       title: 'Subcooler',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon-sub.svg',             image: '/images/Condenser.png' },
+  { id: 5,  slug: 'subcooler',       title: 'Subcooler',  sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-sub.svg',             image: '/images/Condenser.png' },
   { id: 6,  slug: 'oil-cooler',      title: 'Oil cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-pump.svg',            image: '/images/Drycooler.png' },
-  { id: 10, slug: 'gas-cooler',      title: 'Gas cooler', sublabel: 'CO₂',       productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_gascooler.svg',       image: '/images/Gas-Cooler.png' }
+  { id: 10, slug: 'gas-cooler',      title: 'Gas cooler', sublabel: 'CO₂',       productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_gascooler.svg',       image: '/images/Gas-Cooler.png',
+    showTranscriticSection: true }
 ]
 
 export function getCategoryById(id: number | string): CategoryDef | null {

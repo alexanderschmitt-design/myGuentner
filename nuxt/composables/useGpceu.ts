@@ -129,7 +129,12 @@ export function useGpceu() {
                             options?: { withFootnote?: boolean; unitSystem?: number; languageID?: number }) =>
                               post<FindUnitsResult>('findunits', body, {
                                 languageID: options?.languageID ?? gpcLang.value,
-                                withFootnote: options?.withFootnote ?? true,
+                                // API-Inkonsistenz: `findunits` erwartet `withFootnote`
+                                // (KLEINES n) mit type=integer (0/1). Der andere
+                                // Endpoint `validateunitconfiguration` nimmt dagegen
+                                // `withFootNote` (großes N) mit type=boolean. Siehe
+                                // rag/gpceu_swagger.json Zeile 273 vs. 2778.
+                                withFootnote: (options?.withFootnote ?? true) ? 1 : 0,
                                 unitSystem: options?.unitSystem ?? 0
                               }),
     findCoils:             (body: CoilInputData,
@@ -158,6 +163,8 @@ export function useGpceu() {
     recalculateUnit:        (body: RecalculationData,
                              options?: { withFootnote?: boolean; languageID?: number; unitSystem?: number }) =>
                               post<FindUnitsResult>('RecalculateUnit', body, {
+                                // Swagger sagt: `withFootnote` (kleines n) mit
+                                // type=boolean für RecalculateUnit.
                                 withFootnote: options?.withFootnote ?? true,
                                 languageID: options?.languageID ?? gpcLang.value,
                                 unitSystem: options?.unitSystem ?? 0

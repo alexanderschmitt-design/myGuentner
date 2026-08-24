@@ -148,13 +148,32 @@ export type AccessoryKey =
   | 'guentnerStreamer'
   | 'hotGasInterconnectingTubing'
   | 'repairSwitch'
+  | 'wiringToTerminalBox'
   | 'fanRingHeater'
   | 'doubleTrayInsulated'
   | 'casingSimpleTraySs'
   | 'casingDoubleTraySs'
   | 'legsForFloorMounting'
+  | 'defrostHose'
+  | 'hingedFanUnits'
+  | 'designForEvapT0Below40'
+  | 'connectionsAirFlowLeft'
   | 'inletHood'
   | 'louvreWithDrive'
+  /** UI-only section-toggle in `unit-selection.vue` — kein Store-Feld,
+   *  aber semantisch ein Accessory wie die anderen. Wird beim Aufruf von
+   *  `seriesForCategory()` als Boolean-Flag mit reingereicht. */
+  | 'terminalBoxEnabled'
+  /** Empty-Casing-Option (Cat 3 Condenser): schaltet auf ein Leergehäuse
+   *  ohne integrierten Wärmetauscher. Aktuell nur bei Cat-3-Flat-COMPACT-
+   *  Familie (GCHC) unterstützt. Page-local ref wie `terminalBoxEnabled`. */
+  | 'emptyCasing'
+  /** Cat-4-spezifische Optionen (Dry Cooler). Alle als page-local refs
+   *  implementiert, da nicht im `UnitSelectionOpts` des Stores. */
+  | 'hingedFanPlate'
+  | 'ballValveForVentilationDrain'
+  | 'corrosionProtection'
+  | 'headerCover'
 
 export interface SeriesDefinition {
   /** Stabiler Key für Vue-Listen + Selection-State. */
@@ -166,10 +185,13 @@ export interface SeriesDefinition {
   /** Thumb-Pfad; fällt auf generisches Air-Cooler-Icon zurück, wenn Serie
    *  keine eigene Grafik hat. */
   image: string
-  /** true = Serie in Impact-Refrigerant-Auswahl zeigen (CX-Suffix o. ä.).
-   *  false = in Non-Impact-Auswahl zeigen (PX/RX/legacy). Das Feld
-   *  entscheidet, ob der Katalog-Eintrag zur aktuellen Auswahl gehört. */
-  refrigerantMatch: 'impact' | 'nonImpact'
+  /** Bestimmt, in welchem Fluid-Bucket die Serie erscheint:
+   *    'impact'    — nur bei Impact-Fluids (CX-Suffix o. ä.)
+   *    'nonImpact' — nur bei Non-Impact-Fluids (PX/RX/legacy)
+   *    'both'      — in beiden Buckets (z. B. wenn der Suffix
+   *                  refrigerant-agnostisch ist, Cat 3/4/5/6)
+   *  Vermeidet Katalog-Duplikate mit `-legacy`/`-impact`-ID-Klonen. */
+  refrigerantMatch: 'impact' | 'nonImpact' | 'both'
   /** Wenn `false`, wird die Serie mit rotem Punkt (nicht auswählbar)
    *  vorbelegt — matched dem Screenshot-Zustand ohne aktivierte Filter. */
   defaultAvailable: boolean
@@ -201,7 +223,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'impact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gasc-cx',
@@ -210,7 +232,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'impact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gadc-cx',
@@ -219,7 +241,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'impact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gacc-cx',
@@ -228,7 +250,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'impact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, guentnerStreamer: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, guentnerStreamer: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gacv-cx',
@@ -237,7 +259,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'impact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: true, epoxyCoatedFins: true, guentnerStreamer: true, coilDefender: true }
+    supports: { airSockWithStreamer: true, epoxyCoatedFins: true, guentnerStreamer: true, coilDefender: true, repairSwitch: true, legsForFloorMounting: true, hingedFanUnits: true, connectionsAirFlowLeft: true, louvreWithDrive: true, fanRingHeater: true, terminalBoxEnabled: true }
   },
   {
     id: 'gadp-cx',
@@ -257,7 +279,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'nonImpact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gasc-rx',
@@ -266,7 +288,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'nonImpact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gadc-rx',
@@ -275,7 +297,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'nonImpact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gacc-rx',
@@ -284,7 +306,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'nonImpact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, guentnerStreamer: true }
+    supports: { airSockWithStreamer: false, epoxyCoatedFins: true, guentnerStreamer: true, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'dhn',
@@ -302,7 +324,7 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'nonImpact',
     defaultAvailable: true,
-    supports: { airSockWithStreamer: true, epoxyCoatedFins: true, guentnerStreamer: true, coilDefender: true }
+    supports: { airSockWithStreamer: true, epoxyCoatedFins: true, guentnerStreamer: true, coilDefender: true, repairSwitch: true, legsForFloorMounting: true, hingedFanUnits: true, connectionsAirFlowLeft: true, louvreWithDrive: true, fanRingHeater: true, terminalBoxEnabled: true }
   },
   {
     id: 'gadp-rx',
@@ -344,22 +366,19 @@ const CAT_0_EVAPORATOR_DX: SeriesDefinition[] = [
 
 /**
  * Cat 1 — Evaporator Pump. Industriell-ausgerichtete Pump-Evaporator-Serie
- * für R717 NH3, R744 CO2 und Sekundärkreisläufe. Impact-Case zeigt Dual
- * VARIO ADHN + Cubic VARIO GACV AP; Non-Impact-Case reduziert auf ADHN.
- * ADHNs Untertitel erwähnt NH3 als primäre Anwendung, schließt aber
- * andere Fluide nicht aus — deshalb erscheint dieselbe Serie in beiden
- * Buckets als zwei Katalog-Einträge mit unterschiedlicher `id`.
+ * für R717 NH3, R744 CO2 und Sekundärkreisläufe. ADHN läuft in beiden
+ * Buckets ('both'), GACV AP ist Impact-exklusiv — im Non-Impact-Case
+ * bleibt nur ADHN übrig.
  */
 const CAT_1_EVAPORATOR_PUMP: SeriesDefinition[] = [
-  // ---------- Impact-Refrigerant (R717 NH3, R744 CO2, HC-Naturals) ----------
   {
     id: 'adhn',
     title: 'Dual VARIO – ADHN',
     subtitle: 'Dual discharge NH3 evaporators (stainless steel/al.)',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, guentnerStreamer: false, terminalBoxEnabled: false }
   },
   {
     id: 'gacv-ap',
@@ -368,17 +387,7 @@ const CAT_1_EVAPORATOR_PUMP: SeriesDefinition[] = [
     image: AIR_COOLER_ICON,
     refrigerantMatch: 'impact',
     defaultAvailable: true,
-    supports: {}
-  },
-  // ---------- Non-Impact-Refrigerant (HFC-Blends) ----------
-  {
-    id: 'adhn-legacy',
-    title: 'Dual VARIO – ADHN',
-    subtitle: 'Dual discharge NH3 evaporators (stainless steel/al.)',
-    image: AIR_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
-    defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: true, coilDefender: true, repairSwitch: true, legsForFloorMounting: true, hingedFanUnits: true, connectionsAirFlowLeft: true, louvreWithDrive: true, fanRingHeater: true, guentnerStreamer: true, terminalBoxEnabled: true }
   }
 ]
 
@@ -386,308 +395,268 @@ const CAT_1_EVAPORATOR_PUMP: SeriesDefinition[] = [
  * Cat 2 — Air Cooler (Coolant / Liquid). Sekundärkreisläufe mit Glykol-,
  * Alkohol- oder Wasser-basierten Coolants. Impact-Case aus Screenshot
  * 2026-08-22 221638 (Fluid = Ethylene glycol) — Suffix "FP" bei Standard-
- * Familien plus zwei glycol-spezifische Legacy-Serien (DGN, GGBK).
- *
- * Non-Impact-Case (z. B. Thermogen 1869) ist visuell noch nicht bestätigt.
- * Vorläufig zeigt dieselbe Serien-Auswahl auch für Non-Impact-Fluids —
- * konservativer als eine leere Liste, aber falsch anzuzeigen wäre
- * schlimmer als das TODO. Refinement, sobald Screenshot vorliegt.
+ * Familien plus zwei glycol-spezifische Legacy-Serien (DGN, GGBK). Alle
+ * mit `refrigerantMatch: 'both'`, weil der Non-Impact-Case (z. B.
+ * Thermogen 1869) dieselbe Auswahl zeigt, bis eine visuelle Bestätigung
+ * das Gegenteil belegt.
  */
-const CAT_2_AIR_COOLER_IMPACT: SeriesDefinition[] = [
+const CAT_2_AIR_COOLER: SeriesDefinition[] = [
   {
     id: 'gasc-fp',
     title: 'Slim COMPACT – GASC FP',
     subtitle: 'Air cooler – slimline design',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gadc-fp',
     title: 'Dual COMPACT – GADC FP',
     subtitle: 'Air cooler – dual discharge, compact',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gacc-fp',
     title: 'Cubic COMPACT – GACC FP',
     subtitle: 'Air cooler – cubic design, compact',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'dgn',
     title: 'Dual VARIO – DGN',
     subtitle: 'Dual discharge glycol unit coolers',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    // DGN bewusst tolerant belassen — kein Bulk-Fill für Dual-VARIO ohne
+    // Counter-Screenshot. `terminalBoxEnabled: false` bleibt aus dem
+    // vorherigen Fill (Cat-2-Screenshot 101000: DGN wurde rot mit
+    // Terminal Box).
+    supports: { terminalBoxEnabled: false }
   },
   {
     id: 'gacv-fp',
     title: 'Cubic VARIO – GACV FP',
     subtitle: 'Air cooler – cubic design, variable',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: true, coilDefender: true, repairSwitch: true, legsForFloorMounting: true, hingedFanUnits: true, connectionsAirFlowLeft: true, louvreWithDrive: true, fanRingHeater: true, terminalBoxEnabled: true }
   },
   {
     id: 'gadp-fp',
     title: 'Process APPLICATION – GADP FP',
     subtitle: 'Air cooler – for processing rooms, draught-reduced',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: false,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'ggbk',
     title: 'Process APPLICATION – GGBK',
     subtitle: 'Processing room glycol unit coolers',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   },
   {
     id: 'gaca-fp',
     title: 'Agri APPLICATION – GACA FP',
     subtitle: 'Air cooler – fruit and vegetable cooling, blow-through',
     image: AIR_COOLER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { airSockWithStreamer: false, coilDefender: false, repairSwitch: false, legsForFloorMounting: false, hingedFanUnits: false, connectionsAirFlowLeft: false, louvreWithDrive: false, fanRingHeater: false, terminalBoxEnabled: false }
   }
 ]
 
 /**
- * Non-Impact-Bucket für Cat 2 — TODO: durch echte Auswahl ersetzen, sobald
- * Screenshot mit einem Non-Impact-Coolant (Thermogen 1869 o. ä.) vorliegt.
- * Klont vorläufig die Impact-Liste mit `-legacy`-ID-Suffix + Match-Flag.
+ * Cat 3 — Condenser (luftgekühlte Verflüssiger). GC-Serien-Familie
+ * ist refrigerant-agnostisch → alle Einträge tragen `refrigerantMatch:
+ * 'both'` und erscheinen im Impact- wie Non-Impact-Case.
  */
-const CAT_2_AIR_COOLER_NONIMPACT: SeriesDefinition[] = CAT_2_AIR_COOLER_IMPACT.map(
-  (s) => ({ ...s, id: `${s.id}-legacy`, refrigerantMatch: 'nonImpact' })
-)
-
-const CAT_2_AIR_COOLER: SeriesDefinition[] = [
-  ...CAT_2_AIR_COOLER_IMPACT,
-  ...CAT_2_AIR_COOLER_NONIMPACT
-]
-
-/**
- * Cat 3 — Condenser (luftgekühlte Verflüssiger). Standardmäßig für R744
- * CO2 (Impact) und HFC-Blends (Non-Impact) gleichermaßen ausgelegt — die
- * GC-Serien-Familie unterscheidet nicht via Suffix. Bis ein Non-Impact-
- * Screenshot etwas anderes zeigt, wird dieselbe Liste in beiden Buckets
- * gerendert (Duplikate mit `-legacy`-ID).
- */
-const CAT_3_CONDENSER_IMPACT: SeriesDefinition[] = [
+const CAT_3_CONDENSER: SeriesDefinition[] = [
   {
     id: 'gchc',
     title: 'Flat COMPACT – GCHC',
     subtitle: 'Condenser – horizontal design, compact',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: true }
   },
   {
     id: 'gcvc',
     title: 'Vertical COMPACT – GCVC',
     subtitle: 'Condenser – vertical design, compact',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   },
   {
     id: 'gcdc',
     title: 'V-shape COMPACT – GCDC',
     subtitle: 'Condenser – V-shape, compact',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   },
   {
     id: 'gchv',
     title: 'Flat VARIO – GCHV',
     subtitle: 'Condenser – horizontal design, variable',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   },
   {
     id: 'gcvv',
     title: 'Vertical VARIO – GCVV',
     subtitle: 'Condenser – vertical design, variable',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   },
   {
     id: 'gvw',
     title: 'V-shape VARIO – GVW',
     subtitle: 'W aircooled condensers',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   },
   {
     id: 'gvd',
     title: 'V-shape VARIO – GVD',
     subtitle: 'Aircooled condensers (V-shape)',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   },
   {
     id: 'gcdv',
     title: 'V-shape VARIO – GCDV',
     subtitle: 'Condenser – V-shape, variable',
     image: CONDENSER_ICON,
-    refrigerantMatch: 'impact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { emptyCasing: false }
   }
 ]
 
 /**
- * Non-Impact-Bucket für Cat 3 — TODO: mit echter Auswahl abgleichen,
- * sobald ein Non-Impact-Screenshot vorliegt. Vorläufig identisch zur
- * Impact-Liste (Condenser-Suffixe scheinen refrigerant-agnostisch).
+ * Cat 4 — Dry Cooler (Rückkühler, flüssig-gekühlte Sekundärkreise).
+ * GF-Serien-Familie strukturell parallel zu Cat 3 (Condenser),
+ * refrigerant-agnostisch. Screenshot 2026-08-22 222954 zeigt den
+ * Non-Impact-Case, Impact-Case wird identisch angenommen bis eine
+ * visuelle Bestätigung das Gegenteil belegt.
  */
-const CAT_3_CONDENSER_NONIMPACT: SeriesDefinition[] = CAT_3_CONDENSER_IMPACT.map(
-  (s) => ({ ...s, id: `${s.id}-legacy`, refrigerantMatch: 'nonImpact' })
-)
-
-const CAT_3_CONDENSER: SeriesDefinition[] = [
-  ...CAT_3_CONDENSER_IMPACT,
-  ...CAT_3_CONDENSER_NONIMPACT
-]
-
-/**
- * Cat 4 — Dry Cooler (Rückkühler, flüssig-gekühlte Sekundärkreise). GF-
- * Serien-Familie strukturell parallel zu Cat 3 (Condenser). Screenshot
- * 2026-08-22 222954 zeigt den Non-Impact-Case (Thermogen 1869); Impact-
- * Case ist visuell nicht bestätigt, wird aber wie Cat 3 als „identische
- * Liste" behandelt bis Screenshot vorliegt.
- */
-const CAT_4_DRY_COOLER_NONIMPACT: SeriesDefinition[] = [
+const CAT_4_DRY_COOLER: SeriesDefinition[] = [
   {
     id: 'gfhc',
     title: 'Flat COMPACT – GFHC',
     subtitle: 'Fluid cooler – horizontal design, compact',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: false, ballValveForVentilationDrain: false, corrosionProtection: false, headerCover: false }
   },
   {
     id: 'gfvc',
     title: 'Vertical COMPACT – GFVC',
     subtitle: 'Fluid cooler – vertical design, compact',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: false, ballValveForVentilationDrain: false, corrosionProtection: false, headerCover: false }
   },
   {
     id: 'gfdc',
     title: 'V-shape COMPACT – GFDC',
     subtitle: 'Fluid cooler – V-shape, compact',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: false, ballValveForVentilationDrain: false, corrosionProtection: false, headerCover: false }
   },
   {
     id: 'gfhv',
     title: 'Flat VARIO – GFHV',
     subtitle: 'Fluid cooler – horizontal design, variable',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: true, ballValveForVentilationDrain: true, corrosionProtection: true, headerCover: true }
   },
   {
     id: 'gfvv',
     title: 'Vertical VARIO – GFVV',
     subtitle: 'Fluid cooler – vertical design, variable',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    // GFVV unterstützt Hinged/Ball/Corrosion, aber NICHT Header cover
+    // (Screenshot 104714 zeigt GFVV rot mit nur Header cover aktiv).
+    supports: { hingedFanPlate: true, ballValveForVentilationDrain: true, corrosionProtection: true, headerCover: false }
   },
   {
     id: 'gfw',
     title: 'V-shape VARIO – GFW',
     subtitle: 'W dry coolers',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: false, ballValveForVentilationDrain: false, corrosionProtection: false, headerCover: false }
   },
   {
     id: 'gfd',
     title: 'V-shape VARIO – GFD',
     subtitle: 'Dry coolers (V-shape coil)',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: false, ballValveForVentilationDrain: false, corrosionProtection: false, headerCover: false }
   },
   {
     id: 'gfdv',
     title: 'V-shape VARIO – GFDV',
     subtitle: 'Fluid cooler – V-shape, variable',
     image: DRY_COOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
-    supports: {}
+    supports: { hingedFanPlate: false, ballValveForVentilationDrain: false, corrosionProtection: false, headerCover: false }
   }
-]
-
-/**
- * Impact-Bucket für Cat 4 — TODO: durch echte Auswahl bestätigen, sobald
- * ein Impact-Screenshot (z. B. Fluid = Ethylene glycol) vorliegt. Klont
- * vorläufig die Non-Impact-Liste mit `-impact`-ID-Suffix.
- */
-const CAT_4_DRY_COOLER_IMPACT: SeriesDefinition[] = CAT_4_DRY_COOLER_NONIMPACT.map(
-  (s) => ({ ...s, id: `${s.id}-impact`, refrigerantMatch: 'impact' })
-)
-
-const CAT_4_DRY_COOLER: SeriesDefinition[] = [
-  ...CAT_4_DRY_COOLER_IMPACT,
-  ...CAT_4_DRY_COOLER_NONIMPACT
 ]
 
 /**
  * Cat 5 — Subcooler (Nachkühler in HFC-Kreisläufen; useCategory führt Cat 5
  * als mediumType='liquid', der Dropdown zeigt aber R-Codes wie R404A —
  * Slug landet also z. B. als 'R404A' in `glycolType`). Screenshot 2026-08-22
- * 223206 zeigt nur zwei COMPACT-Serien (keine VARIO-Familie) — Subcooler
- * decken meist einen engeren Leistungsbereich ab als Kondensatoren.
+ * 223206 zeigt nur zwei COMPACT-Serien (keine VARIO-Familie); beide
+ * `refrigerantMatch: 'both'` — refrigerant-agnostische GS-Familie.
  */
-const CAT_5_SUBCOOLER_NONIMPACT: SeriesDefinition[] = [
+const CAT_5_SUBCOOLER: SeriesDefinition[] = [
   {
     id: 'gshc',
     title: 'Flat COMPACT – GSHC',
     subtitle: 'Subcooler – horizontal design, compact',
     image: SUBCOOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
     supports: {}
   },
@@ -696,41 +665,26 @@ const CAT_5_SUBCOOLER_NONIMPACT: SeriesDefinition[] = [
     title: 'Vertical COMPACT – GSVC',
     subtitle: 'Subcooler – vertical design, compact',
     image: SUBCOOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
     supports: {}
   }
 ]
 
 /**
- * Impact-Bucket für Cat 5 — TODO: durch echte Auswahl bestätigen, sobald
- * Screenshot vorliegt (Subcooler in Impact-Kreisläufen wie R744 CO2).
- * Klont vorläufig die Non-Impact-Liste mit `-impact`-ID-Suffix.
- */
-const CAT_5_SUBCOOLER_IMPACT: SeriesDefinition[] = CAT_5_SUBCOOLER_NONIMPACT.map(
-  (s) => ({ ...s, id: `${s.id}-impact`, refrigerantMatch: 'impact' })
-)
-
-const CAT_5_SUBCOOLER: SeriesDefinition[] = [
-  ...CAT_5_SUBCOOLER_IMPACT,
-  ...CAT_5_SUBCOOLER_NONIMPACT
-]
-
-/**
  * Cat 6 — Oil Cooler (Schmieröl-Rückkühler für Verdichter). Der Medium-
  * Dropdown listet ausschließlich Schmieröle (Bitzer / ISO VG-Klassen /
- * Shell) — keine haben Impact-Marker, deshalb ist der Impact-Bucket
- * strukturell ungenutzt. Wir pflegen ihn trotzdem als Klon der Non-Impact-
- * Liste, falls in Zukunft Bio-Öle als Impact eingeführt werden.
- * Icon: `SUBCOOLER_ICON` reused (dieselbe COMPACT-only Familie).
+ * Shell) — alle Non-Impact. `refrigerantMatch: 'both'` deckt aber auch
+ * potenzielle Bio-Öl-Optionen ab, ohne Duplikate. Icon: `SUBCOOLER_ICON`
+ * reused (dieselbe COMPACT-only Familie).
  */
-const CAT_6_OIL_COOLER_NONIMPACT: SeriesDefinition[] = [
+const CAT_6_OIL_COOLER: SeriesDefinition[] = [
   {
     id: 'gohc',
     title: 'Flat COMPACT – GOHC',
     subtitle: 'Oil cooler – horizontal design, compact',
     image: SUBCOOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
     supports: {}
   },
@@ -739,24 +693,10 @@ const CAT_6_OIL_COOLER_NONIMPACT: SeriesDefinition[] = [
     title: 'Vertical COMPACT – GOVC',
     subtitle: 'Oil cooler – vertical design, compact',
     image: SUBCOOLER_ICON,
-    refrigerantMatch: 'nonImpact',
+    refrigerantMatch: 'both',
     defaultAvailable: true,
     supports: {}
   }
-]
-
-/**
- * Impact-Bucket für Cat 6 — aktuell strukturell leer (Schmieröle tragen
- * keinen Impact-Marker). Klon der Non-Impact-Liste mit `-impact`-Suffix
- * bis ggf. Bio-Öle als Impact-Fluid eingeführt werden.
- */
-const CAT_6_OIL_COOLER_IMPACT: SeriesDefinition[] = CAT_6_OIL_COOLER_NONIMPACT.map(
-  (s) => ({ ...s, id: `${s.id}-impact`, refrigerantMatch: 'impact' })
-)
-
-const CAT_6_OIL_COOLER: SeriesDefinition[] = [
-  ...CAT_6_OIL_COOLER_IMPACT,
-  ...CAT_6_OIL_COOLER_NONIMPACT
 ]
 
 /**
@@ -868,6 +808,16 @@ export function isImpactFluid(slug: string | null | undefined): boolean {
 /** Backwards-Compat-Alias — vorherige Version des Funktionsnamens. */
 export const isImpactRefrigerant = isImpactFluid
 
+/**
+ * Sentinel-„Konflikt", der signalisiert: Serie ist per Katalog-Default
+ * nicht auswählbar (thermodynamische Einschränkung, nicht Accessory-basiert).
+ * Kein regulärer AccessoryKey — Deaktivieren-Button im Popover soll das
+ * überspringen.
+ */
+export const DEFAULT_UNAVAILABLE_MARKER = '__defaultUnavailable' as const
+
+export type ConflictKey = AccessoryKey | typeof DEFAULT_UNAVAILABLE_MARKER
+
 /** Runtime-Status einer Serie in der aktuellen Konfiguration. */
 export interface SeriesStatus {
   id: string
@@ -877,8 +827,14 @@ export interface SeriesStatus {
   /** 'available' = grüner Punkt, wählbar.
    *  'unavailable' = roter Punkt, ausgegraut. */
   status: 'available' | 'unavailable'
-  /** Menschlich lesbare Erklärung, warum die Serie nicht verfügbar ist —
-   *  für Tooltips / Hint-UI. Leer bei 'available'. */
+  /** Alle Konflikt-Keys, die diese Serie in der aktuellen Konfiguration
+   *  unavailable machen — jedes Element ist entweder ein AccessoryKey
+   *  (User kann's per Klick deaktivieren) oder DEFAULT_UNAVAILABLE_MARKER
+   *  (thermodynamische Einschränkung, nicht abschaltbar). Leer bei
+   *  'available'. */
+  conflicts: ConflictKey[]
+  /** Convenience-String für Tooltip/Aria — abgeleitet aus `conflicts`.
+   *  Leer bei 'available'. */
   reason: string
 }
 
@@ -909,35 +865,35 @@ export function seriesForCategory(
   const bucket = impact ? 'impact' : 'nonImpact'
 
   return catalog
-    .filter((s) => s.refrigerantMatch === bucket)
+    .filter((s) => s.refrigerantMatch === bucket || s.refrigerantMatch === 'both')
     .map<SeriesStatus>((s) => {
+      const conflicts: ConflictKey[] = []
+
       // 1) Explizit als „nicht verfügbar" markiert (Katalog-Default) →
-      //    Serie startet rot, Grund ist generisch.
+      //    Sentinel-Konflikt, den der User nicht toggeln kann.
       if (!s.defaultAvailable) {
-        return {
-          id: s.id,
-          title: s.title,
-          subtitle: s.subtitle,
-          image: s.image,
-          status: 'unavailable',
-          reason: 'Not available for the current thermodynamic configuration.'
+        conflicts.push(DEFAULT_UNAVAILABLE_MARKER)
+      }
+
+      // 2) Accessory-Kompatibilität — **alle** aktiven Flags aufsammeln
+      //    (nicht nur den ersten), damit die UI dem User die vollständige
+      //    Liste zeigen kann. Nicht deklarierte Keys gelten als
+      //    „unbekannt → tolerant" (kein Rot).
+      for (const [key, value] of Object.entries(accessories)) {
+        if (value === true && s.supports?.[key as AccessoryKey] === false) {
+          conflicts.push(key as AccessoryKey)
         }
       }
 
-      // 2) Accessory-Kompatibilität — jedes aktive Flag muss von der Serie
-      //    unterstützt werden. Nicht deklarierte Keys gelten als
-      //    „unbekannt → tolerant" (kein Rot).
-      const conflict = Object.entries(accessories).find(
-        ([key, value]) => value === true && s.supports?.[key as AccessoryKey] === false
-      )
-      if (conflict) {
+      if (conflicts.length === 0) {
         return {
           id: s.id,
           title: s.title,
           subtitle: s.subtitle,
           image: s.image,
-          status: 'unavailable',
-          reason: `Not compatible with "${humanAccessoryLabel(conflict[0] as AccessoryKey)}".`
+          status: 'available',
+          conflicts: [],
+          reason: ''
         }
       }
 
@@ -946,10 +902,31 @@ export function seriesForCategory(
         title: s.title,
         subtitle: s.subtitle,
         image: s.image,
-        status: 'available',
-        reason: ''
+        status: 'unavailable',
+        conflicts,
+        reason: conflictsToReason(conflicts)
       }
     })
+}
+
+/** Derives the tooltip-friendly reason string from the collected
+ *  conflict keys. Prioritises the default-unavailable sentinel (thermo
+ *  hard block) over accessory conflicts, since the accessory list would
+ *  be misleading if the series is unavailable regardless. */
+function conflictsToReason(conflicts: ConflictKey[]): string {
+  if (conflicts.includes(DEFAULT_UNAVAILABLE_MARKER)) {
+    return 'Not available for the current thermodynamic configuration.'
+  }
+  const labels = conflicts.map((c) => `"${humanAccessoryLabel(c as AccessoryKey)}"`)
+  if (labels.length === 1) return `Not compatible with ${labels[0]}.`
+  return `Not compatible with ${labels.slice(0, -1).join(', ')} and ${labels.at(-1)}.`
+}
+
+/** Public label lookup — used by unit-selection.vue's popover to render
+ *  each conflict as a deactivate-button labelled with the accessory's
+ *  human-readable name. */
+export function accessoryLabel(key: AccessoryKey): string {
+  return humanAccessoryLabel(key)
 }
 
 /** Menschlich lesbare Labels für Accessory-Keys — für Tooltip-Reason. */
@@ -961,13 +938,24 @@ function humanAccessoryLabel(key: AccessoryKey): string {
     guentnerStreamer: 'Güntner Streamer',
     hotGasInterconnectingTubing: 'Hot gas interconnecting tubing',
     repairSwitch: 'Repair switch',
+    wiringToTerminalBox: 'Wiring to terminal box',
     fanRingHeater: 'Fan ring heater',
-    doubleTrayInsulated: 'Double tray insulated',
-    casingSimpleTraySs: 'Casing with simple tray (SS)',
-    casingDoubleTraySs: 'Casing with double tray (SS)',
+    doubleTrayInsulated: 'Double tray with 20 mm insulation',
+    casingSimpleTraySs: 'Casing and simple tray made of stainless steel',
+    casingDoubleTraySs: 'Casing and double tray made of stainless steel',
     legsForFloorMounting: 'Legs for floor mounting',
+    defrostHose: 'Defrost hose',
+    hingedFanUnits: 'Hinged fan units',
+    designForEvapT0Below40: 'Design for evaporation temp. t₀ < −40°C',
+    connectionsAirFlowLeft: 'Connections in air flow direction left',
     inletHood: 'Inlet hood',
-    louvreWithDrive: 'Louvre with drive'
+    louvreWithDrive: 'Louvre (with drive) made of galvanised steel',
+    terminalBoxEnabled: 'Terminal Box [with options]',
+    emptyCasing: 'Empty casing',
+    hingedFanPlate: 'Hinged fan plate',
+    ballValveForVentilationDrain: 'Ball valve 1/2" for ventilation/drain',
+    corrosionProtection: 'Corrosion protection',
+    headerCover: 'Header cover'
   }
   return map[key]
 }

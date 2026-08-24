@@ -16,9 +16,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - **Runtime**: Node.js (CommonJS modules)
 - **Entry point**: `index.js`
+myGPC API-Feld-Doku unter docs/UnitInputData_Doc.txt
 
 ## Commands
-
+ 
 ```bash
 npm test        # No test framework configured yet
 

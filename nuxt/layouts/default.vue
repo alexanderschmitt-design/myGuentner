@@ -317,8 +317,15 @@ async function logout() {
 .app-shell[data-perspective='location']    { --perspective-accent: var(--c-site, #5B8C5A); }
 
 /* ================== HEADER ================== */
-/* Outer band — full-width white bar with the bottom divider */
+/* Outer band — full-width white bar with the bottom divider.
+   Sticky-at-top damit Header, Step-Nav und Wizard-Sub-Toolbar bei
+   langen Content-Seiten (Unit Selection, Datasheet) sichtbar bleiben —
+   matcht das Verhalten der myguntner.com-Produktivseite. `z-index`
+   liegt über regulärem Content, unter Dropdowns (30) + Modals (100). */
 .site-header-band {
+  position: sticky;
+  top: 0;
+  z-index: 25;
   background: var(--c-nav-background);
   border-bottom: 1px solid var(--c-nav-divider);
 }

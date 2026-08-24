@@ -10,8 +10,15 @@
  * inline <select> for SI ↔ US switching via useUnits.
  */
 
-import { emptyUnitSelectionOpts } from '~/stores/configuration'
-import { seriesForCategory, type SeriesStatus } from '~/data/seriesCatalog'
+import { emptyUnitSelectionOpts, type UnitSelectionOpts } from '~/stores/configuration'
+import {
+  seriesForCategory,
+  accessoryLabel,
+  DEFAULT_UNAVAILABLE_MARKER,
+  type SeriesStatus,
+  type AccessoryKey,
+  type ConflictKey
+} from '~/data/seriesCatalog'
 
 const router = useRouter()
 const viewMode = useViewMode()
@@ -25,20 +32,24 @@ interface SeriesCard {
   status: 'available' | 'unavailable'
   /** Optionaler Tooltip-Grund — bei roten Serien gefüllt. */
   reason?: string
+  /** Alle aktiven Konflikt-Keys für die Popover-Anzeige (AccessoryKey +
+   *  ggf. DEFAULT_UNAVAILABLE_MARKER). Leer bei 'available'. */
+  conflicts: ConflictKey[]
 }
 
 /**
- * Legacy-Fallback für Kategorien ohne gepflegten Katalog. Wird sukzessive
- * durch `seriesForCategory(catId, refrigerant, accessories)` ersetzt —
- * Cat 0 (Evaporator DX) läuft bereits über den Katalog.
+ * Legacy-Fallback für Kategorien ohne gepflegten Katalog. Nach der
+ * Konsolidierung von Cat 0-10 auf den Katalog wird dieser Fallback
+ * praktisch nie mehr getroffen — bleibt als Safety-Net gegen zukünftige
+ * Kategorien-IDs.
  */
 const LEGACY_SERIES: SeriesCard[] = [
-  { id: 'gamc-cx', title: 'Mini COMPACT – GAMC CX',    subtitle: 'Air cooler – ultra slim design',              image: '/icons/coil-air-cooler.svg', status: 'available' },
-  { id: 'gasc-cx', title: 'Slim COMPACT – GASC CX',    subtitle: 'Air cooler – slimline design',                image: '/icons/coil-air-cooler.svg', status: 'available' },
-  { id: 'gadc-cx', title: 'Dual COMPACT – GADC CX',    subtitle: 'Air cooler – dual discharge, compact',        image: '/icons/coil-air-cooler.svg', status: 'available' },
-  { id: 'gacc-cx', title: 'Cubic COMPACT – GACC CX',   subtitle: 'Air cooler – cubic design, compact',          image: '/icons/coil-air-cooler.svg', status: 'available' },
-  { id: 'gacv-cx', title: 'Cubic VARIO – GACV CX',     subtitle: 'Air cooler – cubic design, variable',         image: '/icons/coil-air-cooler.svg', status: 'available' },
-  { id: 'gadp-cx', title: 'Process APPLICATION – GADP CX', subtitle: 'Air cooler – for processing rooms, draught-reduced', image: '/icons/coil-air-cooler.svg', status: 'unavailable' }
+  { id: 'gamc-cx', title: 'Mini COMPACT – GAMC CX',    subtitle: 'Air cooler – ultra slim design',              image: '/icons/coil-air-cooler.svg', status: 'available', conflicts: [] },
+  { id: 'gasc-cx', title: 'Slim COMPACT – GASC CX',    subtitle: 'Air cooler – slimline design',                image: '/icons/coil-air-cooler.svg', status: 'available', conflicts: [] },
+  { id: 'gadc-cx', title: 'Dual COMPACT – GADC CX',    subtitle: 'Air cooler – dual discharge, compact',        image: '/icons/coil-air-cooler.svg', status: 'available', conflicts: [] },
+  { id: 'gacc-cx', title: 'Cubic COMPACT – GACC CX',   subtitle: 'Air cooler – cubic design, compact',          image: '/icons/coil-air-cooler.svg', status: 'available', conflicts: [] },
+  { id: 'gacv-cx', title: 'Cubic VARIO – GACV CX',     subtitle: 'Air cooler – cubic design, variable',         image: '/icons/coil-air-cooler.svg', status: 'available', conflicts: [] },
+  { id: 'gadp-cx', title: 'Process APPLICATION – GADP CX', subtitle: 'Air cooler – for processing rooms, draught-reduced', image: '/icons/coil-air-cooler.svg', status: 'unavailable', conflicts: [DEFAULT_UNAVAILABLE_MARKER] }
 ]
 
 const selectedSeries = ref<Set<string>>(new Set(['gacc-cx', 'gacv-cx']))
@@ -94,10 +105,97 @@ function clearModelFilter() {
 
 function toggleSeries(id: string) {
   const s = SERIES.value.find(x => x.id === id)
-  if (!s || s.status === 'unavailable') return
+  if (!s) return
+  // Klick auf eine rote Serie öffnet nicht die Selection, sondern das
+  // Popover mit den Konflikt-Toggles. Bei einem Sentinel-Konflikt
+  // (DEFAULT_UNAVAILABLE_MARKER) ist nichts abschaltbar → Popover wird
+  // nicht geöffnet, Klick bleibt no-op.
+  if (s.status === 'unavailable') {
+    const hasToggleableConflict = s.conflicts.some(
+      c => c !== DEFAULT_UNAVAILABLE_MARKER
+    )
+    if (hasToggleableConflict) {
+      openReasonPopover.value = openReasonPopover.value === id ? null : id
+    }
+    return
+  }
   if (selectedSeries.value.has(id)) selectedSeries.value.delete(id)
   else selectedSeries.value.add(id)
   selectedSeries.value = new Set(selectedSeries.value)
+}
+
+/**
+ * Aktives „Wieso rot?"-Popover — hält die ID der Serie, deren Konflikt-
+ * Liste gerade angezeigt wird. `null` = geschlossen. Wird beim Klick auf
+ * ein rotes Item geöffnet, per Klick außerhalb oder ESC geschlossen,
+ * automatisch geschlossen sobald alle Konflikte weg sind (siehe watch).
+ */
+const openReasonPopover = ref<string | null>(null)
+
+function closeReasonPopover() {
+  openReasonPopover.value = null
+}
+
+// Klick außerhalb der Serien-Liste + ESC schließen das Popover.
+onMounted(() => {
+  const onDocClick = (e: MouseEvent) => {
+    if (!openReasonPopover.value) return
+    const target = e.target as HTMLElement | null
+    if (!target?.closest('.series-list li')) closeReasonPopover()
+  }
+  const onKey = (e: KeyboardEvent) => {
+    if (e.key === 'Escape' && openReasonPopover.value) closeReasonPopover()
+  }
+  document.addEventListener('mousedown', onDocClick)
+  document.addEventListener('keydown', onKey)
+  onBeforeUnmount(() => {
+    document.removeEventListener('mousedown', onDocClick)
+    document.removeEventListener('keydown', onKey)
+  })
+})
+
+/**
+ * Deaktiviert einen konkreten Accessory-Konflikt aus dem Popover. Schreibt
+ * in den Store-Slice `opts` (deep-reactive) oder — für den Sonderfall
+ * `terminalBoxEnabled` — direkt in die page-lokale Ref. Beides triggert
+ * das SERIES-Re-Compute, der Watch schließt das Popover automatisch.
+ */
+function disableAccessory(key: AccessoryKey) {
+  if (key === 'terminalBoxEnabled') {
+    terminalBoxEnabled.value = false
+    return
+  }
+  if (key === 'emptyCasing') {
+    emptyCasing.value = false
+    return
+  }
+  if (key === 'hingedFanPlate') {
+    hingedFanPlate.value = false
+    return
+  }
+  if (key === 'ballValveForVentilationDrain') {
+    ballValveForVentilationDrain.value = false
+    return
+  }
+  if (key === 'corrosionProtection') {
+    corrosionProtection.value = false
+    return
+  }
+  if (key === 'headerCover') {
+    headerCover.value = false
+    return
+  }
+  ;(opts as unknown as Record<string, unknown>)[key] = false
+}
+
+/** AccessoryKey-Type-Guard fürs Template — schließt den Default-Sentinel aus. */
+function isAccessoryConflict(c: ConflictKey): c is AccessoryKey {
+  return c !== DEFAULT_UNAVAILABLE_MARKER
+}
+
+// Aria-freundlicher Label-Lookup fürs Template.
+function labelForAccessory(key: AccessoryKey): string {
+  return accessoryLabel(key)
 }
 
 // Right side — limitations
@@ -161,6 +259,30 @@ watch(impactEnabled, (v) => { if (v) ensureOpen('impact') })
 
 // ---- Terminal Box body (Expert-only content) ----
 const terminalBoxEnabled = ref(false)
+/** Section-Toggle für „Empty casing"-Option (Cat 3 Condenser). Aktuell
+ *  noch ohne dedizierte UI-Section in dieser Datei — der Flag existiert
+ *  vorlaufig als Ref, damit der Series-Catalog die Regel schon
+ *  respektiert. Beim UI-Nachbau reicht ein `v-model="emptyCasing"` auf
+ *  der Section-Checkbox. */
+const emptyCasing = ref(false)
+/** Cat-4-spezifische Legacy-Optionen (Dry Cooler). Wie die anderen
+ *  page-local refs — Katalog-Regeln greifen bereits, UI-Checkboxen
+ *  folgen später. */
+const hingedFanPlate = ref(false)
+const ballValveForVentilationDrain = ref(false)
+const corrosionProtection = ref(false)
+const headerCover = ref(false)
+
+/** Sub-Felder der Empty-Casing-Section (Cat 3 Condenser). Werte sind
+ *  reine UI-State — keine Katalog-Regel greift auf sie zu (die
+ *  emptyCasing-Regel selbst hängt am Section-Toggle). */
+const emptyCasingLength = ref<number>(1000)
+const emptyCasingHeight = ref<number>(1050)
+const emptyCasingSoundInsulation = ref(false)
+const emptyCasingBottomSheet = ref(false)
+
+const casingLengthOptions = [800, 1000, 1200, 1500, 1800, 2000]
+const casingHeightOptions = [800, 1050, 1300, 1500, 1800]
 const motorTechnology    = ref('cost-optimised')
 const controllerChoice   = ref('wiring-terminal-box')
 const requires010VSignal = ref(false)
@@ -187,6 +309,17 @@ const wiringOptions = [
 ]
 
 watch(terminalBoxEnabled, (v) => { if (v) ensureOpen('terminal') })
+watch(emptyCasing,        (v) => { if (v) ensureOpen('empty-casing') })
+
+/** Section-Label für die Terminal-Box-/Control-Wiring-Section wechselt
+ *  je nach Kategorie. Live-Version: Cat 0/1/2 = "Terminal Box [with
+ *  options]", Cat 3/4/5/6/10 = "Control/Wiring". Semantisch identisch —
+ *  dieselbe Katalog-Regel greift bei beiden, nur der Label ändert. */
+const terminalBoxLabel = computed(() =>
+  [0, 1, 2].includes(current.value.id)
+    ? 'Terminal Box [with options]'
+    : 'Control/Wiring'
+)
 
 // ---- Options accordion body ----
 // Field-Bag lebt jetzt im Pinia-Store (siehe stores/configuration.ts →
@@ -220,8 +353,8 @@ const SERIES = computed<SeriesCard[]>(() => {
   const dynamic = seriesForCategory(
     current.value.id,
     activeFluidSlug.value,
-    // Nur die relevanten Boolean-Accessory-Flags weiterreichen. Reactivity
-    // ist erhalten, weil `opts` ein deep-reactiver Store-Slice ist.
+    // Reactivity: `opts` ist ein deep-reactiver Store-Slice, `terminalBoxEnabled`
+    // eine lokale ref — beide werden hier gelesen und triggern das Re-Compute.
     {
       epoxyCoatedFins:             opts.epoxyCoatedFins,
       airSockWithStreamer:         opts.airSockWithStreamer,
@@ -229,13 +362,24 @@ const SERIES = computed<SeriesCard[]>(() => {
       guentnerStreamer:            opts.guentnerStreamer,
       hotGasInterconnectingTubing: opts.hotGasInterconnectingTubing,
       repairSwitch:                opts.repairSwitch,
+      wiringToTerminalBox:         opts.wiringToTerminalBox,
       fanRingHeater:               opts.fanRingHeater,
       doubleTrayInsulated:         opts.doubleTrayInsulated,
       casingSimpleTraySs:          opts.casingSimpleTraySs,
       casingDoubleTraySs:          opts.casingDoubleTraySs,
       legsForFloorMounting:        opts.legsForFloorMounting,
+      defrostHose:                 opts.defrostHose,
+      hingedFanUnits:              opts.hingedFanUnits,
+      designForEvapT0Below40:      opts.designForEvapT0Below40,
+      connectionsAirFlowLeft:      opts.connectionsAirFlowLeft,
       inletHood:                   opts.inletHood,
-      louvreWithDrive:             opts.louvreWithDrive
+      louvreWithDrive:             opts.louvreWithDrive,
+      terminalBoxEnabled:          terminalBoxEnabled.value,
+      emptyCasing:                 emptyCasing.value,
+      hingedFanPlate:              hingedFanPlate.value,
+      ballValveForVentilationDrain: ballValveForVentilationDrain.value,
+      corrosionProtection:         corrosionProtection.value,
+      headerCover:                 headerCover.value
     }
   )
   if (!dynamic) return LEGACY_SERIES
@@ -245,7 +389,8 @@ const SERIES = computed<SeriesCard[]>(() => {
     subtitle: s.subtitle,
     image: s.image,
     status: s.status,
-    reason: s.reason
+    reason: s.reason,
+    conflicts: s.conflicts
   }))
 })
 
@@ -269,9 +414,48 @@ watch(
       if (firstAvailable) filtered.add(firstAvailable.id)
     }
     selectedSeries.value = filtered
+
+    // Popover automatisch schließen, sobald die Serie hinter der ID
+    // wieder verfügbar ist (User hat via Popover-Button ein Accessory
+    // deaktiviert) oder die Serie durch Kategorien-/Fluid-Wechsel
+    // ganz aus der Liste verschwindet.
+    if (openReasonPopover.value) {
+      const target = list.find(s => s.id === openReasonPopover.value)
+      if (!target || target.status === 'available') {
+        openReasonPopover.value = null
+      }
+    }
   },
   { immediate: true, deep: false }
 )
+
+/**
+ * Dev-Diagnostics-Snapshot — nur in Development-Build ausgewertet
+ * (Vite tree-shaked in Production, weil `import.meta.dev === false` als
+ * konstanter Ausdruck den ganzen Objekt-Literal weg-optimiert). Zeigt:
+ *   • aktive Accessory-Flags (was ist gerade an)
+ *   • Serien mit Konflikten — welche Accessories machen sie rot
+ *   • Serien ohne Katalog-Regeln zu diesen Accessories — tolerant-
+ *     fallback, potenzielle Regel-Lücke
+ */
+const devDiagnostics = computed(() => {
+  if (!import.meta.dev) return null
+  const activeAccessoryKeys = (Object.keys(opts) as (keyof UnitSelectionOpts)[])
+    .filter((k) => typeof opts[k] === 'boolean' && opts[k] === true) as string[]
+  const withConflicts = SERIES.value
+    .filter((s) => s.conflicts.some((c) => c !== DEFAULT_UNAVAILABLE_MARKER))
+    .map((s) => ({
+      id: s.id,
+      conflicts: s.conflicts.filter((c) => c !== DEFAULT_UNAVAILABLE_MARKER)
+    }))
+  // Serie ist grün, obwohl mind. ein Accessory aktiv ist → entweder
+  // legitim tolerant oder Katalog-Regel fehlt (Screenshot-Loop-Signal).
+  const possiblyUnmapped =
+    activeAccessoryKeys.length === 0
+      ? []
+      : SERIES.value.filter((s) => s.status === 'available').map((s) => s.id)
+  return { activeAccessories: activeAccessoryKeys, withConflicts, possiblyUnmapped }
+})
 
 const powerSupplyOptions = [
   { value: 0,  label: 'All 50Hz' },
@@ -290,17 +474,23 @@ const motorTechnologyOptionsFull = [
   { value: 1,  label: 'AC' },
   { value: 2,  label: 'EC (electronically commutated)',   hasImpact: true }
 ]
+// Energieeffizienzklassen wie in myguntner.com production — Letter-Grades
+// A-E plus "No" (keine Anforderung). A + B sind Impact-Klassen (ErP+).
+// Höherer Wert = bessere Klasse; 0 = keine Anforderung.
 const minEnergyClassOptions = [
-  { value: 0, label: 'No' },
-  { value: 1, label: 'ErP compliant',                     hasImpact: true },
-  { value: 2, label: 'Best efficiency class',             hasImpact: true }
+  { value: 5, label: 'A',  hasImpact: true },
+  { value: 4, label: 'B',  hasImpact: true },
+  { value: 3, label: 'C' },
+  { value: 2, label: 'D' },
+  { value: 1, label: 'E' },
+  { value: 0, label: 'No' }
 ]
+// Max. operating pressure — Live-Version zeigt nur drei Optionen:
+// 54.0 bar, 80.0 bar, Standard (Screenshot 2026-08-23 112218).
 const maxOperatingPressureOptions = [
-  { value: 0,  label: 'Standard' },
-  { value: 28, label: '28 bar' },
-  { value: 45, label: '45 bar' },
-  { value: 60, label: '60 bar' },
-  { value: 80, label: '80 bar (CO₂)' }
+  { value: 54, label: '54.0 bar' },
+  { value: 80, label: '80.0 bar' },
+  { value: 0,  label: 'Standard' }
 ]
 const coreTubeMaterialOptions = [
   { value: '0', label: 'All' },
@@ -500,7 +690,11 @@ function resetConfig() {
           <li
             v-for="s in SERIES"
             :key="s.id"
-            :class="{ 'is-selected': selectedSeries.has(s.id), 'is-unavailable': s.status === 'unavailable' }"
+            :class="{
+              'is-selected': selectedSeries.has(s.id),
+              'is-unavailable': s.status === 'unavailable',
+              'has-popover': openReasonPopover === s.id
+            }"
             :title="s.status === 'unavailable' ? s.reason : ''"
             @click="toggleSeries(s.id)"
           >
@@ -515,8 +709,73 @@ function resetConfig() {
             <svg v-if="selectedSeries.has(s.id)" class="check" viewBox="0 0 24 24" width="18" height="18">
               <path d="M5 13l4 4 10-10" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
+
+            <!-- ============ „Wieso rot?"-Popover ============
+                 Öffnet sich beim Klick auf ein rotes Item mit min. einem
+                 abschaltbaren Konflikt. Klick auf Deaktivieren-Button
+                 schreibt in opts[key] = false, was den SERIES-Computed
+                 neu evaluiert → Serie wird grün → Watch schließt das
+                 Popover automatisch. -->
+            <div
+              v-if="openReasonPopover === s.id"
+              class="reason-popover"
+              role="dialog"
+              aria-label="Why is this series unavailable?"
+              @click.stop
+            >
+              <p class="reason-popover-title">Deaktiviere ein Zubehör, um diese Serie freizuschalten:</p>
+              <ul class="reason-popover-list">
+                <li v-for="c in s.conflicts.filter(isAccessoryConflict)" :key="c">
+                  <button
+                    type="button"
+                    class="reason-popover-btn"
+                    @click.stop="disableAccessory(c)"
+                  >
+                    <span class="reason-popover-label">{{ labelForAccessory(c) }}</span>
+                    <span class="reason-popover-action">Deaktivieren</span>
+                  </button>
+                </li>
+              </ul>
+              <button
+                type="button"
+                class="reason-popover-close"
+                aria-label="Close"
+                @click.stop="closeReasonPopover"
+              >
+                <svg viewBox="0 0 16 16" width="12" height="12"><path d="M3 3l10 10M13 3L3 13" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              </button>
+            </div>
           </li>
         </ul>
+
+        <!-- ============ Dev-Diagnostics-Panel ============
+             Nur in Development-Build sichtbar (Vite ersetzt
+             `import.meta.dev` zur Compile-Time durch `false` in prod →
+             der gesamte v-if-Block wird weg-optimiert). Zeigt aktive
+             Accessories + Serien mit Konflikten + Serien ohne Regeln
+             zu den aktiven Accessories (Screenshot-Loop-Signal). -->
+        <details v-if="devDiagnostics" class="dev-diagnostics">
+          <summary>🛠 Accessory diagnostics ({{ devDiagnostics.activeAccessories.length }} active)</summary>
+          <div class="dev-diagnostics-body">
+            <div>
+              <span class="dev-key">Active accessories:</span>
+              <code>{{ devDiagnostics.activeAccessories.length ? devDiagnostics.activeAccessories.join(', ') : '—' }}</code>
+            </div>
+            <div>
+              <span class="dev-key">Series with conflicts:</span>
+              <code v-if="devDiagnostics.withConflicts.length">
+                <template v-for="(row, i) in devDiagnostics.withConflicts" :key="row.id">
+                  <template v-if="i > 0"> · </template>{{ row.id }} → [{{ row.conflicts.join(', ') }}]
+                </template>
+              </code>
+              <code v-else>—</code>
+            </div>
+            <div>
+              <span class="dev-key">Green despite active accessories (possibly unmapped):</span>
+              <code>{{ devDiagnostics.possiblyUnmapped.length ? devDiagnostics.possiblyUnmapped.join(', ') : '—' }}</code>
+            </div>
+          </div>
+        </details>
 
         <!-- ============ Calculate Single Unit ============ -->
         <div v-else class="single-unit">
@@ -1003,6 +1262,37 @@ function resetConfig() {
               <input type="checkbox" v-model="opts.guentnerStreamer" />
               Güntner Streamer (for an increased air throw) <img src="/icons/icon_impact.svg" alt="" class="impact-leaf" />
             </label>
+
+            <!-- Cat-4 (Dry Cooler) — nur bei mediumType=liquid + Cat-4-ID
+                 sichtbar. Aktiviert die entsprechenden Katalog-Regeln:
+                 nur GFHV + GFVV bleiben grün (Header cover nur GFHV). -->
+            <label v-if="current.id === 4" class="checkbox">
+              <input type="checkbox" v-model="hingedFanPlate" />
+              Hinged fan plate
+            </label>
+
+            <label v-if="current.id === 4" class="checkbox">
+              <input type="checkbox" v-model="ballValveForVentilationDrain" />
+              Ball valve 1/2" for ventilation/drain
+            </label>
+
+            <div v-if="current.id === 4" class="opt-row">
+              <label class="checkbox">
+                <input type="checkbox" v-model="corrosionProtection" />
+                Corrosion protection
+              </label>
+              <!-- Level-Dropdown ist im Live-UI aktiv (Güntner Protection 4 /
+                   5 …) — bei uns disabled-Placeholder, weil das Feld noch
+                   kein Store-Feld ist. -->
+              <select class="full-select opt-row-input is-disabled" disabled>
+                <option>Güntner Protection 4</option>
+              </select>
+            </div>
+
+            <label v-if="current.id === 4" class="checkbox">
+              <input type="checkbox" v-model="headerCover" />
+              Header cover
+            </label>
           </div>
         </div>
 
@@ -1014,7 +1304,7 @@ function resetConfig() {
               <label class="check-wrap" @click.stop>
                 <input type="checkbox" v-model="terminalBoxEnabled" />
               </label>
-              Terminal Box (with options)
+              {{ terminalBoxLabel }}
               <img src="/icons/icon_impact.svg" alt="" class="impact-leaf" />
             </span>
             <svg class="chev-icon" viewBox="0 0 16 16" width="16" height="16">
@@ -1061,6 +1351,52 @@ function resetConfig() {
               </div>
             </template>
             <p v-else class="muted">Add-on terminal box with pre-wired options. Wechsle auf Expert-Ansicht für Motor-, Controller- und Wiring-Auswahl.</p>
+          </div>
+        </div>
+
+        <!-- Empty Casing (Cat 3 Condenser) — dieselbe Accordion-Struktur
+             wie Terminal Box. Section-Body ist zunächst nur ein Platzhalter,
+             weil Sub-Felder (Casing length/height, Sound insulation,
+             Bottom sheet) noch keine Store-Felder haben. Section-Toggle
+             allein reicht, um die `emptyCasing`-Regel im Katalog auszulösen
+             (nur GCHC bleibt grün, alle anderen 7 Cat-3-Serien werden rot). -->
+        <div v-if="current.id === 3" class="accordion" :class="{ 'is-open': emptyCasing && isOpen('empty-casing') }">
+          <button class="acc-head" @click="emptyCasing = !emptyCasing">
+            <span class="acc-head-with-check">
+              <label class="check-wrap" @click.stop>
+                <input type="checkbox" v-model="emptyCasing" />
+              </label>
+              Empty casing
+            </span>
+            <svg class="chev-icon" viewBox="0 0 16 16" width="16" height="16">
+              <path v-if="emptyCasing && isOpen('empty-casing')" d="M3 10l5-5 5 5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path v-else d="M3 6l5 5 5-5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div v-if="emptyCasing && isOpen('empty-casing')" class="acc-body">
+            <div class="field">
+              <label>Casing length:</label>
+              <select v-model.number="emptyCasingLength" class="full-select">
+                <option v-for="mm in casingLengthOptions" :key="mm" :value="mm">{{ mm }} mm</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Casing height:</label>
+              <select v-model.number="emptyCasingHeight" class="full-select">
+                <option v-for="mm in casingHeightOptions" :key="mm" :value="mm">{{ mm }} mm</option>
+              </select>
+            </div>
+
+            <label class="checkbox">
+              <input type="checkbox" v-model="emptyCasingSoundInsulation" />
+              With sound insulation
+            </label>
+
+            <label class="checkbox">
+              <input type="checkbox" v-model="emptyCasingBottomSheet" />
+              With bottom sheet
+            </label>
           </div>
         </div>
       </section>
@@ -1177,12 +1513,21 @@ function resetConfig() {
 }
 
 /* Sub-toolbar */
+/* Wizard-Sub-Toolbar (Back/Reset/Templates + LeafScore + Next) klebt
+   unter dem globalen Header (68px) + der Step-Nav (~54px). Weißer
+   Hintergrund + kleiner box-shadow trennt die Toolbar visuell vom
+   Content beim Scroll. */
 .sub-toolbar {
+  position: sticky;
+  top: calc(var(--header-h, 68px) + 54px);
+  z-index: 23;
+  background: var(--c-bg);
   display: flex;
   align-items: center;
   gap: var(--space-xs2);
   margin-bottom: var(--space-md);
-  padding: var(--space-a8) 0;
+  padding: var(--space-a8) 0 var(--space-xs2);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
 }
 .sub-toolbar .spacer { flex: 1; }
 
@@ -1203,6 +1548,28 @@ function resetConfig() {
    offsets it below the left one. */
 .cols > .card + .card { margin-top: 0; }
 @media (max-width: 1000px) { .cols { grid-template-columns: 1fr; } }
+
+/* Left column (Series list) sticks to the top while the right column
+   scrolls. Matcht das Verhalten der myguntner.com-Produktivseite
+   (Screenshots 2026-08-23 112541/112548): der Series-Bereich bleibt bei
+   langen Options-Listen persistent sichtbar, ohne dass User zurückscrollen
+   muss, um eine andere Serie zu wählen. Der `top`-Offset lässt Platz für
+   den globalen Header (myGüntner-Bar) + den page-lokalen Sub-Toolbar
+   (Back/Reset/Templates + LeafScore + Next). `max-height` sorgt dafür,
+   dass die Series-Liste selbst scrollt, wenn sie länger als das
+   verbleibende Viewport ist (z. B. Cat 0 non-impact mit 10 Serien). Auf
+   Mobile-Layout (< 1000px) fällt sticky weg — die Columns stapeln sich
+   dann sowieso vertikal. */
+@media (min-width: 1000px) {
+  .left-col {
+    position: sticky;
+    /* Header (68) + Step-Nav (~54) + Sub-Toolbar (~55) + gap */
+    top: calc(var(--header-h, 68px) + 54px + 55px + var(--space-a8));
+    max-height: calc(100vh - var(--header-h, 68px) - 54px - 55px - var(--space-md));
+    overflow-y: auto;
+    align-self: start;
+  }
+}
 
 /* Card title */
 .card-title {
@@ -1273,7 +1640,10 @@ function resetConfig() {
   background: color-mix(in srgb, var(--c-primary) 7%, white);
   border-color: var(--c-primary);
 }
-.series-list li.is-unavailable { opacity: 0.5; cursor: not-allowed; }
+/* Rot mit deaktivierbaren Konflikten bleibt klickbar (→ öffnet Popover);
+   der Handler entscheidet, ob Popover öffnet oder nichts passiert. */
+.series-list li.is-unavailable { opacity: 0.5; cursor: pointer; }
+.series-list li.has-popover { opacity: 1; z-index: 5; }
 
 .status-dot {
   width: 8px;
@@ -1283,6 +1653,123 @@ function resetConfig() {
   flex-shrink: 0;
 }
 .status-dot.unavailable { background: var(--c-error); }
+
+/* ============ „Wieso rot?"-Popover ============
+   Positioniert relativ zum <li>, das die Klasse .has-popover trägt.
+   Erhöhtes z-index damit's über Nachbar-Items schwebt. */
+.series-list li { position: relative; }
+.reason-popover {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 24px;
+  z-index: 20;
+  min-width: 260px;
+  max-width: 340px;
+  padding: 12px 14px 10px;
+  background: white;
+  border: 1px solid var(--c-border);
+  border-radius: 6px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  cursor: default;
+  opacity: 1;
+}
+.reason-popover-title {
+  margin: 0 0 8px;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs, 12.81px);
+  font-weight: 500;
+  color: var(--c-text-value, #262326);
+  padding-right: 20px;
+}
+.reason-popover-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.reason-popover-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--c-border-input, #a6a3ad);
+  border-radius: 4px;
+  background: white;
+  font-family: var(--font-ui);
+  font-size: var(--font-2xs, 14.17px);
+  color: var(--c-text-value, #262326);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+.reason-popover-btn:hover {
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 6%, white);
+  border-color: var(--c-brand-blue, #0078BE);
+}
+.reason-popover-label { text-align: left; flex: 1; min-width: 0; }
+.reason-popover-action {
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-brand-blue, #0078BE);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.reason-popover-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  border: none;
+  background: transparent;
+  padding: 4px;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--c-text-medium, #676377);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.reason-popover-close:hover { background: var(--c-border-card, #e6e4ea); }
+
+/* ============ Dev-Diagnostics-Panel ============ */
+.dev-diagnostics {
+  margin-top: var(--space-sm);
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 4%, #fffbec);
+  border: 1px dashed color-mix(in srgb, var(--c-brand-blue, #0078BE) 25%, transparent);
+  border-radius: 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--c-text-medium, #676377);
+}
+.dev-diagnostics summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+  padding: 2px 0;
+}
+.dev-diagnostics-body {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--c-brand-blue, #0078BE) 20%, transparent);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dev-diagnostics-body .dev-key {
+  display: inline-block;
+  min-width: 260px;
+  color: var(--c-text-value, #262326);
+  font-weight: 500;
+}
+.dev-diagnostics-body code {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--c-text-medium, #676377);
+  white-space: normal;
+  word-break: break-all;
+}
 
 .thumb-wrap {
   width: 52px;

@@ -1,0 +1,127 @@
+{
+	"info": {
+		"_postman_id": "5a37aaa9-f030-4df5-a7b4-47de0ce661de",
+		"name": "Portal Public Documents",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "26116819"
+	},
+	"item": [
+		{
+			"name": "TEST - Login",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "+PKrUcSgdGK2zJdDdLX+xIgiEnRvfOnW2CN3CCdzUxTee49ml+MmwQ16avJZ9cdsCqTWaNl9x1QuEBrjLO/JcBadd0COJGGIqwFhmNgwWBo=&_z_A0V5ayCTR0KwIT_BThY7zqnhwedtQgI46aWQ1pYJFPWozOobV8XoKLC4VEf_gi6FnzT7cVWq-LvaEPU391F_v4ttZvavf",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://dms-test.guentner.com/identityprovider/login",
+					"protocol": "https",
+					"host": [
+						"dms-test",
+						"guentner",
+						"com"
+					],
+					"path": [
+						"identityprovider",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "TEST - GET Portal Public Documents",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "Za4GBdmYAtdAEQixH7zDKPQo4lKf6N6oS3DC15t1v7GUfq+5EBTUz9Ac4khFB2pcvxYYgC/i97wX/1N9gkzKiKHYVjHnKI7flPyg0Cbc58EUHmrse82M2KBXr9AJooZP&dvTKZo043AGTNxntzDqo5cXbnb1Zehst_EWGiHnFPRTznlnnoOgGdZAHwlefjk4W6SSXzGsFsOIy3ENvQ9CfmRi-mW4DT7w7",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/hal+json",
+						"type": "text"
+					},
+					{
+						"key": "Parameters",
+						"value": "POST",
+						"type": "text"
+					},
+					{
+						"key": "Origin",
+						"value": "https://dms-test.guentner.com",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/octet-stream",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://dms-test.guentner.com/dms/r/69ef4884-9ddc-56dc-90f0-e5d08a3ca124/srm?sourceid=/dms/r/69ef4884-9ddc-56dc-90f0-e5d08a3ca124/source&sourceproperties={\"49\":[\"Application Brochure\"],\"53\":[\"External - Trusted\"],\"46\":[\"Güntner\"],\"45\":[\"APO\"],\"29\":[\"Bulgarian - BUL\"],\"127\":[\"\"],\"125\":[\"COLD\"],\"164\":[\"PLATE ECO\"],\"124\":[\"GACA\"],\"126\":[\"GACA RX\"],\"51\":[\"L2\"]}&sourcecategories=[\"DMANU\"]&page=1&pagesize=50&ascending=false",
+					"protocol": "https",
+					"host": [
+						"dms-test",
+						"guentner",
+						"com"
+					],
+					"path": [
+						"dms",
+						"r",
+						"69ef4884-9ddc-56dc-90f0-e5d08a3ca124",
+						"srm"
+					],
+					"query": [
+						{
+							"key": "sourceid",
+							"value": "/dms/r/69ef4884-9ddc-56dc-90f0-e5d08a3ca124/source"
+						},
+						{
+							"key": "sourceproperties",
+							"value": "{\"49\":[\"Application Brochure\"],\"53\":[\"External - Trusted\"],\"46\":[\"Güntner\"],\"45\":[\"APO\"],\"29\":[\"Bulgarian - BUL\"],\"127\":[\"\"],\"125\":[\"COLD\"],\"164\":[\"PLATE ECO\"],\"124\":[\"GACA\"],\"126\":[\"GACA RX\"],\"51\":[\"L2\"]}"
+						},
+						{
+							"key": "sourcecategories",
+							"value": "[\"DMANU\"]"
+						},
+						{
+							"key": "page",
+							"value": "1"
+						},
+						{
+							"key": "pagesize",
+							"value": "50"
+						},
+						{
+							"key": "ascending",
+							"value": "false"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

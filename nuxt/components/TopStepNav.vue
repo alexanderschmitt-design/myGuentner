@@ -90,8 +90,14 @@ function statusFor(i: number): 'done' | 'current' | 'pending' {
    are constrained to 1200px and centered inside the band, matching
    the header's max-width behaviour. Steps distribute evenly within
    that width with continuous connector lines between each pair. */
+/* Step-Nav klebt direkt unter dem gestickyten Layout-Header.
+   `--header-h` (68px, aus layouts/default.vue) definiert den Top-Offset.
+   Der `background` deckt scrollenden Content darunter ab. */
 .stepper-row {
-  background: transparent;
+  position: sticky;
+  top: var(--header-h, 68px);
+  z-index: 24;
+  background: var(--c-bg);
   border-bottom: none;
 }
 

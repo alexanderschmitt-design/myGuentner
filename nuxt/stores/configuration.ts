@@ -14,8 +14,34 @@ import type { UnitInputData } from '~/composables/useGpceu';
 import {
   emptyUnitInputData,
   mergeUnitInputData,
-  unitInputDataFromLegacyParameters
+  unitInputDataFromLegacyParameters,
+  legacyParametersFromUnitInputData
 } from '~/utils/unitInputDataMapper';
+import { slugToFluidId } from '~/utils/fluidIdMap';
+import { CATEGORIES } from '~/composables/useCategory';
+
+/**
+ * Kategorien-spezifische Default-Serien für den `findUnits`-Payload.
+ * API-interne Model-Prefix-Strings (nicht die Katalog-IDs aus
+ * `seriesCatalog.ts`), gezogen aus den Fixture-Snapshots
+ * `nuxt/public/productCategoryN.json`. Ohne mindestens einen Eintrag
+ * antwortet die API mit „At least one series must be selected!".
+ *
+ * TODO: Diese Defaults sollten später aus der reaktiven User-Selection
+ * in unit-selection.vue (`selectedSeries`-Ref) kommen — dazu muss die
+ * Selection erst in den Pinia-Store gehoben werden. Bis dahin sorgt die
+ * Default-Map dafür, dass die API-Query überhaupt einen Suchraum hat.
+ */
+const CATEGORY_DEFAULT_UNITS: Record<number, string[]> = {
+  0:  ['GACC_CX_3E_WS_KDB', 'GACV_CX_5E'],     // Evaporator DX
+  1:  ['GACV_AP_4E'],                          // Evaporator Pump
+  2:  ['GACC_FP_2E_WS_KDB', 'GACV_FP_4E'],     // Air Cooler (Coolant)
+  3:  ['GCHC_3E', 'GCHV_3E'],                  // Condenser
+  4:  ['GFHC_2E', 'GFHV_3E'],                  // Dry Cooler
+  5:  ['GSHC_3E'],                             // Subcooler
+  6:  ['GOHC_2E'],                             // Oil Cooler
+  10: ['GGHC_2E', 'GGHV_4E']                   // Gas Cooler CO₂
+};
 
 export type Perspective = 'technical' | 'application' | 'location';
 
@@ -47,17 +73,35 @@ export interface ConfigurationParameters {
   inletByTempPressure: boolean;
 
   // Liquid-side (Air cooler Coolant / Dry cooler / Oil cooler) — from Figma 2328:7827
-  glycolType: 'ethylene' | 'propylene' | 'water' | null;
+  // String, weil die Live-Fluid-API arbitrary fluidIDs zurückgeben kann
+  // (z. B. "4" für Ethylene glycol, "1002" für Öl). Slug-Konvention siehe
+  // nuxt/utils/fluidIdMap.ts.
+  glycolType: string | null;
   concentrationVolPct: number | null;
   inletTempC: number | null;
   outletTempC: number | null;
   parameterMode: 'inlet-outlet' | 'inlet-temperature-lift' | 'outlet-temperature-lift';
 
   // Shared
-  calculationMode: 'fixed-capacity' | 'fixed-surface';
+  calculationMode: 'fixed-capacity' | 'fixed-surface' | 'fixed-capacity-adjust-cond-temp';
   minSurfaceReserve: number;
   maxSurfaceReserve: number;
   frostThicknessMm: number;
+  /** Category 3 (Condenser) und ähnliche Refrigerant-Kategorien mit mehreren
+   *  Kreisen. Aus Fixture-Feld `multipleCircuits` (0/1) hydriert. */
+  multipleCircuits: boolean;
+  /** Anzahl der Kreise pro Coil. Fixture-Feld `noOfCircuitsThermo`. */
+  noOfCircuits: number;
+  /** Feld nur relevant für Evaporator Pump (Cat 1). Aus Fixture-Feld
+   *  `fluidPumpMode` — 0 = Pumpe (feed rate), 1 = gravity flooded. */
+  gravityFlooded: boolean;
+  /** Feed-Rate für die Pumpe (Cat 1). Fixture `fluidPumpRate`. */
+  pumpFeedRate: number | null;
+  /** Frost-Coil-Modus (nicht identisch mit Frost-Thickness). Fixture
+   *  `frostedCoil`. Nur informativ, kein UI-Steuerelement bisher. */
+  frostedCoil: boolean;
+  /** Fixture-Feld `wetCoilFactor` — wird beim Payload-Bau weitergereicht. */
+  wetCoilFactor: boolean;
   maxPressureDropBar: number | null;     // liquid-side unit
   maxPressureDropK: number | null;       // refrigerant-side unit
   maxPressureDropAuto: boolean;
@@ -92,6 +136,38 @@ export interface ConfigurationParameters {
   noiseLimitDBA: number | null;
   roomDimensions: Dimensions | null;
   environmentClass: EnvironmentClass;
+
+  /**
+   * Transkritische CO₂-Konfiguration (Cat 10 Gas cooler). `enabled` = true
+   * wenn Fixture `isSubcritic && isSupercritic` liefert. Aktiviert im Wizard
+   * die zwei extra Karten "Subcooler / supercritic" und "Condenser / subcritic".
+   * Alle Werte kommen aus den `subcritic*`-Fixture-Feldern.
+   */
+  transcritic: TranscriticConfig;
+}
+
+/**
+ * Zwei-Sektionen-Layout für Cat 10 (Gas cooler CO₂). Die supercritic-Sektion
+ * hält Werte des Haupt-Kreises (isSupercritic=true), die subcritic-Sektion
+ * die des sekundären Kreises (isSubcritic=true) — siehe Live-Referenz
+ * public/cat10.png.
+ */
+export interface TranscriticConfig {
+  enabled: boolean;
+  /** Fixture `fluidPressure` (mbar) → Druck im Supercritic-Kreis */
+  supercriticPressureMbar: number | null;
+  /** Fixture `subcriticThermalCapacity` (W) → kW im Store */
+  subcriticCapacityKw: number | null;
+  /** Fixture `subcriticFluidTempInlet` (°C) */
+  subcriticFluidTempInletC: number | null;
+  /** Fixture `subcriticFluidTempCond` (°C) */
+  subcriticFluidTempCondC: number | null;
+  /** Fixture `subcriticAirTemperature` (°C) */
+  subcriticAirTempC: number | null;
+  /** Fixture `subcriticAirRelHumidity` (%) */
+  subcriticRelHumidityPct: number | null;
+  /** Fixture `subcriticFluidPressureDropMax` — API in kPa, UI in bar */
+  subcriticMaxPressureDropBar: number | null;
 }
 
 export interface ValidationWarning {
@@ -370,6 +446,12 @@ function emptyParameters(): ConfigurationParameters {
     minSurfaceReserve: -10,
     maxSurfaceReserve: 50,
     frostThicknessMm: 0,
+    multipleCircuits: false,
+    noOfCircuits: 1,
+    gravityFlooded: false,
+    pumpFeedRate: null,
+    frostedCoil: false,
+    wetCoilFactor: true,
     maxPressureDropBar: 1,
     maxPressureDropK: 5,
     maxPressureDropAuto: true,
@@ -394,7 +476,18 @@ function emptyParameters(): ConfigurationParameters {
     ambientTempMinC: null,
     noiseLimitDBA: null,
     roomDimensions: null,
-    environmentClass: 'standard'
+    environmentClass: 'standard',
+
+    transcritic: {
+      enabled: false,
+      supercriticPressureMbar: null,
+      subcriticCapacityKw: null,
+      subcriticFluidTempInletC: null,
+      subcriticFluidTempCondC: null,
+      subcriticAirTempC: null,
+      subcriticRelHumidityPct: null,
+      subcriticMaxPressureDropBar: null
+    }
   };
 }
 
@@ -425,6 +518,10 @@ export const useConfigStore = defineStore('configuration', {
     // schreiben direkt hier hinein oder gehen via `updateParameters` +
     // Legacy-Mapper. Persistiert.
     unitInputData: emptyUnitInputData() as UnitInputData,
+    /** Cat-ID der zuletzt via `hydrateUnitInputDataFromFixture()`
+     *  hydrierten Fixture. Guard gegen Doppel-Hydration innerhalb
+     *  derselben Kategorie; erzwingt Full-Replace beim Cat-Wechsel. */
+    lastHydratedCatId: null as number | null,
     // Unit Selection Options-Accordion state (vorher lokaler reactive in
     // unit-selection.vue). Ins Pinia gehoben, damit Template-Save/Load die
     // Checkbox-Werte erfasst.
@@ -464,10 +561,54 @@ export const useConfigStore = defineStore('configuration', {
      * setzt, das noch nie im API-Default-Response war.
      */
     payloadForFindUnits(): UnitInputData {
-      return mergeUnitInputData(
+      const merged = mergeUnitInputData(
         this.unitInputData,
-        unitInputDataFromLegacyParameters(this.parameters)
+        unitInputDataFromLegacyParameters(this.parameters, this.unitSelectionOpts)
       );
+      // ProductCategory und FluidID sind Pflichtfelder für findUnits.
+      // Beides steht im Store implizit (currentCategory-Slug + refrigerant/
+      // glycolType-Slug), landet aber sonst nicht im Payload, weil das
+      // Legacy-Mapping die beiden bewusst auslässt (Slug ≠ ID).
+      const cat = CATEGORIES.find((c) => c.slug === this.currentCategory);
+      const out = merged as unknown as Record<string, unknown>;
+      if (cat) out.ProductCategory = cat.id;
+      // FluidID: bevorzuge den aus der Fixture-Sync geladenen numerischen
+      // Wert (`unitInputData.FluidID`), falls gesetzt. Erst wenn der Store
+      // keinen Wert hat (User navigierte direkt ohne Thermodynamics-
+      // Fixture-Sync), auf den Slug-Lookup zurückfallen.
+      const existingFluidId = (out.FluidID as number | undefined) ?? 0;
+      if (!existingFluidId || existingFluidId === 0) {
+        const slug = cat?.mediumType === 'liquid'
+          ? this.parameters.glycolType
+          : this.parameters.refrigerant;
+        const fluidId = slug ? slugToFluidId(slug, cat?.mediumType, cat?.id) : null;
+        if (fluidId !== null) out.FluidID = fluidId;
+      }
+      // FluidPressureDropMax: derselbe API-Slot bekommt je nach mediumType
+      // den Bar-Wert (liquid) oder K-Wert (refrigerant). Beide Store-Felder
+      // haben Defaults, deshalb hier gezielt der passende. API akzeptiert
+      // 0 nicht — auch im Auto-Modus muss ein Nicht-Null-Wert stehen
+      // (Fixture Cat 3 zeigt fluidPressureDropMax=2 mit
+      // isMaxFluidPressureDropAuto=true).
+      const pdVal = cat?.mediumType === 'liquid'
+        ? this.parameters.maxPressureDropBar
+        : this.parameters.maxPressureDropK;
+      if (pdVal != null && pdVal !== 0) out.FluidPressureDropMax = pdVal;
+      out.IsMaxFluidPressureDropAuto = this.parameters.maxPressureDropAuto;
+      // Units-Filter: die API verlangt "At least one series must be
+      // selected". Ohne UI-Sync haben wir aktuell keine live-gewählten
+      // Serien im Store — force-replace mit Cat-Defaults, damit Cat-0-
+      // Units nicht in Cat-1-Payloads leaken (Fixture-Hydration merged,
+      // die alte Cat-Units-Liste würde sonst persistieren). Sobald der
+      // Store User-Auswahl trackt (Follow-up), dieser Zweig wird bedingt.
+      if (cat && CATEGORY_DEFAULT_UNITS[cat.id]) {
+        out.Units = CATEGORY_DEFAULT_UNITS[cat.id];
+      }
+      // Hit-Cap: die API rejected `MaxNumberOfHits: 0` mit „must be at
+      // least 1". Default 20 matcht dem `pageSize`-Selector in search.vue.
+      const mnh = out.MaxNumberOfHits;
+      if (typeof mnh !== 'number' || mnh < 1) out.MaxNumberOfHits = 20;
+      return out as UnitInputData;
     }
   },
 
@@ -476,6 +617,68 @@ export const useConfigStore = defineStore('configuration', {
     setUnitSystem(s: 'us' | 'si') { this.unitSystem = s; },
     updateParameters(patch: Partial<ConfigurationParameters>) {
       Object.assign(this.parameters, patch);
+    },
+    /**
+     * Hydratiert `unitInputData` mit den Werten aus dem Fixture-Snapshot
+     * `nuxt/public/productCategoryN.json` und synchronisiert die
+     * kategorien-inhärenten Wizard-Parameter (refrigerant / glycolType /
+     * multipleCircuits etc.). Kritisch für den findUnits-Backend-Call,
+     * weil die Fixture ~40 API-Felder auf realistische Werte setzt, die
+     * im UI nicht editierbar sind aber vom Backend gebraucht werden.
+     *
+     * **Per-Cat-Guard**: skippt nur, wenn die aktuelle Kategorie bereits
+     * hydriert wurde. Bei Cat-Wechsel läuft die Hydration erneut, damit
+     * Cat-0-Werte nicht in Cat-1-Payloads leaken.
+     *
+     * **Full-Replace**: die Basis ist `emptyUnitInputData()` — Felder,
+     * die die neue Fixture nicht setzt, fallen auf Null-Defaults zurück
+     * (statt Cat-0-Werte aus voriger Fixture zu behalten).
+     *
+     * Fixture-Keys sind camelCase; API + `unitInputData` PascalCase.
+     */
+    async hydrateUnitInputDataFromFixture(catId: number) {
+      // Per-Cat-Guard — wenn Cat schon hydriert, skip.
+      if (this.lastHydratedCatId === catId) return;
+      try {
+        const raw = await $fetch<{ content?: Record<string, unknown> } | Record<string, unknown>>(
+          `/productCategory${catId}.json`
+        );
+        const content = (raw as { content?: Record<string, unknown> }).content
+          ?? (raw as Record<string, unknown>);
+        if (!content || typeof content !== 'object') return;
+        // camelCase → PascalCase merge.
+        const patch: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(content)) {
+          patch[k.charAt(0).toUpperCase() + k.slice(1)] = v;
+        }
+        // FULL-REPLACE: emptyUnitInputData() als Basis + Fixture-Patch.
+        // Alte Werte fallen zurück auf Null-Defaults, wenn die neue Fixture
+        // sie nicht mehr setzt.
+        this.unitInputData = mergeUnitInputData(
+          emptyUnitInputData() as UnitInputData,
+          patch as Partial<UnitInputData>
+        );
+        // Full-Replace der `parameters`-Slice aus der Fixture: für einen
+        // Cat-Wechsel ist die Fixture autoritativ. Ein 7-Key-Sync
+        // (CATEGORY_INHERENT_KEYS) reichte nicht, weil der Payload-Getter
+        // aus Legacy-Params abgeleitete API-Felder (ThermalCapacity,
+        // FluidTempCond, FluidTempInlet, Altitude …) baut — und die
+        // Legacy-Params dort gewinnen. `legacyParametersFromUnitInputData()`
+        // mapt die Fixture-Werte zurück in exakt diese Params.
+        const cat = CATEGORIES.find((c) => c.id === catId);
+        const legacyPatch = legacyParametersFromUnitInputData(
+          this.unitInputData,
+          { categoryMediumType: cat?.mediumType }
+        );
+        for (const [key, v] of Object.entries(legacyPatch)) {
+          if (v === undefined) continue;
+          (this.parameters as unknown as Record<string, unknown>)[key] = v;
+        }
+        this.lastHydratedCatId = catId;
+      } catch {
+        // Fehlt die Fixture: still auf Null-Defaults belassen — Diagnostics-
+        // Panel zeigt dann Deltas gegen die Fixture, User kann manuell fixen.
+      }
     },
     addWarning(w: ValidationWarning) {
       if (!this.validationWarnings.find(x => x.id === w.id)) this.validationWarnings.push(w);
