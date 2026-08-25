@@ -234,17 +234,25 @@ export interface UnitSelectionOpts {
 }
 
 export function emptyUnitSelectionOpts(): UnitSelectionOpts {
+  // Defaults gemäß Live-App-Konvention aus den Fixture-JSONs
+  // (`productCategoryN.json`). Grep über alle 8 Fixtures bestätigt:
+  // powerSupply=3001, airBlowOffType=10001, airVelocityClass=10001,
+  // erP_Compliant=true, nippleTubeMaterial=0, wiring_To_Terminal_Box=0
+  // sind cat-übergreifend identisch. `defrostingType` variiert
+  // (80 für Evap/AirCooler, 0 für Cond/Kühler) — Sync in
+  // hydrateUnitInputDataFromFixture() für den Cat-spezifischen Wert.
+  // Der 80er-Default hier ist der Evap-Startwert (App defaultet Cat 0).
   return {
-    onlyErpCompliant: false,
-    powerSupply: 0,
+    onlyErpCompliant: true,
+    powerSupply: 3001,
     motorTechnology: -3,
     minimumEnergyEfficiencyClass: 0,
     maxOperatingPressure: 0,
     coreTubeMaterial: '0',
-    airBlowDirection: 0,
-    defrostingType: 1,
+    airBlowDirection: 10001,
+    defrostingType: 80,
     hotGasInterconnectingTubing: false,
-    airVelocityClass: 0,
+    airVelocityClass: 10001,
     esp: false,
     espPressurePa: 0,
     epoxyCoatedFins: false,
@@ -673,6 +681,17 @@ export const useConfigStore = defineStore('configuration', {
         for (const [key, v] of Object.entries(legacyPatch)) {
           if (v === undefined) continue;
           (this.parameters as unknown as Record<string, unknown>)[key] = v;
+        }
+        // unitSelectionOpts.defrostingType Cat-inhärent syncen:
+        // Cat 0/1/2 (Evap DX/Pump + Air Cooler) → 80 (Default-Defrost),
+        // Cat 3/4/5/6/10 (Cond/Kühler/Subcooler/GasCooler) → 0 (kein Defrost).
+        // Andere Enums (powerSupply, airBlowOffType, airVelocityClass,
+        // erP_Compliant, nippleTubeMaterial, wiring_To_Terminal_Box) sind
+        // laut Fixture-Grep cat-übergreifend konstant → bereits in
+        // emptyUnitSelectionOpts() als Live-App-Defaults verankert.
+        const fixtureDefrost = (this.unitInputData as unknown as Record<string, unknown>).Defrosting;
+        if (typeof fixtureDefrost === 'number') {
+          this.unitSelectionOpts.defrostingType = fixtureDefrost;
         }
         this.lastHydratedCatId = catId;
       } catch {

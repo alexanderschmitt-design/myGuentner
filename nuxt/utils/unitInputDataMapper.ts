@@ -139,7 +139,10 @@ const LEGACY_MAP: Partial<Record<LegacyKey, FieldMap>> = {
   concentrationVolPct: { apiName: 'FluidVolConcentration' as keyof UnitInputData },
   // Kategorien-spezifische Wizard-Felder
   gravityFlooded:    { apiName: 'GravityFlooded' as keyof UnitInputData },
-  pumpFeedRate:      { apiName: 'PumpFeedRate' as keyof UnitInputData },
+  // Offizielle API-Doku (docs/UnitInputData_Doc.txt:419) und alle
+  // Fixtures nennen das Feld `FluidPumpRate` (nicht `PumpFeedRate`).
+  // Der Reverse-Mapper liest bereits korrekt aus FluidPumpRate.
+  pumpFeedRate:      { apiName: 'FluidPumpRate' as keyof UnitInputData },
   multipleCircuits:  { apiName: 'MultipleCircuits' as keyof UnitInputData },
   noOfCircuits:      { apiName: 'NoOfCircuitsThermo' as keyof UnitInputData },
   // Surface Reserve / Capacity Tolerance in % — API muss beide > 0 setzen
@@ -197,7 +200,12 @@ const OPTS_MAP: Partial<Record<OptsKey, FieldMap>> = {
     }
   },
   maxOperatingPressure:          { apiName: 'MaxOperatingPressure' as keyof UnitInputData },
-  coreTubeMaterial:              { apiName: 'NippleTubeMaterial' as keyof UnitInputData },
+  // Store hält NippleTubeMaterial als String ('0'), API/Fixture erwarten
+  // Int. Cast beim Emit, Store-Interface bleibt (16 Callsites).
+  coreTubeMaterial:              {
+    apiName: 'NippleTubeMaterial' as keyof UnitInputData,
+    toApi: (v) => Number(v)
+  },
   airBlowDirection:              { apiName: 'AirBlowOffType' as keyof UnitInputData },
   defrostingType:                { apiName: 'Defrosting' as keyof UnitInputData },
   hotGasInterconnectingTubing:   { apiName: 'HotGasInterConnectingTubing' as keyof UnitInputData },
@@ -205,7 +213,12 @@ const OPTS_MAP: Partial<Record<OptsKey, FieldMap>> = {
   espPressurePa:                 { apiName: 'Esp' as keyof UnitInputData },
   epoxyCoatedFins:               { apiName: 'Epoxy_Fins' as keyof UnitInputData },
   coilDefender:                  { apiName: 'Coil_Defender' as keyof UnitInputData },
-  wiringToTerminalBox:           { apiName: 'Wiring_To_Terminal_Box' as keyof UnitInputData },
+  // Store hält Wiring_To_Terminal_Box als Boolean, API/Fixture erwarten
+  // Int (0/1). Cast beim Emit.
+  wiringToTerminalBox:           {
+    apiName: 'Wiring_To_Terminal_Box' as keyof UnitInputData,
+    toApi: (v) => (v ? 1 : 0)
+  },
   guentnerStreamer:              { apiName: 'GuentnerStreamer' as keyof UnitInputData }
 };
 
