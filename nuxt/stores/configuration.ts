@@ -17,7 +17,7 @@ import {
   unitInputDataFromLegacyParameters,
   legacyParametersFromUnitInputData
 } from '~/utils/unitInputDataMapper';
-import { slugToFluidId } from '~/utils/fluidIdMap';
+import { slugToFluidId, FLUID_ID_MAP } from '~/utils/fluidIdMap';
 import { CATEGORIES } from '~/composables/useCategory';
 
 /**
@@ -581,11 +581,18 @@ export const useConfigStore = defineStore('configuration', {
       const out = merged as unknown as Record<string, unknown>;
       if (cat) out.ProductCategory = cat.id;
       // FluidID: bevorzuge den aus der Fixture-Sync geladenen numerischen
-      // Wert (`unitInputData.FluidID`), falls gesetzt. Erst wenn der Store
-      // keinen Wert hat (User navigierte direkt ohne Thermodynamics-
-      // Fixture-Sync), auf den Slug-Lookup zurückfallen.
+      // Wert (`unitInputData.FluidID`), falls gesetzt UND kompatibel zum
+      // Cat-mediumType. Bei Cross-Cat-Wechsel (z.B. 10 → 4) kann die alte
+      // FluidID im persistierten Store hängenbleiben — z.B. 41 = R744
+      // (refrigerant) im Cat-10-Session, aber Cat 4 (Dry Cooler = liquid)
+      // rejected das API-seitig mit „fluid (41) is not suitable".
+      // Bei Inkompatibilität auf den Slug-Lookup aus parameters zurückfallen.
       const existingFluidId = (out.FluidID as number | undefined) ?? 0;
-      if (!existingFluidId || existingFluidId === 0) {
+      const existingEntry = existingFluidId ? FLUID_ID_MAP[existingFluidId] : null;
+      const existingIsCompatible = existingEntry
+        ? existingEntry.mediumType === cat?.mediumType
+        : false;
+      if (!existingIsCompatible) {
         const slug = cat?.mediumType === 'liquid'
           ? this.parameters.glycolType
           : this.parameters.refrigerant;
@@ -593,13 +600,16 @@ export const useConfigStore = defineStore('configuration', {
         if (fluidId !== null) out.FluidID = fluidId;
       }
       // FluidPressureDropMax: derselbe API-Slot bekommt je nach mediumType
-      // den Bar-Wert (liquid) oder K-Wert (refrigerant). Beide Store-Felder
-      // haben Defaults, deshalb hier gezielt der passende. API akzeptiert
-      // 0 nicht — auch im Auto-Modus muss ein Nicht-Null-Wert stehen
-      // (Fixture Cat 3 zeigt fluidPressureDropMax=2 mit
-      // isMaxFluidPressureDropAuto=true).
+      // mbar (liquid) oder K (refrigerant). Der Reverse-Mapper macht
+      // /1000 (mbar → bar) für liquid, hier den Forward-Weg *1000 spiegeln.
+      // Fixture Cat 3 (refrigerant): 2 K → Payload 2. Fixture Cat 4 (liquid):
+      // 1000 mbar → Store 1 bar → Payload 1000. Cat 5 (liquid): 500 mbar
+      // → Store 0.5 bar → Payload 500. API akzeptiert 0 nicht (Auto-Modus
+      // braucht Non-Null-Wert, siehe Fixture Cat 3 mit auto=true).
       const pdVal = cat?.mediumType === 'liquid'
-        ? this.parameters.maxPressureDropBar
+        ? (this.parameters.maxPressureDropBar != null
+            ? this.parameters.maxPressureDropBar * 1000
+            : null)
         : this.parameters.maxPressureDropK;
       if (pdVal != null && pdVal !== 0) out.FluidPressureDropMax = pdVal;
       out.IsMaxFluidPressureDropAuto = this.parameters.maxPressureDropAuto;
