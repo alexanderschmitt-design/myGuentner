@@ -253,6 +253,16 @@ export function unitInputDataFromLegacyParameters(
       patch[field.apiName as string] = field.toApi ? field.toApi(val) : val;
     }
   }
+  // Transcritic-Round-Trip komplettieren: der Reverse-Mapper (Zeile 365-380)
+  // baut `parameters.transcritic.enabled` aus `IsSubcritic && IsSupercritic`.
+  // Forward-Weg spiegelt den Boolean auf beide API-Flags. Nur Cat 10 (Gas
+  // Cooler CO₂) hat in der Fixture beide auf true, alle anderen Cats false.
+  const trans = (p as unknown as Record<string, unknown>).transcritic as
+    { enabled?: boolean } | undefined;
+  if (trans && typeof trans.enabled === 'boolean') {
+    patch.IsSubcritic = trans.enabled;
+    patch.IsSupercritic = trans.enabled;
+  }
   return patch as Partial<UnitInputData>;
 }
 
