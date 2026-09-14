@@ -32,6 +32,18 @@ export interface CategoryParamDefaults {
   subcoolingK?: number
 }
 
+/** Zulässige Calculation-Modes im Thermodynamics-Wizard.
+ *  Werden per Kategorie eingeschränkt — nicht jede Kombi ist von der GPC.EU-
+ *  API zugelassen (Beispiel: 'fixed-capacity-adjust-cond-temp' schmeißt für
+ *  Non-Condenser-Kategorien ein 400 `INPUT_MODE_CAPACITY_FIXED_DIRECT__…
+ *  only allowed for condensers` zurück). Die Liste in `CategoryDef.
+ *  calculationModes` bestimmt, welche Option im Dropdown auftaucht. */
+export type CalculationMode =
+  | 'calculate-capacity'
+  | 'fixed-capacity'
+  | 'fixed-surface'
+  | 'fixed-capacity-adjust-cond-temp'
+
 export interface CategoryDef {
   id: number
   slug: string
@@ -44,6 +56,11 @@ export interface CategoryDef {
   image: string
   /** Optional per-category overrides for wizard param defaults. */
   paramDefaults?: CategoryParamDefaults
+  /** Whitelist der zulässigen Calculation-Modes. Referenz test.myguntner.com:
+   *  jede Kategorie zeigt genau 2 Optionen — 'calculate-capacity' plus einen
+   *  kategoriespezifischen Fixed-Mode. Undefined = alle Modes verfügbar
+   *  (Fallback für Kategorien, die wir noch nicht abgebildet haben). */
+  calculationModes?: readonly CalculationMode[]
   /** When false, the dew-point/mean radio group on the Thermodynamics
    *  Medium card is rendered but disabled. Defaults to true. */
   dewPointModeAvailable?: boolean
@@ -69,19 +86,33 @@ export interface CategoryDef {
 //   2328:9142 (Subcooler) / 2328:9581 (Gas cooler)  → refrigerant fields
 //   node 2328:7386 (Air cooler Coolant) / 2328:7825 (Dry cooler) /
 //   2328:7827 (this Figma node) / 2328:8703 (Oil cooler)  → liquid fields
+// Referenz test.myguntner.com: fast alle Kategorien zeigen dieselben zwei
+// Optionen; nur Cat 3 (Condenser) tauscht 'fixed-capacity' gegen die
+// Cond-Temp-Variante aus.
+const MODES_STANDARD: readonly CalculationMode[] = ['calculate-capacity', 'fixed-capacity']
+const MODES_CONDENSER: readonly CalculationMode[] = ['calculate-capacity', 'fixed-capacity-adjust-cond-temp']
+
 export const CATEGORIES: CategoryDef[] = [
   { id: 0,  slug: 'evaporator-dx',   title: 'Evaporator', sublabel: 'DX',        productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_dx.svg',   image: '/images/Evaporator-dx.png',
     paramDefaults: { airInletTempC: 0 },
+    calculationModes: MODES_STANDARD,
     dewPointModeAvailable: false },
   { id: 1,  slug: 'evaporator-pump', title: 'Evaporator', sublabel: 'Pump',      productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_evaporator_pump.svg', image: '/images/Evaporator-Pump.png',
+    calculationModes: MODES_STANDARD,
     showPumpFields: true },
-  { id: 2,  slug: 'air-cooler',      title: 'Air cooler', sublabel: 'Coolant',   productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_aircooler.svg',       image: '/images/Aircooler.png' },
+  { id: 2,  slug: 'air-cooler',      title: 'Air cooler', sublabel: 'Coolant',   productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_aircooler.svg',       image: '/images/Aircooler.png',
+    calculationModes: MODES_STANDARD },
   { id: 3,  slug: 'condenser',       title: 'Condenser',  sublabel: '',          productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_condenser.svg',       image: '/images/Condenser.png',
+    calculationModes: MODES_CONDENSER,
     showMultipleCircuits: true, hideEvaporatorSide: true },
-  { id: 4,  slug: 'dry-cooler',      title: 'Dry cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_drycooler.svg',       image: '/images/Drycooler.png' },
-  { id: 5,  slug: 'subcooler',       title: 'Subcooler',  sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-sub.svg',             image: '/images/Condenser.png' },
-  { id: 6,  slug: 'oil-cooler',      title: 'Oil cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-pump.svg',            image: '/images/Drycooler.png' },
+  { id: 4,  slug: 'dry-cooler',      title: 'Dry cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon_drycooler.svg',       image: '/images/Drycooler.png',
+    calculationModes: MODES_STANDARD },
+  { id: 5,  slug: 'subcooler',       title: 'Subcooler',  sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-sub.svg',             image: '/images/Condenser.png',
+    calculationModes: MODES_STANDARD },
+  { id: 6,  slug: 'oil-cooler',      title: 'Oil cooler', sublabel: '',          productSection: 1, mediumType: 'liquid',      icon: '/icons/icon-pump.svg',            image: '/images/Drycooler.png',
+    calculationModes: MODES_STANDARD },
   { id: 10, slug: 'gas-cooler',      title: 'Gas cooler', sublabel: 'CO₂',       productSection: 1, mediumType: 'refrigerant', icon: '/icons/icon_gascooler.svg',       image: '/images/Gas-Cooler.png',
+    calculationModes: MODES_STANDARD,
     showTranscriticSection: true }
 ]
 

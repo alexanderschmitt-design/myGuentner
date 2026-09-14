@@ -70,6 +70,16 @@ watch(templates, (list) => {
 
 function close() { emit('update:open', false) }
 
+// Springt in den Wizard-Edit-Modus für dieses Template. Nur eigene Templates
+// (t.isOwn=true) via User-Route editierbar — System-Templates fremder User
+// müssen im Admin bearbeitet werden.
+function editTemplate(t: TemplateRecord) {
+  const targetCat = getCategoryBySlug(t.categorySlug)
+  const catId = targetCat?.id ?? 0
+  close()
+  router.push(`/mygpc/${catId}/thermodynamics?edit=${encodeURIComponent(t.id)}&mode=user`)
+}
+
 async function onApply() {
   const t = templates.value.find(x => x.id === selectedId.value)
   if (!t) return
@@ -161,6 +171,18 @@ async function confirmDelete() {
           >
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M3 4h10M6 4V2.5h4V4M4.5 4l0.5 9h6l0.5-9M6.5 6.5v5M9.5 6.5v5"/>
+            </svg>
+          </button>
+          <button
+            v-if="selectedId && templates.find(t => t.id === selectedId)?.isOwn"
+            type="button"
+            class="tpl-icon-btn"
+            :aria-label="`Edit template ${templates.find(t => t.id === selectedId)?.name}`"
+            title="Edit template"
+            @click="() => { const t = templates.find(x => x.id === selectedId); if (t) editTemplate(t) }"
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12v2h2l7-7-2-2-7 7zm9-9l2 2 1-1a1 1 0 0 0-2-2l-1 1z"/>
             </svg>
           </button>
         </div>

@@ -28,6 +28,8 @@ const { data: findResult } = await useAsyncData(
   'mygps-output-findunits',
   () => gpceu.findUnits(findPayload.value).catch((err) => {
     console.warn('[datasheet] findUnits failed:', err)
+    const { message, hint, eventId, date, fieldLabel } = formatGpceuError(err)
+    useToast().apiError({ message, hint, eventId, date, fieldLabel })
     return null
   }),
   { default: () => null, watch: [findPayload] }

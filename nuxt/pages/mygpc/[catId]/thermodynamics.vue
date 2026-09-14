@@ -21,8 +21,41 @@ import { fluidCanonicalSlug } from '~/utils/fluidIdMap'
 const store = useConfigStore()
 const gpceu = useGpceu()
 const router = useRouter()
+const route = useRoute()
 const { current, step3Url } = useCategory()
 const viewMode = useViewMode()
+
+// Wizard-Edit-Modus: `?edit=<templateId>[&mode=admin]` in der URL bedeutet,
+// dass der User (bzw. Admin) ein bestehendes Template bearbeitet. Wir laden
+// das Template in den Store und übergeben Meta-Daten an das Layout-Banner
+// (TemplateEditBanner.vue). Query-Param wird nach dem Load aus der URL
+// entfernt, damit ein späterer Reload ohne Reset keinen weiteren Load
+// triggert.
+const templateEdit = useTemplateEdit()
+onMounted(async () => {
+  const editId = route.query.edit
+  if (!editId || typeof editId !== 'string') return
+  const mode: 'user' | 'admin' = route.query.mode === 'admin' ? 'admin' : 'user'
+  try {
+    const url = mode === 'admin' ? '/api/admin/templates' : '/api/templates'
+    const res = await $fetch<{ ok: boolean; templates: any[] }>(url)
+    const t = res.templates.find(x => x.id === editId)
+    if (!t) throw new Error('Template not found')
+    store.applyTemplate(t.configuration)
+    templateEdit.start({
+      templateId: t.id,
+      templateName: t.name,
+      mode,
+      categorySlug: t.categorySlug || t.category_slug
+    })
+  } catch (err: any) {
+    useToast().error(err?.data?.error || err?.message || 'Failed to load template for editing')
+  } finally {
+    // Query-Param entfernen ohne Route-Navigation zu triggern (History-Replace).
+    const { edit: _e, mode: _m, ...rest } = route.query
+    router.replace({ path: route.path, query: rest })
+  }
+})
 
 const isLiquid = computed(() => current.value.mediumType === 'liquid')
 // Bare-coil flow (MPD-6929): productSection=2 swaps Step 3 to Coil Geometry.
@@ -258,11 +291,22 @@ function withSyntheticFallback(opts: FluidOption[]): FluidOption[] {
   return [synthetic, ...opts]
 }
 
-const calculationModeOptions = [
+// Katalog aller möglichen Modes — die pro Kategorie ausgewählte Untermenge
+// stammt aus `current.value.calculationModes` (siehe useCategory.ts). So
+// zeigen wir nur Werte, die die GPC.EU-API für die aktuelle Kategorie
+// tatsächlich akzeptiert (Live-Referenz test.myguntner.com: max. 2 Options).
+const ALL_CALCULATION_MODES = [
+  { value: 'calculate-capacity',              label: 'Calculate capacity' },
   { value: 'fixed-capacity',                  label: 'State fixed capacity (adjust surface reserve)' },
   { value: 'fixed-surface',                   label: 'State fixed surface reserve (adjust capacity)' },
   { value: 'fixed-capacity-adjust-cond-temp', label: 'State fixed capacity (adjust condensation temperature)' }
-]
+] as const
+
+const calculationModeOptions = computed(() => {
+  const allowed = current.value.calculationModes
+  if (!allowed || allowed.length === 0) return ALL_CALCULATION_MODES.slice()
+  return ALL_CALCULATION_MODES.filter(o => (allowed as readonly string[]).includes(o.value))
+})
 
 const parameterModeOptions = [
   { value: 'inlet-outlet',            label: 'Inlet/Outlet temperature' },
@@ -280,6 +324,21 @@ function bind<K extends keyof typeof store.parameters>(key: K) {
 
 // Shared
 const calculationMode = bind('calculationMode')
+
+// Auto-Correct: wenn die Kategorie einen anderen Modus-Katalog erzwingt und
+// der bisher gespeicherte Wert nicht mehr in der Whitelist steht, auf den
+// ersten erlaubten Modus zurückfallen. Sonst würde die API beim NEXT-Klick
+// mit einem "INPUT_MODE_… only allowed for …" antworten.
+watch(
+  [calculationModeOptions, calculationMode],
+  ([opts, current]) => {
+    if (!opts.length) return
+    if (!opts.some(o => o.value === current)) {
+      calculationMode.value = opts[0].value
+    }
+  },
+  { immediate: true }
+)
 const capacityKw = bind('coolingCapacityKw')
 const minSurfaceReserve = bind('minSurfaceReserve')
 const maxSurfaceReserve = bind('maxSurfaceReserve')
@@ -340,9 +399,134 @@ function commitAirOptions() {
   airOptionsOpen.value = false
 }
 
-const canProceed = computed(() => capacityKw.value != null)
+// ─────────────────────────────────────────────────────────────────────────
+//  Client-seitige Range-Validation
+// ─────────────────────────────────────────────────────────────────────────
+// Statische Regeln für "offensichtliche" Range-Fehler (Capacity < 0.1 kW,
+// Humidity > 100 %, etc.). Prüft rein clientseitig — keine API, keine
+// Race-Conditions durch stale Requests. Trifft eine Regel, wird das Feld
+// per `.field-error` rot markiert, ein Inline-Hint darunter angezeigt und
+// der NEXT-Button deaktiviert. Ergänzt das komplexere Server-seitige
+// Validieren, das auf Step 4 (search.vue) läuft.
+interface RangeRule {
+  apiParam: string           // matched data-api-param im Template
+  label: string              // Human-Readable für die Hint-Zeile
+  min?: number
+  max?: number
+  unit: string
+  getValue: () => number | null | undefined
+}
+const VALIDATION_RULES: RangeRule[] = [
+  { apiParam: 'thermalCapacity',     label: 'Capacity',              min: 0.1, max: 10000, unit: 'kW',    getValue: () => store.parameters.coolingCapacityKw },
+  { apiParam: 'airRelHumidity',      label: 'Rel. humidity',         min: 0,   max: 100,   unit: '%',     getValue: () => store.parameters.relHumidityPct },
+  { apiParam: 'concentrationVolPct', label: 'Concentration',         min: 0,   max: 100,   unit: 'Vol.%', getValue: () => store.parameters.concentrationVolPct },
+  { apiParam: 'altitudeM',           label: 'Altitude',              min: 0,   max: 5000,  unit: 'm',     getValue: () => store.parameters.altitudeM },
+  { apiParam: 'frostThicknessMm',    label: 'Frost thickness',       min: 0,   max: 10,    unit: 'mm',    getValue: () => store.parameters.frostThicknessMm },
+  { apiParam: 'maxSurfaceReserve',   label: 'Max. surface reserve',  min: 0.1, max: 200,   unit: '%',     getValue: () => store.parameters.maxSurfaceReserve },
+  { apiParam: 'minSurfaceReserve',   label: 'Min. surface reserve',  min: -100, max: 0,    unit: '%',     getValue: () => store.parameters.minSurfaceReserve },
+  { apiParam: 'airPressureMbar',     label: 'Air pressure',          min: 500, max: 1100,  unit: 'mbar',  getValue: () => store.parameters.airPressureMbar },
+  { apiParam: 'airTemperature',      label: 'Air inlet temp.',       min: -40, max: 60,    unit: '°C',    getValue: () => store.parameters.airInletTempC },
+]
 
-function goNext() { if (canProceed.value) router.push(step3Url()) }
+const fieldErrors = computed<Map<string, string>>(() => {
+  const map = new Map<string, string>()
+  for (const rule of VALIDATION_RULES) {
+    const v = rule.getValue()
+    if (v == null || Number.isNaN(v)) continue
+    if (rule.min !== undefined && v < rule.min) {
+      map.set(rule.apiParam, `${rule.label} must be ≥ ${rule.min} ${rule.unit} (current: ${v} ${rule.unit}).`)
+    } else if (rule.max !== undefined && v > rule.max) {
+      map.set(rule.apiParam, `${rule.label} must be ≤ ${rule.max} ${rule.unit} (current: ${v} ${rule.unit}).`)
+    }
+  }
+  return map
+})
+
+// Synchronisiert die client-seitigen Fehler mit dem DOM: setzt/entfernt
+// `.field-error`-Klasse und injiziert eine Inline-Hint-Zeile pro betroffenem
+// Feld. Läuft bei jeder Änderung von `fieldErrors` sowie beim Mount.
+watchEffect(async () => {
+  const errors = fieldErrors.value
+  await nextTick()
+  document.querySelectorAll<HTMLElement>('[data-api-param]').forEach(el => {
+    const apiParam = el.getAttribute('data-api-param')!
+    const msg = errors.get(apiParam)
+    // Alte Inline-Hints entfernen
+    el.querySelectorAll('.field-hint-inline').forEach(n => n.remove())
+    if (msg) {
+      el.classList.add('field-error')
+      const hint = document.createElement('small')
+      hint.className = 'field-hint-inline'
+      hint.textContent = msg
+      el.appendChild(hint)
+    } else {
+      el.classList.remove('field-error')
+    }
+  })
+})
+
+// NEXT nur freigeben, wenn Capacity gesetzt UND keine Client-Validation-Fehler.
+const canProceed = computed(() => capacityKw.value != null && fieldErrors.value.size === 0)
+
+// Merkt sich das per API abgelehnte Feld (data-api-param), damit der Wizard
+// es rot markieren + fokussieren kann. Wird bei jeder nachfolgenden Parameter-
+// Änderung automatisch zurückgesetzt (Watcher unten).
+//
+// `useState` statt `ref` — hält den Wert über Route-Wechsel hinweg. Nach
+// NEXT navigieren wir sofort auf Step 3, das findUnits läuft nebenbei und
+// setzt den Fehler asynchron. Beim BACK-Klick muss das Feld erneut markiert
+// werden, dafür trägt der Watcher unten die Klasse wieder auf.
+const erroredFieldApiParam = useState<string | null>('thermo-errored-field', () => null)
+
+// Liefert einen menschenlesbaren aktuellen Wert für den Toast — inspiziert
+// den Store anhand des API-Feld-Namens. Fällt auf undefined zurück, wenn wir
+// keinen Mapping-Eintrag haben (Toast rendert dann keine "Current"-Zeile).
+function currentValueFor(apiParam: string): string | undefined {
+  const p = store.parameters as any
+  // Mode-Selects zeigen den Option-Label, nicht die interne enum-ID
+  const findLabel = (opts: {value:string; label:string}[], v: unknown) =>
+    opts.find(o => o.value === v)?.label ?? (v != null ? String(v) : undefined)
+
+  switch (apiParam) {
+    case 'thermalCapacity':      return p.coolingCapacityKw != null ? `${p.coolingCapacityKw} kW` : undefined
+    case 'fluidTempInlet':       return p.evaporatingTempC != null ? `${p.evaporatingTempC} °C`
+                                        : p.inletTempC != null ? `${p.inletTempC} °C` : undefined
+    case 'fluidTempOutlet':      return p.condensingTempC != null ? `${p.condensingTempC} °C`
+                                        : p.outletTempC != null ? `${p.outletTempC} °C` : undefined
+    case 'superheatingK':        return p.superheatingK != null ? `${p.superheatingK} K` : undefined
+    case 'subcoolingK':          return p.subcoolingK != null ? `${p.subcoolingK} K` : undefined
+    case 'altitudeM':            return p.altitudeM != null ? `${p.altitudeM} m` : undefined
+    case 'airPressureMbar':      return p.airPressureMbar != null ? `${p.airPressureMbar} mbar` : undefined
+    case 'airRelHumidity':       return p.relHumidityPct != null ? `${p.relHumidityPct} %` : undefined
+    case 'airTemperatureWetBulb':return p.wetBulbTempC != null ? `${p.wetBulbTempC} °C` : undefined
+    case 'airTemperature':       return p.airInletTempC != null ? `${p.airInletTempC} °C` : undefined
+    case 'concentrationVolPct':  return p.concentrationVolPct != null ? `${p.concentrationVolPct} Vol.%` : undefined
+    case 'frostThicknessMm':     return p.frostThicknessMm != null ? `${p.frostThicknessMm} mm` : undefined
+    case 'pumpFeedRate':         return p.pumpFeedRate != null ? String(p.pumpFeedRate) : undefined
+    case 'fluidID':              return String(p.refrigerant || p.glycolType || '') || undefined
+    case 'minSurfaceReserve':    return p.minSurfaceReserve != null ? `${p.minSurfaceReserve} %` : undefined
+    case 'maxSurfaceReserve':    return p.maxSurfaceReserve != null ? `${p.maxSurfaceReserve} %` : undefined
+    // Mode-Felder — Label statt roher enum-ID
+    case 'calculationMode':      return findLabel(calculationModeOptions.value, p.calculationMode)
+    case 'parameterMode':        return findLabel(parameterModeOptions, p.parameterMode)
+    case 'humidityMode':         return p.humidityMode === 'wet-bulb' ? 'Wet bulb temperature' : 'Rel. humidity'
+    case 'pressureMode':         return p.pressureMode === 'altitude' ? 'Altitude' : 'Air pressure'
+    case 'dewPointMode':         return p.dewPointMode === 'dew-point' ? 'Dew point at inlet (DIN EN328)' : 'Mean'
+    case 'productCategory':      return current.value.title
+    default:                     return undefined
+  }
+}
+
+function goNext() {
+  if (!canProceed.value) return
+  // Nur navigieren. Die eigentliche Validierung passiert in Step 4
+  // (search.vue) via useAsyncData(findUnits) — mit sauberer Reactive-State-
+  // Kette, Cache, und ohne Fire-and-forget-Race-Conditions durch schnelle
+  // Kat-Wechsel. Ein Vor-Ping hier hat sich in der Praxis nur als
+  // Toast-Rauschen erwiesen (Cat 0 antwortet erst wenn User schon auf Cat 3
+  // ist → Toast zeigt Fehler zur falschen Konfiguration).
+  router.push(step3Url())
+}
 function goBack() { router.push('/') }
 async function resetToDefaults() {
   // resetWizard() clear alle Store-Parameter + answeredParams. Ohne den
@@ -441,7 +625,7 @@ const fluidValue = computed<string>({
       <section class="card capacity-card">
         <div class="capacity-grid">
           <!-- Row 1 -->
-          <div class="field">
+          <div class="field" data-api-param="calculationMode" data-field-name="Calculation mode">
             <label>Calculation mode</label>
             <select v-model="calculationMode">
               <option v-for="m in calculationModeOptions" :key="m.value" :value="m.value">{{ m.label }}</option>
@@ -453,7 +637,7 @@ const fluidValue = computed<string>({
           </div>
 
           <!-- Row 2 -->
-          <div v-if="!isCoil && viewMode.isExpert.value" class="field">
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field" data-api-param="minSurfaceReserve" data-field-name="Min. surface reserve">
             <label>Min. surface reserve</label>
             <div class="input-with-suffix">
               <input type="number" v-model.number="minSurfaceReserve" />
@@ -473,7 +657,7 @@ const fluidValue = computed<string>({
           </div>
 
           <!-- Row 3 -->
-          <div v-if="!isCoil && viewMode.isExpert.value" class="field">
+          <div v-if="!isCoil && viewMode.isExpert.value" class="field" data-api-param="maxSurfaceReserve" data-field-name="Max. surface reserve">
             <label>Max. surface reserve</label>
             <div class="input-with-suffix">
               <input type="number" v-model.number="maxSurfaceReserve" />
@@ -515,7 +699,7 @@ const fluidValue = computed<string>({
             </div>
           </div>
 
-          <div v-if="viewMode.isExpert.value" class="field">
+          <div v-if="viewMode.isExpert.value" class="field" data-api-param="parameterMode" data-field-name="Parameter mode">
             <label>Parameter mode</label>
             <select v-model="parameterMode">
               <option v-for="p in parameterModeOptions" :key="p.value" :value="p.value">{{ p.label }}</option>
@@ -862,6 +1046,33 @@ const fluidValue = computed<string>({
 .field input:focus, .field select:focus {
   border-color: var(--c-brand-blue);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue) 15%, transparent);
+}
+
+/* Field-Error-State: API hat den Wert dieses Feldes abgelehnt. Der Container
+   trägt via JS eine .field-error-Klasse. Wir treffen sowohl die direkten
+   Inputs (typische Felder) als auch die UnitValueInput-Nachbarn im Baum. */
+.field-error > label { color: var(--c-error, #B33A3A); }
+.field-error input,
+.field-error select,
+.field-error :deep(input),
+.field-error :deep(select) {
+  border-color: var(--c-error, #B33A3A) !important;
+  background: color-mix(in srgb, var(--c-error, #B33A3A) 5%, white);
+}
+.field-error input:focus,
+.field-error select:focus,
+.field-error :deep(input:focus),
+.field-error :deep(select:focus) {
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-error, #B33A3A) 18%, transparent) !important;
+}
+/* Client-Validation-Hint direkt unter dem Feld — dynamisch via JS in den
+   .field-Container injiziert (siehe watchEffect in <script setup>). */
+.field-hint-inline {
+  display: block;
+  margin-top: 4px;
+  font-size: var(--font-3xs, 12.81px);
+  line-height: 1.35;
+  color: var(--c-error, #B33A3A);
 }
 .field input:disabled {
   opacity: 0.6;

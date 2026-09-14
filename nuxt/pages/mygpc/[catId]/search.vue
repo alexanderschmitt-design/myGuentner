@@ -48,17 +48,28 @@ const { data: findResult, error, pending, refresh: refreshFindUnits } = await us
     try {
       return await useGpceu().findUnits(findPayload.value)
     } catch (err: any) {
-      // Fehler nicht mehr schlucken — propagieren, damit `error.value`
-      // im UI angezeigt werden kann (Banner + Diagnose-Panel).
-      // Struktur: FetchError vom Proxy hat `.data` mit dem
-      // Error-Envelope {ok, error, code, hint, durationMs}.
+      // Fehler-Envelope vom Proxy: `.data = {ok, error, message, code, hint, …}`.
       const body = err?.data
-      const message = body?.error || err?.message || 'findUnits failed'
-      const enriched = new Error(message)
+      const rawMessage: string = body?.error || body?.message || err?.message || ''
+
+      // "No suitable unit could be found!" ist semantisch KEIN Fehler,
+      // sondern ein leeres Ergebnis. Die API liefert es als HTTP 400 mit
+      // eingebetteten Gründen (z. B. "Not suitable for current fluid!").
+      // Wir wandeln in einen sauberen Empty-Result, damit stattdessen
+      // die `noApiHits`-"Ask Günther"-Karte greift — kein Toast, kein
+      // Warning-Icon, keine EventId-Litanei.
+      if (/no suitable unit could be found/i.test(rawMessage)) {
+        return { foundUnits: [] } as any
+      }
+
+      // Sonst: echter Fehler — Inline-Banner + Toast.
+      const enriched = new Error(rawMessage || 'findUnits failed')
       ;(enriched as any).code = body?.code
       ;(enriched as any).hint = body?.hint
       ;(enriched as any).status = err?.status ?? err?.statusCode
       ;(enriched as any).raw = body
+      const { message: m, hint, eventId, date, fieldLabel } = formatGpceuError(err)
+      useToast().apiError({ message: m, hint, eventId, date, fieldLabel })
       throw enriched
     }
   },

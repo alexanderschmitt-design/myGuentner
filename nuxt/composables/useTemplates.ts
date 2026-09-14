@@ -39,6 +39,15 @@ interface SaveArgs {
   makeDefault?: boolean
 }
 
+interface UpdateArgs {
+  name?: string
+  categorySlug?: string
+  configuration?: TemplatePayload
+  makeDefault?: boolean
+  /** true → hits /api/admin/templates/:id (admin-only route, ignoriert Owner-Check). */
+  asAdmin?: boolean
+}
+
 /**
  * Lädt Templates und exponiert CRUD-Actions. `categorySlug` = `null` lädt ALLE
  * Templates des Users (über alle Kategorien) — das ist der Regelfall im Modal,
@@ -104,7 +113,31 @@ export function useTemplates(categorySlug: MaybeRef<string | null>) {
     }
   }
 
+  /**
+   * Updated ein bestehendes Template. Wenn `asAdmin=true`, geht der Call an
+   * die Admin-Route (System-Templates + fremde Owner erlaubt), sonst
+   * User-Route (RLS: nur eigene). Partial-Update — nur gesetzte Felder werden
+   * geschrieben.
+   */
+  async function update(id: string, args: UpdateArgs): Promise<TemplateRecord | null> {
+    error.value = null
+    const { asAdmin, ...payload } = args
+    const url = asAdmin ? `/api/admin/templates/${id}` : `/api/templates/${id}`
+    try {
+      const res = await $fetch<{ ok: boolean; template: TemplateRecord; error?: string }>(url, {
+        method: 'PUT',
+        body: payload
+      })
+      if (!res.ok) throw new Error(res.error || 'Update failed')
+      await reload()
+      return res.template
+    } catch (err: any) {
+      error.value = err?.data?.error || err?.message || String(err)
+      return null
+    }
+  }
+
   watch(() => unref(categorySlug), () => { reload() }, { immediate: true })
 
-  return { templates, defaultId, loading, error, reload, save, remove }
+  return { templates, defaultId, loading, error, reload, save, remove, update }
 }

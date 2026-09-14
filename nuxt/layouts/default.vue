@@ -256,6 +256,7 @@ async function logout() {
     </div>
 
     <TopStepNav v-if="showStepNav" />
+    <TemplateEditBanner v-if="showStepNav" />
 
     <main class="site-main" :class="{
       'with-panel': panelsOpen,

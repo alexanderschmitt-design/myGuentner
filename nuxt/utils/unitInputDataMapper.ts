@@ -148,7 +148,28 @@ const LEGACY_MAP: Partial<Record<LegacyKey, FieldMap>> = {
   // Surface Reserve / Capacity Tolerance in % — API muss beide > 0 setzen
   // (Upper tolerance must be > 0). Store hat Defaults -10 / +50.
   minSurfaceReserve: { apiName: 'TC_Tolerance_L' as keyof UnitInputData },
-  maxSurfaceReserve: { apiName: 'TC_Tolerance_H' as keyof UnitInputData }
+  maxSurfaceReserve: { apiName: 'TC_Tolerance_H' as keyof UnitInputData },
+  // Calculation mode → InputModeCapacity (Integer).
+  //   0 = Calculate capacity                              (Default fast aller Kategorien)
+  //   1 = State fixed capacity (adjust surface reserve)
+  //   2 = State fixed surface reserve (adjust capacity)   (nicht im UI-Katalog)
+  //   3 = State fixed capacity (adjust condensation temp) (Cat-3-Default)
+  // Vorher fehlte dieser Eintrag ganz — der Reverse-Mapper (Zeile ~319) las
+  // den Fixture-Wert, aber die UI-Auswahl wurde nie zurückgeschrieben. Effekt:
+  // API-400 "INPUT_MODE_… only allowed for condensers", weil InputModeCapacity
+  // beim Kat-Wechsel auf 3 hängen blieb.
+  calculationMode: {
+    apiName: 'InputModeCapacity' as keyof UnitInputData,
+    toApi: (v) => {
+      switch (v) {
+        case 'calculate-capacity':              return 0
+        case 'fixed-capacity':                  return 1
+        case 'fixed-surface':                   return 2
+        case 'fixed-capacity-adjust-cond-temp': return 3
+        default:                                return 0
+      }
+    }
+  }
 };
 
 /**
@@ -316,14 +337,18 @@ export function legacyParametersFromUnitInputData(
     out.inletByTempPressure  = fluidInputMode === 3;
   }
 
-  // InputModeCapacity: 0 = fixed capacity (adjust surface reserve),
-  //                    3 = fixed capacity (adjust condensation temperature).
-  // Live-App-Screenshot cat3.png rechts zeigt für Condenser die 3. Option.
+  // InputModeCapacity: 0 = Calculate capacity (Default fast aller Cats),
+  //                    1 = State fixed capacity (adjust surface reserve),
+  //                    2 = State fixed surface reserve (adjust capacity),
+  //                    3 = State fixed capacity (adjust cond. temp)  (Cat 3).
+  // Forward-Mapping in LEGACY_MAP (calculationMode) spiegelt diese Reihenfolge.
   const inputModeCapacity = getNum(uAny, 'InputModeCapacity');
   if (inputModeCapacity !== null) {
-    out.calculationMode = inputModeCapacity === 3
-      ? 'fixed-capacity-adjust-cond-temp'
-      : 'fixed-capacity';
+    out.calculationMode =
+      inputModeCapacity === 3 ? 'fixed-capacity-adjust-cond-temp' :
+      inputModeCapacity === 2 ? 'fixed-surface' :
+      inputModeCapacity === 1 ? 'fixed-capacity' :
+                                'calculate-capacity';
   }
 
   // AirPressureInputMode: 0 = Air pressure (mbar), 1 = Altitude (m).

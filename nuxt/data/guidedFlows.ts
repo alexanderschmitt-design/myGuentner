@@ -22,6 +22,14 @@ import type { RouteLocationNormalized } from 'vue-router'
 import type { useConfigStore } from '~/stores/configuration'
 import type { HomeTabId } from '~/composables/useHomeTab'
 import { HOME_ENTRY_FLOWS } from './homeEntryFlows'
+import { getCategoryBySlug } from '~/composables/useCategory'
+
+// Kleine Helper-Fkt: liest die numerische catId aus dem slug — via
+// useCategory's CATEGORIES-Registry. Fallback auf 0 (DX Evaporator), damit
+// die Recommendation-Karte in ChatDock immer eine navigierbare catId hat.
+function findCategoryIdBySlug(slug: string): number {
+  return getCategoryBySlug(slug)?.id ?? 0
+}
 
 type ConfigStore = ReturnType<typeof useConfigStore>
 
@@ -387,11 +395,22 @@ const thermoRefrigerantFlow: GuidedFlow = {
       ]
     },
     {
-      id: 'r-done',
+      id: 'r-recommendations',
       message:
-        '✅ Done — the four core parameters are set. Review the remaining fields ' +
-        '(superheat, condensing temperature, humidity), then click **Next** at the top right ' +
-        'to move on to unit selection. If anything is unclear, just ask me in the chat.',
+        'Based on your answers, here are curated system templates that match your setup. ' +
+        'Pick one to load a full pre-configured wizard, or skip to fine-tune manually.',
+      kind: 'recommendations',
+      recommendationCtx: {
+        // Aktuelle Kategorie aus dem Store (Slug + numerische ID via
+        // findCategoryIdBySlug — der Wizard bleibt auf derselben Cat).
+        resolveTarget: (store) => {
+          const slug = store.currentCategory || 'evaporator-dx'
+          return { slug, catId: findCategoryIdBySlug(slug) }
+        },
+        // Skip = manueller Weg. Keine Template-Anwendung; User bleibt einfach
+        // auf Thermodynamics und geht per NEXT weiter.
+        finalize: () => true
+      },
       showAdvance: false
     }
   ]
@@ -459,9 +478,18 @@ const thermoLiquidFlow: GuidedFlow = {
       ]
     },
     {
-      id: 'l-done',
+      id: 'l-recommendations',
       message:
-        '✅ Done. Review the remaining fields (concentration, altitude), then click **Next** to continue. If anything is unclear, just ask me in the chat.',
+        'Based on your answers, here are matching system templates. ' +
+        'Pick one to load a full pre-configured wizard, or skip to fine-tune manually.',
+      kind: 'recommendations',
+      recommendationCtx: {
+        resolveTarget: (store) => {
+          const slug = store.currentCategory || 'air-cooler'
+          return { slug, catId: findCategoryIdBySlug(slug) }
+        },
+        finalize: () => true
+      },
       showAdvance: false
     }
   ]

@@ -12,7 +12,7 @@
  * hier auf System-Status.
  */
 import { ref, computed, onMounted } from 'vue'
-import { getCategoryBySlug } from '~/composables/useCategory'
+import { getCategoryBySlug, getCategoryById } from '~/composables/useCategory'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'myGPC — System Templates' })
@@ -90,6 +90,15 @@ function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString('de-DE', { year: 'numeric', month: 'short', day: 'numeric' })
 }
 
+function editTemplate(t: AdminTemplate) {
+  // Wizard-Edit-Modus starten: springt in Thermodynamics der jeweiligen
+  // Kategorie mit ?edit=<id>&mode=admin. Der Wizard lädt das Template und
+  // zeigt das TemplateEditBanner mit Save/Cancel.
+  const cat = getCategoryBySlug(t.categorySlug)
+  const catId = cat?.id ?? 0
+  navigateTo(`/mygpc/${catId}/thermodynamics?edit=${encodeURIComponent(t.id)}&mode=admin`)
+}
+
 function paramCount(cfg: any): number {
   if (!cfg?.parameters) return 0
   let n = 0
@@ -159,7 +168,7 @@ onMounted(load)
           <th>Category</th>
           <th>Params</th>
           <th>Updated</th>
-          <th class="th-toggle">System</th>
+          <th class="th-actions">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -173,7 +182,8 @@ onMounted(load)
           </td>
           <td>{{ paramCount(t.configuration) }}</td>
           <td>{{ fmtDate(t.updatedAt) }}</td>
-          <td class="td-toggle">
+          <td class="td-actions">
+            <button class="btn btn-outline btn-edit" @click="editTemplate(t)">Edit</button>
             <button
               class="btn"
               :class="t.isSystem ? 'btn-primary' : 'btn-outline'"
@@ -302,11 +312,12 @@ onMounted(load)
   border-radius: 3px;
   color: var(--c-text-value);
 }
-.th-toggle { width: 130px; text-align: right; }
-.td-toggle { text-align: right; }
-.td-toggle .btn {
+.th-actions { width: 220px; text-align: right; }
+.td-actions { text-align: right; display: flex; justify-content: flex-end; gap: 8px; }
+.td-actions .btn {
   padding: 6px 12px;
   font-size: var(--font-3xs, 12.81px);
-  min-width: 110px;
+  min-width: 90px;
 }
+.btn-edit { min-width: 70px; }
 </style>

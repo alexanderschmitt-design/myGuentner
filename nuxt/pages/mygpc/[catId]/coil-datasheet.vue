@@ -35,6 +35,10 @@ const { data: coilResult } = await useAsyncData(
       return await gpceu.findCoils(defaults)
     } catch (err) {
       console.warn('[coil-datasheet] findCoils failed:', err)
+      // Toast dem User zeigen — Datasheet zeigt sonst still Demo-Werte,
+      // was schwer zu debuggen ist.
+      const { message, hint, eventId, date, fieldLabel } = formatGpceuError(err)
+      useToast().apiError({ message, hint, eventId, date, fieldLabel })
       return null
     }
   },
