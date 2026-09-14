@@ -18,17 +18,24 @@ const router = useRouter()
 const saving = ref(false)
 const showCancelConfirm = ref(false)
 
+// Inline-editierbarer Name — initialisiert aus dem Edit-State, damit der
+// User den Namen während der Edit-Session anpassen kann.
+const editedName = ref(state.value?.templateName ?? '')
+watch(() => state.value?.templateName, (n) => { if (n) editedName.value = n })
+
 async function save() {
   if (!state.value || saving.value) return
   saving.value = true
   try {
     const payload = configStore.snapshotForTemplate()
+    const trimmedName = editedName.value.trim()
     const updated = await update(state.value.templateId, {
       configuration: payload,
+      ...(trimmedName && trimmedName !== state.value.templateName ? { name: trimmedName } : {}),
       asAdmin: state.value.mode === 'admin'
     })
     if (updated) {
-      toast.success(`Template "${state.value.templateName}" updated`)
+      toast.success(`Template "${updated.name}" updated`)
       cancel()
       // Admin kehrt zur Admin-Übersicht zurück, normale User bleiben im Wizard.
       if (state.value?.mode === 'admin') {
@@ -56,7 +63,14 @@ function doCancel() {
   <div v-if="state" class="template-edit-banner" role="status" aria-live="polite">
     <span class="tag">EDITING</span>
     <span class="tag tag-mode">{{ state.mode === 'admin' ? 'Admin' : 'My template' }}</span>
-    <strong class="name">{{ state.templateName }}</strong>
+    <input
+      v-model="editedName"
+      class="name-input"
+      type="text"
+      maxlength="120"
+      aria-label="Template name"
+      :disabled="saving"
+    />
     <span class="spacer" />
     <button type="button" class="btn-text" @click="confirmCancel" :disabled="saving">Cancel</button>
     <button type="button" class="btn-primary" @click="save" :disabled="saving">
@@ -67,7 +81,7 @@ function doCancel() {
       <div v-if="showCancelConfirm" class="cancel-backdrop" @click.self="showCancelConfirm = false">
         <div class="cancel-modal" role="dialog" aria-labelledby="cancel-title">
           <h3 id="cancel-title">Discard changes?</h3>
-          <p>Your edits to <strong>{{ state.templateName }}</strong> will not be saved.</p>
+          <p>Your edits to <strong>{{ editedName || state.templateName }}</strong> will not be saved.</p>
           <div class="actions">
             <button type="button" class="btn-text" @click="showCancelConfirm = false">Keep editing</button>
             <button type="button" class="btn-danger" @click="doCancel">Discard</button>
@@ -104,9 +118,29 @@ function doCancel() {
   color: var(--c-brand-blue, #0078BE);
   border: 1px solid currentColor;
 }
-.name {
+.name-input {
   font-family: var(--font-mono, 'DM Mono', monospace);
+  font-size: var(--font-2xs, 14.17px);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  padding: 3px 8px;
+  background: transparent;
+  color: var(--c-text-value, #262326);
+  min-width: 160px;
+  max-width: 320px;
+  transition: border-color 0.15s, background 0.15s;
 }
+.name-input:hover:not(:disabled) {
+  border-color: var(--c-border-input, #a6a3ad);
+  background: white;
+}
+.name-input:focus {
+  outline: none;
+  border-color: var(--c-brand-blue, #0078BE);
+  background: white;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--c-brand-blue, #0078BE) 15%, transparent);
+}
+.name-input:disabled { opacity: 0.6; cursor: not-allowed; }
 .spacer { flex: 1; }
 .btn-text {
   border: none;
