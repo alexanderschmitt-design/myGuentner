@@ -120,6 +120,50 @@ function scoreOne(
 export default defineEventHandler(async (event) => {
   const user = await requireUser(event)
   const body = await readBody<any>(event).catch(() => ({}))
+
+  // ---- Demo Override: fetch by explicit IDs, skip scoring ----
+  const overrideIds: string[] = Array.isArray(body?.overrideIds)
+    ? body.overrideIds.filter((s: any) => typeof s === 'string')
+    : []
+  const overrideMatchCounts: number[] = Array.isArray(body?.overrideMatchCounts)
+    ? body.overrideMatchCounts.map(Number)
+    : []
+
+  if (overrideIds.length > 0) {
+    const sb = getSupabaseServiceClient()
+    const { data, error } = await sb
+      .from('user_templates')
+      .select('id, owner_id, name, category_slug, is_default_for_category, is_system, visibility, configuration, updated_at')
+      .in('id', overrideIds)
+    if (error) {
+      setResponseStatus(event, 500)
+      return { ok: false, error: error.message }
+    }
+    const byId = Object.fromEntries((data || []).map((r: any) => [r.id, r]))
+    const templates = overrideIds
+      .map((id, i) => {
+        const row = byId[id]
+        if (!row) return null
+        const matchCount = typeof overrideMatchCounts[i] === 'number' && !Number.isNaN(overrideMatchCounts[i])
+          ? overrideMatchCounts[i]
+          : Math.max(0, 3 - i)
+        return {
+          id: row.id,
+          name: row.name,
+          categorySlug: row.category_slug,
+          isDefaultForCategory: row.is_default_for_category,
+          isSystem: row.is_system === true,
+          isOwn: row.owner_id === user.id,
+          configuration: row.configuration,
+          updatedAt: row.updated_at,
+          matchScore: matchCount * 2,
+          matchedFields: Array.from({ length: matchCount }, () => 'demo')
+        }
+      })
+      .filter(Boolean)
+    return { ok: true, templates, defaultId: null, isOverride: true }
+  }
+
   const categorySlug: string = typeof body?.categorySlug === 'string' ? body.categorySlug.trim() : ''
   const params: Record<string, unknown> = (body?.params && typeof body.params === 'object') ? body.params : {}
   const limit: number = Math.max(1, Math.min(10, Number(body?.limit) || 3))

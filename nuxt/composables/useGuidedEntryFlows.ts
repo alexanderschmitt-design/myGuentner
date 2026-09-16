@@ -27,6 +27,9 @@ import {
   type EntryQuestion
 } from '~/data/homeEntryFlows'
 
+interface DemoOverrideItem { templateId: string; matchCount: number }
+interface DemoOverride { enabled: boolean; items: DemoOverrideItem[] }
+
 interface DbFlow {
   entry_id: string
   tab_id: 'application' | 'refrigerant'
@@ -37,9 +40,11 @@ interface DbFlow {
   target_cat_id: number | null
   target_slug: string | null
   enabled: boolean
+  demo_override?: DemoOverride | null
 }
 
 function dbRowToConfig(row: DbFlow): EntryFlowConfig | null {
+  const demoOverride = row.demo_override ?? null
   if (row.target_kind === 'static') {
     if (row.target_cat_id == null || !row.target_slug) return null
     return {
@@ -48,7 +53,8 @@ function dbRowToConfig(row: DbFlow): EntryFlowConfig | null {
       title: row.title,
       questions: row.questions,
       fixedParams: row.fixed_params,
-      target: { catId: row.target_cat_id, slug: row.target_slug }
+      target: { catId: row.target_cat_id, slug: row.target_slug },
+      demoOverride
     }
   }
   // refrigerant-map: Code-Resolver derselben entryId wiederverwenden.
@@ -60,7 +66,8 @@ function dbRowToConfig(row: DbFlow): EntryFlowConfig | null {
     title: row.title,
     questions: row.questions,
     fixedParams: row.fixed_params,
-    target: codeConfig.target
+    target: codeConfig.target,
+    demoOverride
   }
 }
 

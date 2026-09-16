@@ -676,6 +676,16 @@ All UI copy must be written for the target persona of the active perspective:
 
 5. **Perspective metadata on every parameter** — By embedding all three perspective labels/hints/priorities inside each parameter definition, the UI remains a thin rendering layer. Adding a new perspective in the future is a data change, not a structural refactor.
 
+---
+
+## Aktive Planung
+
+Der aktuell laufende Arbeitsstrang ist in `Planning-Phase5-Chatbot-Icons.md` beschrieben: grafisch gestützte Konfigurationsfragen für den Guided Assistant (Günther) — Icon-Registry, Pflege über `/admin/guided-flows`, Laufzeit-Rendering, plus Konzept für einen vorgelagerten Basis-Flow. Diese Datei vor Arbeiten am Guided-Q&A lesen. Die Vorgängerphasen liegen in `Planning-Phase3.md` und `Planning-Phase4-Redesign.md`.
+
+Alle HTML-Seiten, Grafiken und Frage-Sets zum Guided Assistant gehören ausschließlich nach `templates/mygpc-guided-assistant/`. Die dortige `README.md` hält Namenskonvention und Ablageregel fest. Dateien, die nur im Arbeitsverzeichnis einer Session existieren, gelten als nicht vorhanden.
+
+Der Plan in Phase 5 ist aus gelesenem Code entstanden, nicht aus einem laufenden Build. Er ist ausdrücklich kein gesetzter Rahmen: Vor der Umsetzung jedes Arbeitspakets die genannten Dateien, Routen und Constraints gegen den tatsächlichen Code prüfen, lokal bauen und dem Plan widersprechen, wo er nicht zur Realität passt. Verifikation läuft lokal über den Dev-Server auf localhost.
+
  ## Autonomy
   - Don't ask before reading, editing, or creating files in this repo.
   - Don't ask before running npm/npx/node, git read commands, or local dev

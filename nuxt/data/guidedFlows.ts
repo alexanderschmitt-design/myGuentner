@@ -53,6 +53,8 @@ export interface GuidedSuggestion {
   readonly detail?: string
   /** Mutate store / navigate. Return true to auto-advance to the next step */
   readonly apply: (ctx: GuidedContext) => boolean | void
+  /** Registry key from nuxt/data/choiceIcons.ts — resolved at render time in ChatDock */
+  readonly icon?: string
 }
 
 export interface GuidedStep {
@@ -91,6 +93,11 @@ export interface GuidedStep {
   readonly recommendationCtx?: {
     resolveTarget: (store: ConfigStore) => { catId: number; slug: string }
     finalize: (ctx: GuidedContext) => void
+    /** If set and enabled, overrides dynamic matching for this step. */
+    demoOverride?: {
+      enabled: boolean
+      items: ReadonlyArray<{ templateId: string; matchCount: number }>
+    } | null
   }
 }
 

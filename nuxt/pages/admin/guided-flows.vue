@@ -14,10 +14,13 @@ import GuidedFlowEditor from '~/components/admin/GuidedFlowEditor.vue'
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'myGPC — Guided Flows' })
 
+interface DemoOverrideItem { templateId: string; matchCount: number }
+interface DemoOverride { enabled: boolean; items: DemoOverrideItem[] }
+
 interface DbFlow {
   id: string
   entry_id: string
-  tab_id: 'application' | 'refrigerant'
+  tab_id: 'application' | 'refrigerant' | 'basic'
   title: string
   questions: any[]
   fixed_params: Record<string, unknown>
@@ -26,13 +29,14 @@ interface DbFlow {
   target_slug: string | null
   enabled: boolean
   updated_at: string
+  demo_override?: DemoOverride | null
 }
 
 const toast = useToast()
 const flows = ref<DbFlow[]>([])
 const loading = ref(true)
 
-const activeTab = ref<'application' | 'refrigerant'>('application')
+const activeTab = ref<'application' | 'refrigerant' | 'basic'>('application')
 
 const editorOpen = ref(false)
 const editorFlow = ref<DbFlow | null>(null)
@@ -45,9 +49,14 @@ const applicationFlows = computed(() =>
 const refrigerantFlows = computed(() =>
   flows.value.filter(f => f.tab_id === 'refrigerant')
 )
-const currentFlows = computed(() =>
-  activeTab.value === 'application' ? applicationFlows.value : refrigerantFlows.value
+const basicFlows = computed(() =>
+  flows.value.filter(f => f.tab_id === 'basic')
 )
+const currentFlows = computed(() => {
+  if (activeTab.value === 'application') return applicationFlows.value
+  if (activeTab.value === 'refrigerant') return refrigerantFlows.value
+  return basicFlows.value
+})
 
 async function load() {
   loading.value = true
@@ -135,6 +144,12 @@ onMounted(load)
         :class="{ active: activeTab === 'refrigerant' }"
         @click="activeTab = 'refrigerant'"
       >Refrigerant ({{ refrigerantFlows.length }})</button>
+      <button
+        v-if="basicFlows.length"
+        class="tab-btn"
+        :class="{ active: activeTab === 'basic' }"
+        @click="activeTab = 'basic'"
+      >Basic ({{ basicFlows.length }})</button>
     </div>
 
     <div v-if="loading" class="loading">Loading flows…</div>
@@ -162,6 +177,11 @@ onMounted(load)
             <template v-if="flow.target_kind === 'static'">→ {{ flow.target_slug }} (catId {{ flow.target_cat_id }})</template>
             <template v-else>→ refrigerant × purpose map</template>
           </span>
+          <span
+            v-if="flow.demo_override?.enabled"
+            class="meta-pill meta-pill-override"
+            title="Demo override active — shows pinned templates instead of dynamic matching"
+          >🎯 Demo Override</span>
         </div>
         <footer class="flow-card-foot">
           <button class="btn btn-primary btn-sm" @click="openEditor(flow)">Edit</button>
@@ -312,4 +332,10 @@ onMounted(load)
   border: 1px solid var(--c-error, #B33A3A);
 }
 .btn-danger-solid:hover { filter: brightness(1.08); }
+.meta-pill-override {
+  background: color-mix(in srgb, var(--c-warning, #F5B800) 18%, white);
+  color: color-mix(in srgb, var(--c-warning, #F5B800) 60%, #4a3800);
+  border: 1px solid color-mix(in srgb, var(--c-warning, #F5B800) 40%, transparent);
+  font-weight: 600;
+}
 </style>

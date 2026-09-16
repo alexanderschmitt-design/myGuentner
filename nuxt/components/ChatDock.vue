@@ -10,6 +10,9 @@ import { marked } from 'marked'
 import DOMPurify from 'dompurify'
 import ChatMessage from './ChatMessage.vue'
 import ModalDialog from './ModalDialog.vue'
+import ConfigQuestionCard from './ConfigQuestionCard.vue'
+import RecommendedProducts from './RecommendedProducts.vue'
+import type { CrossCategoryInfo } from './RecommendedProducts.vue'
 import type { RagSource, ToolCall, UserContext } from '~/composables/useChatStream'
 import type { GuidedStep } from '~/data/guidedFlows'
 import { LEARN_CATEGORIES, resolveElementMeta, type LearnCategory } from '~/composables/useLearnMode'
@@ -24,6 +27,7 @@ function renderStepMarkdown(content: string): string {
   if (typeof window === 'undefined') return raw
   return DOMPurify.sanitize(raw)
 }
+
 
 const isOpen = useChatDockState()
 const { layout: chatLayout, toggle: toggleChatLayout } = useChatDockLayout()
@@ -236,6 +240,11 @@ watch(
   { immediate: true }
 )
 
+function onSuggestionByIdx(step: GuidedStep, idx: number) {
+  const s = step.suggestions?.[idx]
+  if (s) onSuggestion(s, step)
+}
+
 function onSuggestion(sugg: import('~/data/guidedFlows').GuidedSuggestion, step: GuidedStep) {
   // Record what the user picked as a user turn so the transcript reads
   // as a real conversation
@@ -283,6 +292,15 @@ const recLoading = ref(false)
  *  anderen Kategorie gehört als die vom Guided-Entry-Flow resolvete
  *  Ziel-Kategorie. UI zeigt dann einen Confirm-Turn statt still zu redirekten. */
 const pendingCrossCategory = ref<{ template: RecommendationTemplate; step: GuidedStep; sourceSlug: string; targetSlug: string } | null>(null)
+const crossCategoryInfo = computed<CrossCategoryInfo | null>(() => {
+  if (!pendingCrossCategory.value) return null
+  const p = pendingCrossCategory.value
+  return {
+    templateName: p.template.name,
+    targetCategoryLabel: getCategoryBySlug(p.targetSlug)?.title || p.targetSlug,
+    sourceCategoryLabel: getCategoryBySlug(p.sourceSlug)?.title || p.sourceSlug,
+  }
+})
 const { trigger: triggerFlash } = useTemplateFlash()
 
 function countConfigParams(cfg: any): number {
@@ -320,11 +338,10 @@ async function loadRecommendationsForStep(step: GuidedStep) {
   recTemplates.value = []
   pendingCrossCategory.value = null
 
-  const target = step.recommendationCtx.resolveTarget(configStore)
+  const ctx = step.recommendationCtx
+  const target = ctx.resolveTarget(configStore)
   recTargetSlug.value = target.slug
   recTargetCatId.value = target.catId
-
-  const params = collectAnsweredParams()
 
   recLoading.value = true
   try {
@@ -341,6 +358,26 @@ async function loadRecommendationsForStep(step: GuidedStep) {
       matchScore: typeof t.matchScore === 'number' ? t.matchScore : undefined,
       matchedFields: Array.isArray(t.matchedFields) ? t.matchedFields : undefined
     })
+
+    // ---- Demo Override path: fetch pinned templates by ID, skip scoring ----
+    const override = ctx.demoOverride
+    if (override?.enabled && override.items.length > 0) {
+      const res = await $fetch<{ ok: boolean; templates: any[] }>('/api/recommendations', {
+        method: 'POST',
+        body: {
+          overrideIds: override.items.map(i => i.templateId),
+          overrideMatchCounts: override.items.map(i => i.matchCount),
+        }
+      })
+      if (res.ok && Array.isArray(res.templates)) {
+        recTemplates.value = res.templates.map(mapRow)
+      }
+      return
+    }
+
+    // ---- Regular scoring path ----
+    const params = collectAnsweredParams()
+
     // 1) Primär: /api/recommendations mit Category + Params-Matching.
     const res = await $fetch<{ ok: boolean; templates: any[]; totalCandidates?: number }>('/api/recommendations', {
       method: 'POST',
@@ -978,147 +1015,42 @@ function pickPreset(p: PresetIntent) {
                             && guidedEnabled
                             && guided.currentStep.value?.id === msg.guidedStep.id
                             && msg.guidedStep.kind === 'recommendations'">
-              <!-- Produkt-Empfehlungs-Karte: identisches Design wie
-                   Configuration Question / Guidance, nur mit anderem
-                   Header-Label. User erkennt: "das ist auch eine Frage,
-                   nur die Auswahl-Items sind konkrete Produkte." -->
-              <div class="config-question-card">
-                <div class="config-question-head">
-                  <svg class="config-question-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-                    <path d="M8 1l1.3 3.7L13 6l-3.7 1.3L8 11 6.7 7.3 3 6l3.7-1.3L8 1zM13 10l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7L13 10z"/>
-                  </svg>
-                  <span class="config-question-label">RECOMMENDED PRODUCTS</span>
-                </div>
-                <div class="config-question-body" v-html="renderStepMarkdown(msg.content)"></div>
-
-                <div v-if="recLoading" class="rec-loading">Identifying matching products…</div>
-
-                <!-- Cross-Category-Confirm: das gewählte Template gehört zu
-                     einer anderen Kategorie als der Q&A-Zielkategorie. User
-                     bestätigt oder korrigiert. -->
-                <div v-else-if="pendingCrossCategory" class="rec-cross-confirm">
-                  <p class="rec-cross-title">This template is for a different category</p>
-                  <p class="rec-cross-detail">
-                    <strong>{{ pendingCrossCategory.template.name }}</strong> is configured for
-                    <em>{{ getCategoryBySlug(pendingCrossCategory.targetSlug)?.title || pendingCrossCategory.targetSlug }}</em>,
-                    but your entry was
-                    <em>{{ getCategoryBySlug(pendingCrossCategory.sourceSlug)?.title || pendingCrossCategory.sourceSlug }}</em>.
-                    Load it and switch to that category?
-                  </p>
-                  <div class="rec-cross-actions">
-                    <button type="button" class="config-action-btn" @click="onCrossCategoryConfirm">
-                      Load &amp; switch category
-                    </button>
-                    <button type="button" class="config-action-btn config-action-btn-muted" @click="onCrossCategoryCancel">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-
-                <div v-else-if="recTemplates.length" class="config-choice-list">
-                  <button
-                    v-for="t in recTemplates"
-                    :key="t.id"
-                    type="button"
-                    class="config-choice"
-                    @click="onRecommendationPick(t, msg.guidedStep!)"
-                  >
-                    <span class="config-choice-icon" aria-hidden="true">
-                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M2.5 3.5h11v9h-11zM2.5 6h11M5 3.5v9"/>
-                      </svg>
-                    </span>
-                    <span class="config-choice-body">
-                      <span class="config-choice-label">
-                        {{ t.name }}
-                        <span v-if="t.isSystem" class="rec-badge rec-badge-system" title="Güntner-curated">★ SYSTEM</span>
-                        <span v-else-if="t.isDefaultForCategory" class="rec-star" title="Your default for this category">★</span>
-                        <span v-if="t.matchedFields && t.matchedFields.length" class="rec-badge rec-badge-match" :title="`Matches: ${t.matchedFields.join(', ')}`">
-                          {{ t.matchedFields.length }} match{{ t.matchedFields.length === 1 ? '' : 'es' }}
-                        </span>
-                      </span>
-                      <span class="config-choice-detail">
-                        {{ t.paramCount }} parameter{{ t.paramCount === 1 ? '' : 's' }} pre-filled
-                      </span>
-                    </span>
-                    <span class="config-choice-chevron" aria-hidden="true">
-                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 3l5 5-5 5"/>
-                      </svg>
-                    </span>
-                  </button>
-                </div>
-
-                <div v-else class="rec-empty">
-                  <p class="rec-empty-title">No matching templates for your answers.</p>
-                  <p class="rec-empty-detail">
-                    Continue to Thermodynamics and configure the unit from scratch — your Q&amp;A values stay filled in.
-                  </p>
-                </div>
-
-                <div v-if="!pendingCrossCategory" class="config-question-actions">
-                  <button
-                    type="button"
-                    class="config-action-btn config-action-btn-muted"
-                    @click="onRecommendationSkip(msg.guidedStep!)"
-                  >Continue without template →</button>
-                </div>
-              </div>
+              <RecommendedProducts
+                :templates="recTemplates"
+                :loading="recLoading"
+                :intro-html="renderStepMarkdown(msg.content)"
+                :cross-category="crossCategoryInfo"
+                @pick="t => onRecommendationPick(t, msg.guidedStep!)"
+                @skip="onRecommendationSkip(msg.guidedStep!)"
+                @cross-confirm="onCrossCategoryConfirm"
+                @cross-cancel="onCrossCategoryCancel"
+              />
             </template>
             <template v-else-if="msg.guidedStep
                             && guidedEnabled
                             && guided.currentStep.value?.id === msg.guidedStep.id">
               <!-- Guided-Pass Card — für ALLE Guided-Flows: Home-Entry-Q&A
                    ("CONFIGURATION QUESTION") und Wizard-Guidance
-                   ("CONFIGURATION GUIDANCE"). Nur das Header-Label
-                   unterscheidet die zwei Kontexte, die Card-Struktur ist
-                   identisch (Choices mit Icon+Label+Detail+Chevron). -->
-              <div class="config-question-card">
-                <div class="config-question-head">
-                  <svg class="config-question-icon" viewBox="0 0 16 16" width="14" height="14" fill="currentColor" aria-hidden="true">
-                    <path d="M8 1l1.3 3.7L13 6l-3.7 1.3L8 11 6.7 7.3 3 6l3.7-1.3L8 1zM13 10l.7 2 2 .7-2 .7-.7 2-.7-2-2-.7 2-.7L13 10z"/>
-                  </svg>
-                  <span class="config-question-label">{{ guidedCardLabel }}</span>
-                </div>
-                <div class="config-question-body" v-html="renderStepMarkdown(msg.content)"></div>
-                <div v-if="msg.guidedStep.suggestions && msg.guidedStep.suggestions.length" class="config-choice-list">
-                  <button
-                    v-for="s in msg.guidedStep.suggestions"
-                    :key="s.label"
-                    type="button"
-                    class="config-choice"
-                    @click="onSuggestion(s, msg.guidedStep!)"
-                  >
-                    <span class="config-choice-icon" aria-hidden="true">
-                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                        <rect x="2.5" y="3.5" width="11" height="9" rx="1.5"/>
-                        <path d="M2.5 6.5h11"/>
-                      </svg>
-                    </span>
-                    <span class="config-choice-body">
-                      <span class="config-choice-label">{{ s.label }}</span>
-                      <span v-if="s.detail" class="config-choice-detail">{{ s.detail }}</span>
-                    </span>
-                    <span class="config-choice-chevron" aria-hidden="true">
-                      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 3l5 5-5 5"/>
-                      </svg>
-                    </span>
-                  </button>
-                </div>
-                <div class="config-question-actions">
-                  <button
-                    v-if="msg.guidedStep.showAdvance !== false && !guided.isFinished.value"
-                    type="button"
-                    class="config-action-btn"
-                    @click="onAdvanceGuided"
-                  >Skip</button>
-                  <button
-                    type="button"
-                    class="config-action-btn config-action-btn-muted"
-                    @click="onDismissGuided"
-                  >Exit guided mode</button>
-                </div>
+                   ("CONFIGURATION GUIDANCE"). Wird via ConfigQuestionCard
+                   gerendert — dasselbe Markup wie die Admin-Live-Vorschau. -->
+              <ConfigQuestionCard
+                :message="msg.content"
+                :suggestions="msg.guidedStep.suggestions ?? []"
+                :card-label="guidedCardLabel"
+                @suggest="idx => onSuggestionByIdx(msg.guidedStep!, idx)"
+              />
+              <div class="config-question-actions">
+                <button
+                  v-if="msg.guidedStep.showAdvance !== false && !guided.isFinished.value"
+                  type="button"
+                  class="config-action-btn"
+                  @click="onAdvanceGuided"
+                >Skip</button>
+                <button
+                  type="button"
+                  class="config-action-btn config-action-btn-muted"
+                  @click="onDismissGuided"
+                >Exit guided mode</button>
               </div>
             </template>
             <ChatMessage

@@ -7,6 +7,7 @@
 
 import { getSupabaseServiceClient } from '../../../utils/supabase'
 import { requireAdmin } from '../../../utils/auth'
+import { VALID_CHOICE_ICON_KEYS } from '../../../utils/choiceIconKeys'
 
 // Camel-Case-Body-Keys → snake_case DB-Spalten
 const ALLOWED: Record<string, string> = {
@@ -16,7 +17,8 @@ const ALLOWED: Record<string, string> = {
   targetKind: 'target_kind',
   targetCatId: 'target_cat_id',
   targetSlug: 'target_slug',
-  enabled: 'enabled'
+  enabled: 'enabled',
+  demoOverride: 'demo_override'
 }
 
 const VALID_TARGET_KINDS = new Set(['static', 'refrigerant-map'])
@@ -49,6 +51,31 @@ export default defineEventHandler(async (event) => {
   if (Object.keys(patch).length === 1) {
     setResponseStatus(event, 400)
     return { ok: false, error: 'No allowed fields present in body' }
+  }
+
+  if (Array.isArray(patch.questions)) {
+    for (const q of patch.questions) {
+      for (const c of (q?.choices ?? [])) {
+        if (c?.icon != null && !VALID_CHOICE_ICON_KEYS.has(c.icon)) {
+          setResponseStatus(event, 422)
+          return { ok: false, error: `Unbekannter Icon-Schlüssel: "${c.icon}"` }
+        }
+      }
+    }
+  }
+
+  if (patch.demo_override != null) {
+    const o = patch.demo_override
+    if (typeof o.enabled !== 'boolean' || !Array.isArray(o.items) || o.items.length > 3) {
+      setResponseStatus(event, 400)
+      return { ok: false, error: 'demo_override must have {enabled: boolean, items: array(max 3)}' }
+    }
+    for (const item of o.items) {
+      if (typeof item.templateId !== 'string' || typeof item.matchCount !== 'number') {
+        setResponseStatus(event, 400)
+        return { ok: false, error: 'Each demo_override item must have {templateId: string, matchCount: number}' }
+      }
+    }
   }
 
   const sb = getSupabaseServiceClient()

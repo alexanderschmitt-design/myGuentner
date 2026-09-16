@@ -19,7 +19,7 @@ export default defineEventHandler(async (event) => {
 
   const { data, error } = await sb
     .from('guided_entry_flows')
-    .select('entry_id, tab_id, title, questions, fixed_params, target_kind, target_cat_id, target_slug, enabled, updated_at')
+    .select('entry_id, tab_id, title, questions, fixed_params, target_kind, target_cat_id, target_slug, enabled, updated_at, demo_override')
     .eq('enabled', true)
     .order('tab_id', { ascending: true })
     .order('entry_id', { ascending: true })

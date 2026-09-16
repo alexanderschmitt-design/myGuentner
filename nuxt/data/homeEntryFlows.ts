@@ -37,6 +37,8 @@ export interface EntryChoice {
   /** Params die in den Store gemergt werden wenn diese Auswahl geklickt wird.
    *  Alle Felder aus `ConfigurationParameters` sind erlaubt (siehe stores/configuration.ts). */
   readonly params: Record<string, unknown>
+  /** Schlüssel aus nuxt/data/choiceIcons.ts — optional, Fallback-Icon wenn leer */
+  readonly icon?: string
 }
 
 export interface EntryQuestion {
@@ -71,6 +73,12 @@ export interface EntryFlowConfig {
   /** Optional: Zusätzliche fixe Params die am Terminal-Schritt gesetzt werden
    *  (z.B. `productSection: 1` oder ein constant `coolingPurpose`) */
   readonly fixedParams?: Record<string, unknown>
+  /** Demo-Override: when enabled, the recommendation step shows these templates
+   *  instead of running dynamic matching. Persisted in DB, admin-configurable. */
+  readonly demoOverride?: {
+    enabled: boolean
+    items: ReadonlyArray<{ templateId: string; matchCount: number }>
+  } | null
 }
 
 // ============================================================================
@@ -94,6 +102,7 @@ export function buildEntryFlow(config: EntryFlowConfig): GuidedFlow {
     suggestions: q.choices.map(c => ({
       label: c.label,
       detail: c.detail,
+      icon: c.icon,
       apply: (ctx: GuidedContext) => {
         ctx.store.updateParameters(c.params as any)
         ctx.store.markAnswered(Object.keys(c.params))
@@ -121,7 +130,8 @@ export function buildEntryFlow(config: EntryFlowConfig): GuidedFlow {
     kind: 'recommendations',
     recommendationCtx: {
       resolveTarget,
-      finalize: (ctx) => { finalize(ctx, config) }
+      finalize: (ctx) => { finalize(ctx, config) },
+      demoOverride: config.demoOverride ?? null
     },
     showAdvance: false
   }
