@@ -100,16 +100,33 @@ function svgIconHtml(key?: string): string {
         </span>
       </button>
     </div>
+
+    <p v-if="!preview" class="cq-disclaimer">
+      <svg viewBox="0 0 16 16" width="11" height="11" fill="currentColor" aria-hidden="true" style="flex-shrink:0;margin-top:1px"><circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" stroke-width="1.5"/><rect x="7.25" y="6.5" width="1.5" height="5" rx=".75"/><circle cx="8" cy="4.75" r=".85"/></svg>
+      Günther is an AI assistant. Suggestions may contain errors — please verify results before use. A Güntner specialist is happy to support you personally.
+    </p>
   </div>
 </template>
 
 <style scoped>
 .config-question-card {
   padding: 14px 14px 12px;
-  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 7%, white);
-  border: 1px solid color-mix(in srgb, var(--c-brand-blue, #0078BE) 20%, transparent);
+  background: white;
+  border: 1px solid var(--c-border, #cfcdd6);
   border-left: 4px solid var(--c-brand-blue, #0078BE);
   border-radius: 8px;
+}
+.cq-disclaimer {
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  margin: 10px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid var(--c-border-card, #e8e6ed);
+  font-family: var(--font-ui, sans-serif);
+  font-size: 11px;
+  color: var(--c-text-medium, #676377);
+  line-height: 1.45;
 }
 .config-question-head {
   display: flex;

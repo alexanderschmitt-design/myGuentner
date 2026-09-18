@@ -164,7 +164,8 @@ const canFeedback = computed(() => props.role === 'assistant' && !!props.message
   border-bottom-right-radius: 4px;
 }
 .chat-msg-assistant .chat-msg-bubble {
-  background: var(--c-surface-alt);
+  background: white;
+  border: 1px solid var(--c-border-card);
   border-bottom-left-radius: 4px;
 }
 

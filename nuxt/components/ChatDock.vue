@@ -489,6 +489,14 @@ function onCrossCategoryCancel() {
   pendingCrossCategory.value = null
 }
 
+async function onContactSales(data: { name: string; email: string; message: string; templateNames: string[] }) {
+  try {
+    await $fetch('/api/contact-sales', { method: 'POST', body: { ...data, context: buildUserContext() } })
+  } catch (err: any) {
+    console.error('[contact-sales]', err?.message)
+  }
+}
+
 function onRecommendationSkip(step: GuidedStep) {
   pendingCrossCategory.value = null
   history.value = [
@@ -1024,6 +1032,7 @@ function pickPreset(p: PresetIntent) {
                 @skip="onRecommendationSkip(msg.guidedStep!)"
                 @cross-confirm="onCrossCategoryConfirm"
                 @cross-cancel="onCrossCategoryCancel"
+                @contact-sales="onContactSales"
               />
             </template>
             <template v-else-if="msg.guidedStep
@@ -1385,6 +1394,7 @@ function pickPreset(p: PresetIntent) {
   flex: 1;
   overflow-y: auto;
   padding: 14px 14px 6px;
+  background: #F4F4F6;
 }
 .chat-drawer-empty {
   color: var(--c-text-medium);

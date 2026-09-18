@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { ref } from 'vue'
+
 export interface RecommendationTemplate {
   id: string
   name: string
@@ -31,6 +33,7 @@ const emit = defineEmits<{
   (e: 'skip'): void
   (e: 'crossConfirm'): void
   (e: 'crossCancel'): void
+  (e: 'contactSales', data: { name: string; email: string; message: string; templateNames: string[] }): void
 }>()
 
 function matchCount(t: RecommendationTemplate): number {
@@ -42,6 +45,30 @@ function matchBadgeClass(t: RecommendationTemplate): string {
   if (n >= 3) return 'rec-badge-green'
   if (n === 2) return 'rec-badge-amber'
   return 'rec-badge-muted'
+}
+
+// Sales contact form
+const showContact = ref(false)
+const contactName = ref('')
+const contactEmail = ref('')
+const contactMsg = ref('')
+const contactSending = ref(false)
+const contactDone = ref(false)
+
+async function submitContact() {
+  if (!contactEmail.value.trim()) return
+  contactSending.value = true
+  emit('contactSales', {
+    name: contactName.value.trim(),
+    email: contactEmail.value.trim(),
+    message: contactMsg.value.trim(),
+    templateNames: props.templates.map(t => t.name)
+  })
+  // Optimistic — parent will handle the API call
+  setTimeout(() => {
+    contactSending.value = false
+    contactDone.value = true
+  }, 400)
 }
 </script>
 
@@ -122,14 +149,70 @@ function matchBadgeClass(t: RecommendationTemplate): string {
         Skip to configure from scratch →
       </button>
     </div>
+
+    <!-- Sales contact section -->
+    <div class="rec-sales">
+      <div class="rec-sales-head">
+        <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M14 10.5c0 .3-.1.6-.2.9-.1.3-.3.5-.5.7-.4.4-.8.5-1.3.5-.3 0-.7-.1-1-.2L8 10.5l-2.5 1.4c-.5.3-1 .4-1.5.3-.5-.1-.9-.4-1.2-.8-.3-.4-.4-.9-.3-1.4L3 7 1.5 5.1C1.2 4.7 1 4.2 1.1 3.7c.1-.5.3-.9.7-1.2.4-.3.9-.4 1.4-.3L5 2.8 6.5 1.2c.4-.4.8-.5 1.3-.5.5 0 1 .2 1.3.5L10.5 2.8l1.8-.6c.5-.1 1 0 1.4.3.4.3.6.7.7 1.2.1.5-.1 1-.4 1.4L12.5 7l.5 2.5c.1.3 0 .7-.1 1z"/>
+        </svg>
+        <span>Güntner Sales kontaktieren</span>
+      </div>
+      <p class="rec-sales-desc">Unsere Fachberater helfen Ihnen gerne persönlich bei der Produktauswahl und Projektplanung.</p>
+
+      <div v-if="contactDone" class="rec-sales-done">
+        <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8l4 4 8-8"/></svg>
+        Ihre Anfrage wurde gesendet — wir melden uns in Kürze!
+      </div>
+
+      <template v-else>
+        <button v-if="!showContact" type="button" class="rec-sales-btn" @click="showContact = true">
+          Beratungsgespräch anfragen
+        </button>
+
+        <div v-else class="rec-sales-form">
+          <div class="rec-sales-fields">
+            <input
+              v-model="contactName"
+              type="text"
+              class="rec-sales-input"
+              placeholder="Ihr Name (optional)"
+              autocomplete="name"
+            />
+            <input
+              v-model="contactEmail"
+              type="email"
+              class="rec-sales-input"
+              placeholder="Ihre E-Mail-Adresse *"
+              autocomplete="email"
+            />
+            <textarea
+              v-model="contactMsg"
+              class="rec-sales-input rec-sales-textarea"
+              rows="3"
+              placeholder="Persönliche Nachricht (optional) — z. B. Projektdetails, Anwendungsfall …"
+            />
+          </div>
+          <div class="rec-sales-form-actions">
+            <button type="button" class="rec-sales-cancel" @click="showContact = false">Abbrechen</button>
+            <button
+              type="button"
+              class="rec-sales-submit"
+              :disabled="!contactEmail.trim() || contactSending"
+              @click="submitContact"
+            >{{ contactSending ? 'Wird gesendet …' : 'Anfrage senden' }}</button>
+          </div>
+        </div>
+      </template>
+    </div>
   </div>
 </template>
 
 <style scoped>
 .rec-card {
   padding: 14px 14px 12px;
-  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 7%, white);
-  border: 1px solid color-mix(in srgb, var(--c-brand-blue, #0078BE) 20%, transparent);
+  background: white;
+  border: 1px solid var(--c-border, #cfcdd6);
   border-left: 4px solid var(--c-brand-blue, #0078BE);
   border-radius: 8px;
   display: flex;
@@ -335,5 +418,108 @@ function matchBadgeClass(t: RecommendationTemplate): string {
 .rec-skip-btn:hover {
   color: var(--c-brand-blue, #0078BE);
   text-decoration-color: currentColor;
+}
+
+/* Sales contact section */
+.rec-sales {
+  padding-top: 12px;
+  border-top: 1px solid var(--c-border-card, #e8e6ed);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.rec-sales-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  font-weight: 600;
+  color: var(--c-text-value, #262326);
+}
+.rec-sales-desc {
+  margin: 0;
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-medium, #676377);
+  line-height: 1.45;
+}
+.rec-sales-btn {
+  align-self: flex-start;
+  padding: 8px 14px;
+  background: var(--c-brand-blue, #0078BE);
+  color: white;
+  border: none;
+  border-radius: var(--radius-xs, 4px);
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s, transform 0.06s;
+}
+.rec-sales-btn:hover { background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 85%, black); }
+.rec-sales-btn:active { transform: translateY(1px); }
+
+.rec-sales-form { display: flex; flex-direction: column; gap: 8px; }
+.rec-sales-fields { display: flex; flex-direction: column; gap: 6px; }
+.rec-sales-input {
+  width: 100%;
+  padding: 7px 10px;
+  border: 1px solid var(--c-border-input, #b8b5c0);
+  border-radius: var(--radius-xs, 4px);
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-value, #262326);
+  background: white;
+  outline: none;
+  transition: border-color 0.12s, box-shadow 0.12s;
+  box-sizing: border-box;
+}
+.rec-sales-input:focus {
+  border-color: var(--c-brand-blue, #0078BE);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--c-brand-blue, #0078BE) 18%, transparent);
+}
+.rec-sales-input::placeholder { color: var(--c-text-light, #9896a0); }
+.rec-sales-textarea { resize: vertical; min-height: 64px; }
+.rec-sales-form-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.rec-sales-cancel {
+  background: none;
+  border: 1px solid var(--c-border, #cfcdd6);
+  border-radius: var(--radius-xs, 4px);
+  padding: 6px 12px;
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  color: var(--c-text-medium, #676377);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.rec-sales-cancel:hover { background: var(--c-bg, #f5f4f0); }
+.rec-sales-submit {
+  padding: 6px 14px;
+  background: var(--c-brand-blue, #0078BE);
+  color: white;
+  border: none;
+  border-radius: var(--radius-xs, 4px);
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.rec-sales-submit:hover:not(:disabled) { background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 85%, black); }
+.rec-sales-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rec-sales-done {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--c-success, #2E7D4F) 8%, white);
+  border: 1px solid color-mix(in srgb, var(--c-success, #2E7D4F) 30%, transparent);
+  border-radius: var(--radius-xs, 4px);
+  font-family: var(--font-ui, sans-serif);
+  font-size: var(--font-3xs, 12.81px);
+  font-weight: 600;
+  color: var(--c-success, #2E7D4F);
 }
 </style>
