@@ -1804,7 +1804,7 @@ function pickPreset(p: PresetIntent) {
   display: flex;
   align-items: center;
   gap: 6px;
-  color: var(--c-success, #2E7D4F);
+  color: var(--c-brand-blue, #0078BE);
   margin-bottom: 8px;
 }
 .rec-card-icon { flex-shrink: 0; }
@@ -1902,8 +1902,8 @@ function pickPreset(p: PresetIntent) {
   transition: border-color 0.12s, box-shadow 0.12s, transform 0.06s;
 }
 .rec-choice:hover {
-  border-color: var(--c-success, #2E7D4F);
-  box-shadow: 0 2px 8px color-mix(in srgb, var(--c-success, #2E7D4F) 15%, transparent);
+  border-color: var(--c-brand-blue, #0078BE);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--c-brand-blue, #0078BE) 12%, transparent);
 }
 .rec-choice:active { transform: translateY(1px); }
 .rec-choice-icon {
@@ -1911,8 +1911,8 @@ function pickPreset(p: PresetIntent) {
   width: 28px;
   height: 28px;
   border-radius: var(--radius-xs, 4px);
-  background: color-mix(in srgb, var(--c-success, #2E7D4F) 12%, white);
-  color: var(--c-success, #2E7D4F);
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 10%, white);
+  color: var(--c-brand-blue, #0078BE);
   display: inline-flex;
   align-items: center;
   justify-content: center;
