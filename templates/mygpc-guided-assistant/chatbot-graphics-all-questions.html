@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>myGPC Guided Assistant — All Questions</title>
+<style>
+  :root{
+    --cobalt:#0b4ea2;
+    --cobalt-soft:#eef3fb;
+    --cobalt-line:#c7d8ef;
+    --anthracite:#23282d;
+    --anthracite-mid:#4a5258;
+    --anthracite-soft:#7b848b;
+    --rule:#dfe3e7;
+  }
+  @page{ size:A4 portrait; margin:8mm; }
+  *{ box-sizing:border-box; }
+  html,body{ background:#fff; }
+  body{
+    margin:0; padding:8mm;
+    font-family:"Inter","Segoe UI",system-ui,-apple-system,sans-serif;
+    font-size:9.2pt; line-height:1.4; color:var(--anthracite);
+    -webkit-print-color-adjust:exact; print-color-adjust:exact;
+  }
+  header.sheet{ border-bottom:2.5pt solid var(--cobalt); padding-bottom:5pt; margin-bottom:9pt; }
+  header.sheet h1{ margin:0; font-size:16pt; font-weight:700; letter-spacing:-.2pt; }
+  header.sheet .sub{ margin-top:2pt; font-size:8.4pt; color:var(--anthracite-mid); }
+  header.sheet .meta{ margin-top:4pt; font-size:7.4pt; color:var(--anthracite-soft); }
+
+  h2.tab{
+    margin:11pt 0 6pt; font-size:8pt; font-weight:700; letter-spacing:1.1pt;
+    text-transform:uppercase; color:var(--cobalt);
+    border-bottom:.75pt solid var(--cobalt-line); padding-bottom:2.5pt;
+  }
+  h2.tab:first-of-type{ margin-top:4pt; }
+
+  .flow{ break-inside:avoid; page-break-inside:avoid; margin-bottom:8pt; border:.75pt solid var(--rule); border-left:2.5pt solid var(--cobalt); padding:6pt 7pt 5pt; }
+  .flow-head{ display:flex; align-items:baseline; gap:6pt; flex-wrap:wrap; margin-bottom:1pt; }
+  .flow-head h3{ margin:0; font-size:11pt; font-weight:700; }
+  .flow-head .eid{ font-family:"SFMono-Regular",Consolas,monospace; font-size:7.4pt; color:var(--cobalt); background:var(--cobalt-soft); padding:1pt 4pt; border-radius:2pt; }
+  .flow-sub{ font-size:7.4pt; color:var(--anthracite-soft); margin-bottom:5pt; }
+  .flow-sub code{ font-family:"SFMono-Regular",Consolas,monospace; color:var(--anthracite-mid); }
+
+  .q{ margin-top:5pt; padding-top:4pt; border-top:.5pt dotted var(--rule); }
+  .q:first-of-type{ border-top:none; padding-top:0; }
+  .q-head{ display:flex; gap:5pt; align-items:baseline; }
+  .q-num{ flex:0 0 auto; width:13pt; height:13pt; border-radius:50%; background:var(--cobalt); color:#fff;
+          font-size:7.2pt; font-weight:700; display:flex; align-items:center; justify-content:center; }
+  .q-body{ flex:1 1 auto; }
+  .q-id{ font-family:"SFMono-Regular",Consolas,monospace; font-size:6.8pt; color:var(--anthracite-soft); text-transform:uppercase; letter-spacing:.4pt; }
+  .q-msg{ font-size:9pt; margin-top:.5pt; }
+  .q-msg strong{ color:var(--cobalt); font-weight:700; }
+
+  .choices{ display:grid; grid-template-columns:repeat(4,1fr); gap:3.5pt; margin:4pt 0 0 18pt; }
+  .choices.c3{ grid-template-columns:repeat(3,1fr); }
+  .choice{ border:.6pt solid var(--cobalt-line); border-radius:2.5pt; padding:3.5pt 4pt; background:#fff; }
+  .choice .lbl{ font-size:8.2pt; font-weight:650; line-height:1.25; }
+  .choice .det{ font-size:7pt; color:var(--anthracite-mid); margin-top:1pt; line-height:1.3; }
+  .choice .par{ font-family:"SFMono-Regular",Consolas,monospace; font-size:6.4pt; color:var(--cobalt); margin-top:2pt; word-break:break-word; }
+  .choice .par.empty{ color:var(--anthracite-soft); }
+
+  footer.sheet{ margin-top:10pt; padding-top:4pt; border-top:.75pt solid var(--rule);
+                font-size:7pt; color:var(--anthracite-soft); }
+</style>
+</head>
+<body>
+
+<header class="sheet">
+  <h1>myGPC Guided Assistant — All Questions</h1>
+  <div class="sub">Kumulierte Übersicht aller Einstiegs-Flows und ihrer Fragen, Antwortoptionen und gesetzten Parameter.</div>
+  <div class="meta">Quelle: <code>scripts/seed-guided-flows.mjs</code> (1:1 aus <code>nuxt/data/homeEntryFlows.ts</code>) · 7 Flows · 22 Fragen · 78 Antwortoptionen · Stand 15.09.2026</div>
+</header>
+
+<h2 class="tab">Tab „Application" — 4 Flows, 13 Fragen</h2>
+
+<section class="flow">
+  <div class="flow-head"><h3>Application: Commercial HVAC</h3><span class="eid">commercial-hvac</span></div>
+  <div class="flow-sub">Ziel: <code>static → cat 2 / air-cooler</code> · Fixe Parameter: <code>coolingPurpose=air-conditioning, glycolType=ethylene, concentrationVolPct=34</code></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">building-type</div>
+    <div class="q-msg">Commercial HVAC — got it. <strong>What kind of building</strong> are you cooling? Helps me pick sensible defaults for occupancy and cooling loads.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">Office building</div><div class="det">9-to-5 occupancy, moderate load</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Hotel</div><div class="det">Continuous, varying occupancy</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Hospital / lab</div><div class="det">24/7, tight tolerance</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Retail / mall</div><div class="det">Long hours, high solar gain</div><div class="par empty">keine Parameter</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">capacity</div>
+    <div class="q-msg">How much <strong>cooling capacity</strong> do you need? Commercial HVAC typically sits between 20 kW (single-tenant office) and several hundred kW (full building).</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">20 kW</div><div class="det">Small tenant / single floor</div><div class="par">coolingCapacityKw: 20</div></div>
+    <div class="choice"><div class="lbl">50 kW</div><div class="det">Mid-size office</div><div class="par">coolingCapacityKw: 50</div></div>
+    <div class="choice"><div class="lbl">150 kW</div><div class="det">Large office / hotel</div><div class="par">coolingCapacityKw: 150</div></div>
+    <div class="choice"><div class="lbl">300 kW</div><div class="det">Multi-story / hospital</div><div class="par">coolingCapacityKw: 300</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">water-regime</div>
+    <div class="q-msg">Which <strong>chilled-water regime</strong> does your system use? Standard 6/12 °C fits most fan-coil setups; higher regimes save energy but need bigger coils.</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">6 / 12 °C</div><div class="det">Standard chilled water</div><div class="par">inletTempC: 12, outletTempC: 6</div></div>
+    <div class="choice"><div class="lbl">7 / 12 °C</div><div class="det">Heat-pump compatible</div><div class="par">inletTempC: 12, outletTempC: 7</div></div>
+    <div class="choice"><div class="lbl">10 / 15 °C</div><div class="det">High-temp chilled water (efficient)</div><div class="par">inletTempC: 15, outletTempC: 10</div></div>
+  </div></div>
+</section>
+
+<section class="flow">
+  <div class="flow-head"><h3>Application: Industrial Refrigeration</h3><span class="eid">industrial-refrigeration</span></div>
+  <div class="flow-sub">Ziel: <code>static → cat 1 / evaporator-pump</code> · Fixe Parameter: <code>coolingPurpose=industrial</code></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">process-type</div>
+    <div class="q-msg">Industrial refrigeration — solid choice. <strong>What are you cooling?</strong> This helps me set the right temperature levels.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">Meat / fish</div><div class="det">-2 °C storage, hygiene-critical</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Fruit / vegetable</div><div class="det">0-4 °C, high humidity</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Dairy / beverages</div><div class="det">+2 °C, moderate temperature</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Frozen goods</div><div class="det">-18 to -25 °C long-term storage</div><div class="par empty">keine Parameter</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">capacity</div>
+    <div class="q-msg"><strong>How much cooling capacity</strong> do you need? Industrial systems land between 25 kW (single cold room) and 500+ kW (full facility).</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">25 kW</div><div class="det">Small industrial cold room</div><div class="par">coolingCapacityKw: 25</div></div>
+    <div class="choice"><div class="lbl">50 kW</div><div class="det">Mid-size cold storage</div><div class="par">coolingCapacityKw: 50</div></div>
+    <div class="choice"><div class="lbl">100 kW</div><div class="det">Large freezer / process</div><div class="par">coolingCapacityKw: 100</div></div>
+    <div class="choice"><div class="lbl">250 kW</div><div class="det">Full industrial facility</div><div class="par">coolingCapacityKw: 250</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">refrigerant</div>
+    <div class="q-msg"><strong>Which refrigerant?</strong> NH₃ (R717) is the industrial standard for large systems. CO₂ (R744) works well for cascade / transcritical setups. R448A/R452A are HFO blends for HFC retrofits.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">R717 (NH₃)</div><div class="det">Industrial standard</div><div class="par">refrigerant: R717</div></div>
+    <div class="choice"><div class="lbl">R744 (CO₂)</div><div class="det">Cascade / transcritical</div><div class="par">refrigerant: R744</div></div>
+    <div class="choice"><div class="lbl">R448A</div><div class="det">HFO blend, retrofit</div><div class="par">refrigerant: R448A</div></div>
+    <div class="choice"><div class="lbl">R452A</div><div class="det">HFO blend, low-temp</div><div class="par">refrigerant: R452A</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">4</div><div class="q-body">
+    <div class="q-id">temperature-regime</div>
+    <div class="q-msg">Last one: <strong>which temperature regime?</strong> Sets the evaporating temperature (t₀) and the target room temperature.</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">Cold storage (+2 °C)</div><div class="det">t₀ = -8 °C, room +2 °C</div><div class="par">evaporatingTempC: -8, airInletTempC: 2</div></div>
+    <div class="choice"><div class="lbl">Deep freeze (-18 °C)</div><div class="det">t₀ = -25 °C, room -18 °C</div><div class="par">evaporatingTempC: -25, airInletTempC: -18</div></div>
+    <div class="choice"><div class="lbl">Blast freezer (-35 °C)</div><div class="det">t₀ = -40 °C, room -35 °C</div><div class="par">evaporatingTempC: -40, airInletTempC: -35</div></div>
+  </div></div>
+</section>
+
+<section class="flow">
+  <div class="flow-head"><h3>Application: Energy &amp; Process Cooling</h3><span class="eid">energy-process-cooling</span></div>
+  <div class="flow-sub">Ziel: <code>static → cat 4 / dry-cooler</code> · Fixe Parameter: <code>coolingPurpose=industrial, glycolType=ethylene, concentrationVolPct=34</code></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">process-purpose</div>
+    <div class="q-msg">Process cooling — what's the <strong>primary purpose</strong> of the loop?</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">Free cooling</div><div class="det">Ambient dry-cooler pre-cooling</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Heat rejection</div><div class="det">Chiller condenser water loop</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Machine tool cooling</div><div class="det">Molds, hydraulics, spindles</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">Renewable energy</div><div class="det">Battery / power electronics</div><div class="par empty">keine Parameter</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">capacity</div>
+    <div class="q-msg">How much <strong>cooling capacity</strong> do you need?</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">50 kW</div><div class="det">Small process</div><div class="par">coolingCapacityKw: 50</div></div>
+    <div class="choice"><div class="lbl">150 kW</div><div class="det">Mid-size industrial</div><div class="par">coolingCapacityKw: 150</div></div>
+    <div class="choice"><div class="lbl">300 kW</div><div class="det">Large process / chiller</div><div class="par">coolingCapacityKw: 300</div></div>
+    <div class="choice"><div class="lbl">500 kW</div><div class="det">Plant-scale</div><div class="par">coolingCapacityKw: 500</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">water-regime</div>
+    <div class="q-msg">Which <strong>fluid inlet/outlet temperature regime</strong>? Dry coolers work best when the fluid is well above ambient (bigger ΔT = smaller unit).</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">35 / 30 °C</div><div class="det">Free cooling, low ΔT</div><div class="par">inletTempC: 35, outletTempC: 30</div></div>
+    <div class="choice"><div class="lbl">45 / 40 °C</div><div class="det">Dry cooler standard</div><div class="par">inletTempC: 45, outletTempC: 40</div></div>
+    <div class="choice"><div class="lbl">55 / 45 °C</div><div class="det">High-temp process</div><div class="par">inletTempC: 55, outletTempC: 45</div></div>
+  </div></div>
+</section>
+
+<section class="flow">
+  <div class="flow-head"><h3>Application: Data Center</h3><span class="eid">data-center</span></div>
+  <div class="flow-sub">Ziel: <code>static → cat 4 / dry-cooler</code> · Fixe Parameter: <code>coolingPurpose=data-center, glycolType=ethylene, concentrationVolPct=34</code></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">redundancy</div>
+    <div class="q-msg">Data center cooling — critical stuff. <strong>What redundancy level</strong> does your design require? Drives quantity and sizing safety.</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">N</div><div class="det">No redundancy — non-critical / test</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">N+1</div><div class="det">Single-point fault tolerance (standard)</div><div class="par empty">keine Parameter</div></div>
+    <div class="choice"><div class="lbl">2N</div><div class="det">Full duplication (tier-3+)</div><div class="par empty">keine Parameter</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">capacity</div>
+    <div class="q-msg"><strong>IT load</strong> you need to reject? Rule of thumb: 1 kW IT ≈ 1 kW cooling load. Cooling systems are usually sized 10-20 % above IT load.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">100 kW</div><div class="det">Small colo / edge site</div><div class="par">coolingCapacityKw: 100</div></div>
+    <div class="choice"><div class="lbl">300 kW</div><div class="det">Mid-size data center</div><div class="par">coolingCapacityKw: 300</div></div>
+    <div class="choice"><div class="lbl">500 kW</div><div class="det">Large data hall</div><div class="par">coolingCapacityKw: 500</div></div>
+    <div class="choice"><div class="lbl">1000 kW</div><div class="det">Hyperscale zone</div><div class="par">coolingCapacityKw: 1000</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">cooling-strategy</div>
+    <div class="q-msg">Which <strong>cooling strategy</strong> does your design use? Free-cooling saves energy but needs high-temp chilled water.</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">Chilled water 12/6</div><div class="det">Traditional DX-fed cooling</div><div class="par">inletTempC: 12, outletTempC: 6</div></div>
+    <div class="choice"><div class="lbl">Free cooling 32/22</div><div class="det">Warm water, high efficiency</div><div class="par">inletTempC: 32, outletTempC: 22</div></div>
+    <div class="choice"><div class="lbl">Free cooling 45/40</div><div class="det">Full free-cooling dry cooler loop</div><div class="par">inletTempC: 45, outletTempC: 40</div></div>
+  </div></div>
+</section>
+
+<h2 class="tab">Tab „Refrigerant" — 3 Flows, 9 Fragen</h2>
+
+<section class="flow">
+  <div class="flow-head"><h3>Refrigerant: Natural</h3><span class="eid">natural-refrigerants</span></div>
+  <div class="flow-sub">Ziel: <code>refrigerant-map</code> (keine feste Kategorie) · Keine fixen Parameter</div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">family</div>
+    <div class="q-msg">Natural refrigerants — great choice, F-gas-independent and future-proof. <strong>Which one</strong> fits your case?</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">R744 (CO₂)</div><div class="det">GWP 1, A1, transcritical option</div><div class="par">refrigerant: R744</div></div>
+    <div class="choice"><div class="lbl">R717 (NH₃)</div><div class="det">GWP 0, B2L, industrial powerhouse</div><div class="par">refrigerant: R717</div></div>
+    <div class="choice"><div class="lbl">R290 (Propane)</div><div class="det">GWP 3, A3, small-charge systems</div><div class="par">refrigerant: R290</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">use-case</div>
+    <div class="q-msg">What's your <strong>primary use case</strong>? This determines whether we're heading into an evaporator, condenser, or gas cooler.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">Cold storage</div><div class="det">0…+5 °C, food &amp; retail</div><div class="par">coolingPurpose: cold-storage</div></div>
+    <div class="choice"><div class="lbl">Deep freeze</div><div class="det">-18…-35 °C, long-term</div><div class="par">coolingPurpose: deep-freeze</div></div>
+    <div class="choice"><div class="lbl">Industrial process</div><div class="det">Process cooling, plants</div><div class="par">coolingPurpose: industrial</div></div>
+    <div class="choice"><div class="lbl">Heat rejection</div><div class="det">Condenser / gas cooler</div><div class="par">coolingPurpose: condensing</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">capacity</div>
+    <div class="q-msg">Finally: <strong>how much capacity</strong>? Pick the closest starting point — you can fine-tune the value in the next step.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">10 kW</div><div class="det">Small system</div><div class="par">coolingCapacityKw: 10</div></div>
+    <div class="choice"><div class="lbl">25 kW</div><div class="det">Mid-size</div><div class="par">coolingCapacityKw: 25</div></div>
+    <div class="choice"><div class="lbl">100 kW</div><div class="det">Large system</div><div class="par">coolingCapacityKw: 100</div></div>
+    <div class="choice"><div class="lbl">250 kW</div><div class="det">Industrial scale</div><div class="par">coolingCapacityKw: 250</div></div>
+  </div></div>
+</section>
+
+<section class="flow">
+  <div class="flow-head"><h3>Refrigerant: Brine (Secondary Loop)</h3><span class="eid">brine</span></div>
+  <div class="flow-sub">Ziel: <code>static → cat 2 / air-cooler</code> · Keine fixen Parameter</div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">application</div>
+    <div class="q-msg">Brine loops decouple the primary refrigerant from the cooling point. <strong>What's the target application</strong> of the brine loop?</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">Cold storage</div><div class="det">+2 to -5 °C rooms</div><div class="par">coolingPurpose: cold-storage</div></div>
+    <div class="choice"><div class="lbl">Deep freeze</div><div class="det">-25 to -40 °C</div><div class="par">coolingPurpose: deep-freeze</div></div>
+    <div class="choice"><div class="lbl">Chiller / AC</div><div class="det">+6 to +12 °C</div><div class="par">coolingPurpose: air-conditioning</div></div>
+    <div class="choice"><div class="lbl">Industrial process</div><div class="det">Custom temperature</div><div class="par">coolingPurpose: industrial</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">medium</div>
+    <div class="q-msg">Which <strong>brine medium</strong> does your system use? Glycol is standard; salt brines are used at very low temperatures.</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">Ethylene glycol</div><div class="det">Standard industrial</div><div class="par">glycolType: ethylene, concentrationVolPct: 34</div></div>
+    <div class="choice"><div class="lbl">Propylene glycol</div><div class="det">Food-safe, higher viscosity</div><div class="par">glycolType: propylene, concentrationVolPct: 34</div></div>
+    <div class="choice"><div class="lbl">Water (pure)</div><div class="det">No frost protection</div><div class="par">glycolType: water, concentrationVolPct: 0</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">temperature-regime</div>
+    <div class="q-msg">Which <strong>inlet / outlet temperature regime</strong>?</div>
+  </div></div>
+  <div class="choices c3">
+    <div class="choice"><div class="lbl">+12 / +6 °C</div><div class="det">Chiller / AC</div><div class="par">inletTempC: 12, outletTempC: 6</div></div>
+    <div class="choice"><div class="lbl">-5 / -10 °C</div><div class="det">Deep-freeze brine loop</div><div class="par">inletTempC: -5, outletTempC: -10</div></div>
+    <div class="choice"><div class="lbl">+2 / -3 °C</div><div class="det">Cold storage</div><div class="par">inletTempC: 2, outletTempC: -3</div></div>
+  </div></div>
+</section>
+
+<section class="flow">
+  <div class="flow-head"><h3>Refrigerant: Synthetic</h3><span class="eid">synthetic-refrigerants</span></div>
+  <div class="flow-sub">Ziel: <code>refrigerant-map</code> (keine feste Kategorie) · Keine fixen Parameter</div>
+
+  <div class="q"><div class="q-head"><div class="q-num">1</div><div class="q-body">
+    <div class="q-id">family</div>
+    <div class="q-msg">Synthetic refrigerants — <strong>which one</strong> are you planning to use? Consider F-gas phase-down rules for GWP &gt; 750.</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">R448A</div><div class="det">HFO blend, common retrofit</div><div class="par">refrigerant: R448A</div></div>
+    <div class="choice"><div class="lbl">R1234ze</div><div class="det">HFO, very low GWP (7)</div><div class="par">refrigerant: R1234ze</div></div>
+    <div class="choice"><div class="lbl">R134a</div><div class="det">Legacy HFC, GWP 1430</div><div class="par">refrigerant: R134a</div></div>
+    <div class="choice"><div class="lbl">R32</div><div class="det">Single-comp HFC, GWP 675</div><div class="par">refrigerant: R32</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">2</div><div class="q-body">
+    <div class="q-id">use-case</div>
+    <div class="q-msg">What's the <strong>primary use case</strong>?</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">Cold storage</div><div class="det">0…+5 °C</div><div class="par">coolingPurpose: cold-storage</div></div>
+    <div class="choice"><div class="lbl">Deep freeze</div><div class="det">-18…-35 °C</div><div class="par">coolingPurpose: deep-freeze</div></div>
+    <div class="choice"><div class="lbl">AC / Chiller</div><div class="det">Comfort cooling</div><div class="par">coolingPurpose: air-conditioning</div></div>
+    <div class="choice"><div class="lbl">Heat rejection</div><div class="det">Condenser</div><div class="par">coolingPurpose: condensing</div></div>
+  </div></div>
+
+  <div class="q"><div class="q-head"><div class="q-num">3</div><div class="q-body">
+    <div class="q-id">capacity</div>
+    <div class="q-msg">And the <strong>capacity</strong>?</div>
+  </div></div>
+  <div class="choices">
+    <div class="choice"><div class="lbl">10 kW</div><div class="det">Small system</div><div class="par">coolingCapacityKw: 10</div></div>
+    <div class="choice"><div class="lbl">25 kW</div><div class="det">Mid-size</div><div class="par">coolingCapacityKw: 25</div></div>
+    <div class="choice"><div class="lbl">100 kW</div><div class="det">Large system</div><div class="par">coolingCapacityKw: 100</div></div>
+    <div class="choice"><div class="lbl">250 kW</div><div class="det">Industrial scale</div><div class="par">coolingCapacityKw: 250</div></div>
+  </div></div>
+</section>
+
+<footer class="sheet">
+  Abgeleitet aus <code>scripts/seed-guided-flows.mjs</code>, Stand der Datei 17.04.2026. Bei Änderungen an <code>nuxt/data/homeEntryFlows.ts</code> oder an den Configs in der Admin-UI ist diese Übersicht neu zu erzeugen. Ablage: <code>templates/mygpc-guided-assistant/chatbot-graphics-all-questions.html</code>
+</footer>
+
+</body>
+</html>

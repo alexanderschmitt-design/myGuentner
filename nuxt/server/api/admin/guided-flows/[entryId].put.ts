@@ -53,13 +53,32 @@ export default defineEventHandler(async (event) => {
     return { ok: false, error: 'No allowed fields present in body' }
   }
 
+  const customKeysUsed = new Set<string>()
   if (Array.isArray(patch.questions)) {
     for (const q of patch.questions) {
       for (const c of (q?.choices ?? [])) {
-        if (c?.icon != null && !VALID_CHOICE_ICON_KEYS.has(c.icon)) {
-          setResponseStatus(event, 422)
-          return { ok: false, error: `Unbekannter Icon-Schlüssel: "${c.icon}"` }
+        if (c?.icon != null) {
+          if (typeof c.icon === 'string' && c.icon.startsWith('custom:')) {
+            customKeysUsed.add(c.icon)
+          } else if (!VALID_CHOICE_ICON_KEYS.has(c.icon)) {
+            setResponseStatus(event, 422)
+            return { ok: false, error: `Unbekannter Icon-Schlüssel: "${c.icon}"` }
+          }
         }
+      }
+    }
+  }
+  if (customKeysUsed.size > 0) {
+    const sbCheck = getSupabaseServiceClient()
+    const { data: existingKeys } = await sbCheck
+      .from('guided_flow_custom_icons')
+      .select('icon_key')
+      .in('icon_key', [...customKeysUsed])
+    const foundKeys = new Set(existingKeys?.map((r: { icon_key: string }) => r.icon_key) ?? [])
+    for (const k of customKeysUsed) {
+      if (!foundKeys.has(k)) {
+        setResponseStatus(event, 422)
+        return { ok: false, error: `Unbekannter Custom-Icon-Schlüssel: "${k}"` }
       }
     }
   }

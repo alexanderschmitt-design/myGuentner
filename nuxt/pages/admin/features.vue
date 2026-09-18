@@ -4,10 +4,21 @@
  * Stored per-browser via useFeatureFlags() (localStorage).
  */
 
+import { nextTick } from 'vue'
+
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'myGPC — Features' })
 
 const { features, flags, setFlag, reset } = useFeatureFlags()
+
+async function handleToggle(id: string, el: HTMLInputElement) {
+  const newVal = el.checked
+  const ok = await setFlag(id, newVal)
+  if (!ok) {
+    await nextTick()
+    el.checked = !newVal
+  }
+}
 
 function count(id: string): number {
   if (id !== 'learn_mode') return 0
@@ -46,7 +57,7 @@ function count(id: string): number {
             <input
               type="checkbox"
               :checked="flags[f.id]"
-              @change="setFlag(f.id, ($event.target as HTMLInputElement).checked)"
+              @change="handleToggle(f.id, $event.target as HTMLInputElement)"
             />
             <span class="slider"></span>
           </label>

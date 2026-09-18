@@ -962,73 +962,75 @@ function resetConfig() {
               </div>
             </div>
 
-            <!-- Fin specifications -->
-            <div class="lim-group">
-              <p class="group-label">Fin specifications</p>
-              <div class="col-labels-3">
-                <span></span><span>Minimum</span><span>Maximum</span>
-              </div>
-              <div class="input-grid-3">
-                <select v-model="finSpecMode" class="full-select">
-                  <option value="fin-spacing">Fin spacing</option>
-                  <option value="fpi">FPI (fins per inch)</option>
-                </select>
-                <div class="input-unit">
-                  <input type="number" step="0.1" v-model.number="finMinMm" />
-                  <select v-model="finUnit" class="unit-sel">
-                    <option value="mm">mm</option>
-                    <option value="in">in</option>
-                  </select>
+            <template v-if="viewMode.isExpert.value">
+              <!-- Fin specifications -->
+              <div class="lim-group">
+                <p class="group-label">Fin specifications</p>
+                <div class="col-labels-3">
+                  <span></span><span>Minimum</span><span>Maximum</span>
                 </div>
-                <div class="input-unit">
-                  <input type="number" step="0.1" v-model.number="finMaxMm" />
-                  <select v-model="finUnit" class="unit-sel">
-                    <option value="mm">mm</option>
-                    <option value="in">in</option>
+                <div class="input-grid-3">
+                  <select v-model="finSpecMode" class="full-select">
+                    <option value="fin-spacing">Fin spacing</option>
+                    <option value="fpi">FPI (fins per inch)</option>
                   </select>
+                  <div class="input-unit">
+                    <input type="number" step="0.1" v-model.number="finMinMm" />
+                    <select v-model="finUnit" class="unit-sel">
+                      <option value="mm">mm</option>
+                      <option value="in">in</option>
+                    </select>
+                  </div>
+                  <div class="input-unit">
+                    <input type="number" step="0.1" v-model.number="finMaxMm" />
+                    <select v-model="finUnit" class="unit-sel">
+                      <option value="mm">mm</option>
+                      <option value="in">in</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Sound specifications -->
-            <div class="lim-group">
-              <p class="group-label">Sound specifications</p>
-              <div class="col-labels-3">
-                <span></span><span>Maximum</span><span>in</span>
-              </div>
-              <div class="input-grid-3">
-                <select v-model="soundMode" class="full-select">
-                  <option value="max-sound-pressure">Max. sound pressure</option>
-                  <option value="max-sound-power">Max. sound power</option>
-                </select>
-                <div class="input-unit">
-                  <input type="number" v-model.number="soundMaxDbA" />
-                  <span class="unit-badge">dB(A)</span>
+              <!-- Sound specifications -->
+              <div class="lim-group">
+                <p class="group-label">Sound specifications</p>
+                <div class="col-labels-3">
+                  <span></span><span>Maximum</span><span>in</span>
                 </div>
-                <div class="input-unit">
-                  <input type="number" v-model.number="soundDistance" placeholder="3" />
-                  <select class="unit-sel">
-                    <option value="m">m</option>
-                    <option value="ft">ft</option>
+                <div class="input-grid-3">
+                  <select v-model="soundMode" class="full-select">
+                    <option value="max-sound-pressure">Max. sound pressure</option>
+                    <option value="max-sound-power">Max. sound power</option>
                   </select>
+                  <div class="input-unit">
+                    <input type="number" v-model.number="soundMaxDbA" />
+                    <span class="unit-badge">dB(A)</span>
+                  </div>
+                  <div class="input-unit">
+                    <input type="number" v-model.number="soundDistance" placeholder="3" />
+                    <select class="unit-sel">
+                      <option value="m">m</option>
+                      <option value="ft">ft</option>
+                    </select>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Tol. + Min. fans row -->
-            <div class="field-row-2">
-              <div class="field">
-                <label>Tol. of max. sound pressure level</label>
-                <div class="input-unit">
-                  <input type="number" v-model.number="soundTolerance" />
-                  <span class="unit-badge">dB(A)</span>
+              <!-- Tol. + Min. fans row -->
+              <div class="field-row-2">
+                <div class="field">
+                  <label>Tol. of max. sound pressure level</label>
+                  <div class="input-unit">
+                    <input type="number" v-model.number="soundTolerance" />
+                    <span class="unit-badge">dB(A)</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Min. no. of fans</label>
+                  <input type="number" v-model.number="minFans" />
                 </div>
               </div>
-              <div class="field">
-                <label>Min. no. of fans</label>
-                <input type="number" v-model.number="minFans" />
-              </div>
-            </div>
+            </template>
 
             <!-- Delivery time -->
             <div class="field">
@@ -1058,52 +1060,54 @@ function resetConfig() {
               </select>
             </div>
 
-            <div class="field">
-              <label>ErP Directive</label>
-              <select v-model="opts.onlyErpCompliant" class="full-select">
-                <option :value="true">Only units compliant with ErP</option>
-                <option :value="false">Include all units (ErP not relevant)</option>
-              </select>
-            </div>
+            <template v-if="viewMode.isExpert.value">
+              <div class="field">
+                <label>ErP Directive</label>
+                <select v-model="opts.onlyErpCompliant" class="full-select">
+                  <option :value="true">Only units compliant with ErP</option>
+                  <option :value="false">Include all units (ErP not relevant)</option>
+                </select>
+              </div>
 
-            <div class="field">
-              <label>Motor technology</label>
-              <ImpactSelect
-                v-model="opts.motorTechnology"
-                :options="motorTechnologyOptionsFull"
-                @impact-info="impactModalOpen = true"
-              />
-            </div>
+              <div class="field">
+                <label>Motor technology</label>
+                <ImpactSelect
+                  v-model="opts.motorTechnology"
+                  :options="motorTechnologyOptionsFull"
+                  @impact-info="impactModalOpen = true"
+                />
+              </div>
 
-            <div class="field">
-              <label>Minimum energy efficiency class</label>
-              <ImpactSelect
-                v-model="opts.minimumEnergyEfficiencyClass"
-                :options="minEnergyClassOptions"
-                @impact-info="impactModalOpen = true"
-              />
-            </div>
+              <div class="field">
+                <label>Minimum energy efficiency class</label>
+                <ImpactSelect
+                  v-model="opts.minimumEnergyEfficiencyClass"
+                  :options="minEnergyClassOptions"
+                  @impact-info="impactModalOpen = true"
+                />
+              </div>
 
-            <div class="field">
-              <label>Max. operating pressure</label>
-              <select v-model.number="opts.maxOperatingPressure" class="full-select">
-                <option v-for="o in maxOperatingPressureOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-            </div>
+              <div class="field">
+                <label>Max. operating pressure</label>
+                <select v-model.number="opts.maxOperatingPressure" class="full-select">
+                  <option v-for="o in maxOperatingPressureOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </select>
+              </div>
 
-            <div class="field">
-              <label>Core tube material</label>
-              <select v-model="opts.coreTubeMaterial" class="full-select">
-                <option v-for="o in coreTubeMaterialOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-            </div>
+              <div class="field">
+                <label>Core tube material</label>
+                <select v-model="opts.coreTubeMaterial" class="full-select">
+                  <option v-for="o in coreTubeMaterialOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </select>
+              </div>
 
-            <div class="field">
-              <label>Air blow direction</label>
-              <select v-model.number="opts.airBlowDirection" class="full-select">
-                <option v-for="o in airBlowDirectionOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
-              </select>
-            </div>
+              <div class="field">
+                <label>Air blow direction</label>
+                <select v-model.number="opts.airBlowDirection" class="full-select">
+                  <option v-for="o in airBlowDirectionOptions" :key="o.value" :value="o.value">{{ o.label }}</option>
+                </select>
+              </div>
+            </template>
 
             <div class="field">
               <label>Defrosting</label>
@@ -1127,6 +1131,7 @@ function resetConfig() {
               Hot gas interconnecting tubing (with check valve)
             </label>
 
+            <template v-if="viewMode.isExpert.value">
             <div class="field">
               <label>Air velocity</label>
               <select v-model.number="opts.airVelocityClass" class="full-select">
@@ -1293,6 +1298,7 @@ function resetConfig() {
               <input type="checkbox" v-model="headerCover" />
               Header cover
             </label>
+            </template>
           </div>
         </div>
 

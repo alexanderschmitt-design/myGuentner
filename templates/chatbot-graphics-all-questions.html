@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Chatbot Fragen - Gesamtuebersicht</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;background:#e9eaec;font-family:var(--font-ui);padding:40px 40px 80px}
+h1{font-size:24px;font-weight:800;color:var(--c-text-value);margin:0 0 6px}
+.intro{font-size:13px;color:var(--c-text-light2);margin:0 0 36px;max-width:640px}
+.grp{font-size:16px;font-weight:800;color:var(--c-brand-blue);margin:0 0 14px;padding-top:18px;border-top:1px solid var(--c-border)}
+.grp:first-of-type{border-top:none;padding-top:0}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;margin-bottom:8px}
+.card-wrap{display:flex}
+.q-card{padding:18px 16px;border-radius:var(--radius-md);background:color-mix(in srgb, var(--c-brand-blue) 6%, white);border-left:3px solid var(--c-brand-blue);width:100%;box-sizing:border-box}
+.q-tag{display:flex;align-items:center;gap:5px;margin:0 0 8px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--c-brand-blue)}
+.q-text{margin:0 0 14px;font-size:14px;font-weight:700;line-height:1.4;color:var(--c-text-value)}
+.opts-2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opts-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.opts-4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px}
+.opt{border:1.5px solid var(--c-border);border-radius:var(--radius-md);background:white;box-shadow:var(--shadow-sm);cursor:pointer;display:flex;flex-direction:column;align-items:center;text-align:center;padding:14px 6px;gap:8px;position:relative}
+.opt:hover{border-color:var(--c-brand-blue);box-shadow:var(--shadow-md)}
+.opt-label{font-size:12px;font-weight:600;color:var(--c-text-value)}
+.opt-sub{font-size:10.5px;color:var(--c-text-light2);margin-top:-4px}
+.chk{position:absolute;top:6px;right:6px;width:14px;height:14px;border:1.5px solid var(--c-border);border-radius:3px;background:white}
+svg{display:block}
+</style>
+</head><body>
+<h1>Chatbot-Konfigurationsfragen &mdash; Gesamtübersicht</h1>
+<p class="intro">Alle bisher entwickelten, grafisch gestützten Frage-Antwort-Karten für den Günther Guided-Dialog, gruppiert nach Herkunft.</p>
+<h2 class="grp">Allgemein</h2><div class="grid"><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Möchtest du ein Gerät für die kalte oder die warme Seite konfigurieren?</p>
+<div class="opts-row">
+<div class="opt">
+<svg viewBox="0 0 64 48" width="64" height="48" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M4 38L32 24L60 38" stroke="#a8adb2"/>
+<path d="M4 38h56" stroke="#a8adb2"/>
+<rect x="16" y="13" width="28" height="14" rx="1.5"/>
+<circle cx="24" cy="20" r="4.5"/>
+<circle cx="36" cy="20" r="4.5"/>
+<path d="M24 17.5v5M21.5 20h5M36 17.5v5M33.5 20h5"/>
+</svg>
+<span class="opt-label">Kalte Seite</span>
+<span class="opt-sub">Außen, Dachaufstellung</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 64 48" width="64" height="48" fill="none" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="20" y="9" width="26" height="23" stroke="#a8adb2"/>
+<path d="M20 9L6 15M46 9L60 15M20 32L6 41M46 32L60 41" stroke="#a8adb2"/>
+<path d="M6 15h54v26h-54z" stroke="#6b7076"/>
+<rect x="24" y="17" width="16" height="7" rx="1" stroke="#6b7076"/>
+<circle cx="29" cy="20.5" r="1.8" stroke="#6b7076"/>
+<circle cx="35" cy="20.5" r="1.8" stroke="#6b7076"/>
+</svg>
+<span class="opt-label">Warme Seite</span>
+<span class="opt-sub">Innen, Luftkühler im Raum</span>
+</div>
+</div>
+</div></div></div>
+<h2 class="grp">Facility &amp; Sizing</h2><div class="grid"><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welche Gebäudeart soll versorgt werden?</p>
+<div class="opts-4">
+<div class="opt">
+<svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="14" y="8" width="20" height="34"/>
+<path d="M18 14h4M26 14h4M18 21h4M26 21h4M18 28h4M26 28h4"/>
+<path d="M8 42h32" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Büro</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="10" y="8" width="28" height="34"/>
+<path d="M15 14h5M28 14h5M15 20h5M28 20h5M15 26h5M28 26h5"/>
+<path d="M20 34h8v8h-8z"/>
+<path d="M6 42h36" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Hotel</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="12" y="12" width="24" height="30"/>
+<path d="M24 18v12M18 24h12"/>
+<path d="M6 42h36" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Klinik / Labor</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 48 48" width="44" height="44" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M10 20l2-8h24l2 8" stroke="#a8adb2"/>
+<path d="M9 20h30v22h-30z"/>
+<path d="M18 42v-10h12v10"/>
+<path d="M10 20a4 4 0 0 0 8 0M18 20a4 4 0 0 0 8 0M26 20a4 4 0 0 0 8 0" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Einzelhandel</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welche Kühlleistung wird benötigt?</p>
+<div class="opts-4">
+<div class="opt">
+<svg viewBox="0 0 40 44" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round">
+<path d="M8 38v-8"/>
+</svg>
+<span class="opt-label">&lt; 50 kW</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round">
+<path d="M8 38v-8M20 38v-18"/>
+</svg>
+<span class="opt-label">50–200 kW</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round">
+<path d="M8 38v-8M20 38v-18M32 38v-28"/>
+</svg>
+<span class="opt-label">200–500 kW</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round">
+<path d="M8 38v-8M20 38v-18M32 38v-28"/>
+<path d="M2 6l4-4 4 4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">&gt; 500 kW</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welches Kältemittel bzw. Medium kommt zum Einsatz?</p>
+<div class="opts-2" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+<div class="opt">
+<svg viewBox="0 0 40 48" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="12" y="6" width="16" height="8" rx="1"/>
+<path d="M15 6v-3h10v3"/>
+<rect x="8" y="14" width="24" height="28" rx="3"/>
+<path d="M8 22h24M8 30h24"/>
+</svg>
+<span class="opt-label">R134a</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 48" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="12" y="6" width="16" height="8" rx="1"/>
+<path d="M15 6v-3h10v3"/>
+<rect x="8" y="14" width="24" height="28" rx="3"/>
+<path d="M8 22h24M8 30h24"/>
+<path d="M20 22v8" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">R32</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 48" width="30" height="38" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 5c6 8 9 13 9 18a9 9 0 1 1-18 0c0-5 3-10 9-18z"/>
+<path d="M15 26a5 5 0 0 0 5 5" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Glykol-Sole</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welche Aufstellbedingungen sind vor Ort zu beachten?</p>
+<div class="opts-2" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+<div class="opt">
+<span class="chk"></span>
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="6" width="28" height="28"/>
+<path d="M6 6l6 6M34 6l-6 6M6 34l6-6M34 34l-6-6"/>
+</svg>
+<span class="opt-label">Platzbedarf</span>
+<span class="opt-sub">begrenzte Fläche</span>
+</div>
+<div class="opt">
+<span class="chk"></span>
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M6 16v8h6l10 8V8l-10 8z"/>
+<path d="M28 14a8 8 0 0 1 0 12" stroke="#a8adb2"/>
+<path d="M25 30l10-16" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Lärmschutz</span>
+<span class="opt-sub">Schallgrenzwerte</span>
+</div>
+<div class="opt">
+<span class="chk"></span>
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="8" y="6" width="24" height="30" rx="1.5"/>
+<path d="M8 6v30" stroke="#a8adb2"/>
+<circle cx="24" cy="21" r="1.4" fill="#6b7076" stroke="none"/>
+</svg>
+<span class="opt-label">Zugänglichkeit</span>
+<span class="opt-sub">Wartung, Anlieferung</span>
+</div>
+</div>
+</div></div></div>
+<h2 class="grp">System-Auslegung</h2><div class="grid"><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welches Kühlkonzept soll eingesetzt werden?</p>
+<div class="opts-2" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="20" r="4"/>
+<path d="M20 16c0-6 4-8 4-8M20 24c0 6-4 8-4 8M16 20c-6 0-8-4-8-4M24 20c6 0 8 4 8 4M17 17c-4-4-9-3-9-3M23 23c4 4 9 3 9 3M23 17c4-4 9-3 9-3M17 23c-4 4-9 3-9 3" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Freie Kühlung</span>
+<span class="opt-sub">Umgebungsluft</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="18" r="4"/>
+<path d="M20 14c0-4 3-6 3-6M20 22c0 4-3 6-3 6M16 18c-4 0-6-3-6-3M24 18c4 0 6 3 6 3" stroke="#a8adb2"/>
+<path d="M16 30l2 5M20 30l2 5M24 30l2 5"/>
+</svg>
+<span class="opt-label">Adiabatisch</span>
+<span class="opt-sub">Verdunstungskühlung</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="14" cy="14" r="3.4"/>
+<path d="M14 10.6c0-3 2-4 2-4M14 17.4c0 3-2 4-2 4M10.6 14c-3 0-4-2-4-2M17.4 14c3 0 4 2 4 2" stroke="#a8adb2"/>
+<rect x="22" y="20" width="12" height="16" rx="1.5"/>
+<path d="M25 24h6M25 28h6" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Kombination</span>
+<span class="opt-sub">mit Kältemaschine</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welche Redundanzstufe wird gefordert?</p>
+<div class="opts-2" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="34" height="34" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="10" y="10" width="20" height="20" rx="1.5"/>
+</svg>
+<span class="opt-label">N</span>
+<span class="opt-sub">keine Redundanz</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="34" height="34" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="10" width="18" height="18" rx="1.5"/>
+<rect x="26" y="14" width="10" height="10" rx="1.2" stroke="#a8adb2" strokeDasharray="2 2"/>
+</svg>
+<span class="opt-label">N+1</span>
+<span class="opt-sub">ein Reservegerät</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="34" height="34" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="5" y="10" width="14" height="20" rx="1.5"/>
+<rect x="21" y="10" width="14" height="20" rx="1.5" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">2N</span>
+<span class="opt-sub">volle Verdopplung</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welche Vorlauftemperatur ist zulässig?</p>
+<div class="opts-4">
+<div class="opt">
+<svg viewBox="0 0 24 44" width="18" height="36" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="9" y="4" width="6" height="22" rx="3"/>
+<circle cx="12" cy="32" r="6"/>
+<path d="M12 26v3" stroke="white" strokeWidth="3"/>
+</svg>
+<span class="opt-label">≤ 18 °C</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 24 44" width="18" height="36" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="9" y="4" width="6" height="22" rx="3"/>
+<circle cx="12" cy="32" r="6" fill="#eceded"/>
+<path d="M12 20v12" stroke="#6b7076" strokeWidth="3"/>
+</svg>
+<span class="opt-label">18–22 °C</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 24 44" width="18" height="36" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="9" y="4" width="6" height="22" rx="3"/>
+<circle cx="12" cy="32" r="6" fill="#c7cacd"/>
+<path d="M12 14v18" stroke="#6b7076" strokeWidth="3"/>
+</svg>
+<span class="opt-label">22–27 °C</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 24 44" width="18" height="36" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="9" y="4" width="6" height="22" rx="3"/>
+<circle cx="12" cy="32" r="6" fill="#9aa0a4"/>
+<path d="M12 8v24" stroke="#6b7076" strokeWidth="3"/>
+</svg>
+<span class="opt-label">&gt; 27 °C</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Wo soll das Gerät aufgestellt werden, und welcher Wetter- bzw. Lärmschutz ist nötig?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 60 48" width="54" height="44" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M6 30L30 16L54 30" stroke="#a8adb2"/>
+<path d="M6 30h48"/>
+<rect x="16" y="12" width="28" height="12" rx="1.5"/>
+<path d="M12 6l3 4M48 6l-3 4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Dachaufstellung</span>
+<span class="opt-sub">Wind, Regen, Frost</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 60 48" width="54" height="44" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="10" y="18" width="26" height="16" rx="1.5"/>
+<path d="M6 40h48" stroke="#a8adb2"/>
+<path d="M42 24v10M46 22v14M50 26v6" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Freifläche</span>
+<span class="opt-sub">Schallausbreitung, Einzäunung</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Konfigurationsfrage</span>
+<p class="q-text">Welche Klimazone bestimmt Frostschutz und Glykolanteil?</p>
+<div class="opts-2" style="grid-template-columns:1fr 1fr 1fr;gap:8px">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 6v28M8 20h24M11 11l18 18M29 11l-18 18" stroke="#c7cacd"/>
+</svg>
+<span class="opt-label">Mild</span>
+<span class="opt-sub">~20 % Glykol</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 6v28M8 20h24M11 11l18 18M29 11l-18 18" stroke="#8b9094"/>
+</svg>
+<span class="opt-label">Gemäßigt</span>
+<span class="opt-sub">~35 % Glykol</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 6v28M8 20h24M11 11l18 18M29 11l-18 18" stroke="#6b7076" strokeWidth="2.1"/>
+</svg>
+<span class="opt-label">Streng</span>
+<span class="opt-sub">~50 % Glykol</span>
+</div>
+</div>
+</div></div></div>
+<h2 class="grp">By Refrigerant</h2><div class="grid"><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">Natural refrigerant (NH3, CO2, propane) or synthetic/HFC refrigerant?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 6C10 10 8 22 14 30c4 5 12 5 16 0-8-2-12-8-10-16"/>
+<path d="M14 30c4-8 8-16 16-22" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Natural</span>
+<span class="opt-sub">NH3, CO2, propane</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="12" y="5" width="16" height="8" rx="1"/>
+<path d="M15 5V2h10v3"/>
+<rect x="8" y="13" width="24" height="24" rx="3"/>
+<path d="M8 21h24M8 29h24"/>
+</svg>
+<span class="opt-label">Synthetic / HFC</span>
+<span class="opt-sub">e.g. R134a, R32</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">Are there safety constraints at the site — flammability (A2L/A3) or toxicity (NH3)?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 4c6 8 9 13 9 18a9 9 0 1 1-18 0c0-5 3-10 9-18z"/>
+<path d="M20 20c2 3 2 6-1 8" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Flammability</span>
+<span class="opt-sub">A2L / A3 class</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 4l18 32H2z"/>
+<path d="M20 15v9" stroke="#a8adb2"/>
+<circle cx="20" cy="29" r="1.4" fill="#6b7076" stroke="none"/>
+</svg>
+<span class="opt-label">Toxicity</span>
+<span class="opt-sub">e.g. NH3</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What charge quantity / plant size is planned, considering the F-Gas Regulation?</p>
+<div class="opts-3">
+<div class="opt">
+<svg viewBox="0 0 40 44" width="28" height="30" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round"><path d="M8 38v-8"/></svg>
+<span class="opt-label">Small</span>
+<span class="opt-sub">below threshold</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="28" height="30" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round"><path d="M8 38v-8M20 38v-18"/></svg>
+<span class="opt-label">Medium</span>
+<span class="opt-sub">reporting required</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="28" height="30" fill="none" stroke="#6b7076" strokeWidth="1.8" strokeLinecap="round"><path d="M8 38v-8M20 38v-18M32 38v-28"/></svg>
+<span class="opt-label">Large</span>
+<span class="opt-sub">quota-relevant</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What operating temperature is required — e.g. CO2 transcritical at high ambient?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M8 24h24" stroke="#a8adb2"/>
+<path d="M20 24V8" strokeWidth="2.2"/>
+<path d="M14 8l6-6 6 6" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Transcritical</span>
+<span class="opt-sub">high ambient temp.</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M8 16h24" stroke="#a8adb2"/>
+<path d="M20 16v16" strokeWidth="2.2"/>
+<path d="M14 32l6 6 6-6" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Subcritical</span>
+<span class="opt-sub">moderate ambient temp.</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">Is this a new plant with free refrigerant choice, or a retrofit of an existing plant?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="10" y="10" width="20" height="24"/>
+<path d="M15 16h4M21 16h4M15 22h4M21 22h4"/>
+<path d="M20 4v6M17 6l3-3 3 3" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">New plant</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="30" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M26 8a6 6 0 0 0-8 8L6 28l6 6 12-12a6 6 0 0 0 8-8l-4 4-4-4z"/>
+</svg>
+<span class="opt-label">Retrofit</span>
+<span class="opt-sub">existing plant</span>
+</div>
+</div>
+</div></div></div>
+<h2 class="grp">Energy &amp; Process Cooling</h2><div class="grid"><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What is the primary purpose of the loop?</p>
+<div class="opts-4">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="20" r="4"/>
+<path d="M20 16c0-6 4-8 4-8M20 24c0 6-4 8-4 8M16 20c-6 0-8-4-8-4M24 20c6 0 8 4 8 4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Free cooling</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 6c5 6 7 10 7 14a7 7 0 1 1-14 0c0-4 2-8 7-14z"/>
+<path d="M8 32h24" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Heat rejection</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="20" r="5"/>
+<path d="M20 8v4M20 28v4M8 20h4M28 20h4M11 11l3 3M26 26l3 3M29 11l-3 3M14 26l-3 3" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Machine tool cooling</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="8" y="10" width="16" height="10" rx="1"/>
+<path d="M11 13h10M11 17h6" stroke="#a8adb2"/>
+<rect x="28" y="22" width="6" height="10" rx="1.5"/>
+</svg>
+<span class="opt-label">Renewable energy</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What medium and concentration is used in the loop?</p>
+<div class="opts-3">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 6c5 6 7 10 7 14a7 7 0 1 1-14 0c0-4 2-8 7-14z"/>
+</svg>
+<span class="opt-label">Water</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M14 6c4 5 6 8 6 11a5.5 5.5 0 0 1-11 0c0-3 2-6 5-11z"/>
+<path d="M27 10c4 5 6 8 6 11a5.5 5.5 0 0 1-11 0c0-3 2-6 5-11z" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Glycol mix</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="20" r="13"/>
+<path d="M20 20l7-4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Set concentration</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What supply/return temperature and allowable temperature rise are needed?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 44" width="18" height="34" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="17" y="4" width="6" height="22" rx="3"/>
+<circle cx="20" cy="32" r="6" fill="#eceded"/>
+<path d="M20 20v12" stroke="#6b7076" strokeWidth="3"/>
+</svg>
+<span class="opt-label">Supply</span>
+<span class="opt-sub">e.g. 12 °C</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="18" height="34" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="17" y="4" width="6" height="22" rx="3"/>
+<circle cx="20" cy="32" r="6" fill="#9aa0a4"/>
+<path d="M20 10v22" stroke="#6b7076" strokeWidth="3"/>
+</svg>
+<span class="opt-label">Return</span>
+<span class="opt-sub">e.g. 18 °C, ΔT 6 K</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">Is free cooling available year-round at the site, or only seasonally?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="8" width="28" height="26" rx="1.5"/>
+<path d="M6 15h28" stroke="#a8adb2"/>
+<path d="M12 4v6M28 4v6" stroke="#a8adb2"/>
+<path d="M11 20h4M17 20h4M23 20h4M11 26h4M17 26h4M23 26h4"/>
+</svg>
+<span class="opt-label">Year-round</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="8" width="28" height="26" rx="1.5"/>
+<path d="M6 15h28" stroke="#a8adb2"/>
+<path d="M12 4v6M28 4v6" stroke="#a8adb2"/>
+<path d="M11 20h4M17 20h4" stroke="#a8adb2"/>
+<path d="M23 20h4M11 26h4"/>
+</svg>
+<span class="opt-label">Seasonal only</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">Is the site near residential areas or in an industrial zone?</p>
+<div class="opts-2">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M8 20l12-10 12 10"/>
+<path d="M10 20v14h20V20"/>
+<path d="M28 8l6-5" stroke="#a8adb2"/>
+<path d="M29 26a5 5 0 0 1 0 4M32 24a9 9 0 0 1 0 8" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Residential nearby</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M6 34V16l8 6v-6l8 6V12l8 8v14z"/>
+<path d="M12 8v4M20 6v4M28 8v4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Industrial zone</span>
+</div>
+</div>
+</div></div></div>
+<h2 class="grp">Industrial Refrigeration</h2><div class="grid"><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What is the purpose of the cold room?</p>
+<div class="opts-3">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="17" y="4" width="6" height="20" rx="3"/>
+<circle cx="20" cy="30" r="6" fill="#c7cacd"/>
+<path d="M20 16v14" stroke="#6b7076" strokeWidth="3"/>
+<path d="M28 12l4-4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Cooling down</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="18" width="12" height="14"/>
+<rect x="20" y="18" width="12" height="14" stroke="#a8adb2"/>
+<rect x="10" y="8" width="12" height="10" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Warehousing</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="20" width="28" height="4"/>
+<circle cx="12" cy="24" r="3" stroke="#a8adb2"/>
+<circle cx="28" cy="24" r="3" stroke="#a8adb2"/>
+<rect x="16" y="10" width="8" height="8" rx="1"/>
+</svg>
+<span class="opt-label">Processing area</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What temperature range does the application require?</p>
+<div class="opts-3">
+<div class="opt">
+<svg viewBox="0 0 40 44" width="18" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="17" y="4" width="6" height="22" rx="3"/>
+<circle cx="20" cy="32" r="6" fill="#c7cacd"/>
+<path d="M20 14v18" stroke="#6b7076" strokeWidth="3"/>
+</svg>
+<span class="opt-label">Normal (chill)</span>
+<span class="opt-sub">0–8 °C</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 44" width="18" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="17" y="4" width="6" height="22" rx="3"/>
+<circle cx="20" cy="32" r="6" fill="#6b7076"/>
+<path d="M20 8v24" stroke="#6b7076" strokeWidth="3"/>
+<path d="M8 32l3-3M32 32l-3-3" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Deep-freeze</span>
+<span class="opt-sub">≤ –18 °C</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="20" r="4"/>
+<path d="M20 16c0-6 4-8 4-8M20 24c0 6-4 8-4 8M16 20c-6 0-8-4-8-4M24 20c6 0 8 4 8 4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Air conditioning</span>
+<span class="opt-sub">comfort range</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">Which refrigerant is used?</p>
+<div class="opts-3">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 4l18 32H2z"/>
+<circle cx="20" cy="26" r="1.4" fill="#6b7076" stroke="none"/>
+</svg>
+<span class="opt-label">NH3</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="28" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M8 24h24" stroke="#a8adb2"/>
+<path d="M20 24V8" strokeWidth="2.2"/>
+<path d="M14 8l6-6 6 6" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">CO2</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="12" y="5" width="16" height="8" rx="1"/>
+<rect x="8" y="13" width="24" height="24" rx="3"/>
+</svg>
+<span class="opt-label">Synthetic</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What defrost method is required?</p>
+<div class="opts-3">
+<div class="opt">
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<circle cx="20" cy="20" r="4"/>
+<path d="M20 16c0-6 4-8 4-8M20 24c0 6-4 8-4 8M16 20c-6 0-8-4-8-4M24 20c6 0 8 4 8 4" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Air defrost</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="22" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M22 4L10 22h8l-2 14 14-20h-8z"/>
+</svg>
+<span class="opt-label">Electric</span>
+</div>
+<div class="opt">
+<svg viewBox="0 0 40 40" width="24" height="28" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M20 4c6 8 9 13 9 18a9 9 0 1 1-18 0c0-5 3-10 9-18z"/>
+<path d="M20 18c2 3 2 6-1 8" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Hot gas</span>
+</div>
+</div>
+</div></div><div class="card-wrap"><div class="q-card">
+<span class="q-tag"><svg viewBox="0 0 16 16" width="11" height="11" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M8 1v3M8 12v3M1 8h3M12 8h3M3.3 3.3l2.1 2.1M10.6 10.6l2.1 2.1M12.7 3.3l-2.1 2.1M5.4 10.6l-2.1 2.1"/></svg>Configuration question</span>
+<p class="q-text">What are the room dimensions and installation access conditions?</p>
+<div class="opts-3">
+<div class="opt">
+<span class="chk"></span>
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="6" y="6" width="28" height="28"/>
+<path d="M6 6l6 6M34 6l-6 6M6 34l6-6M34 34l-6-6"/>
+</svg>
+<span class="opt-label">Room size</span>
+</div>
+<div class="opt">
+<span class="chk"></span>
+<svg viewBox="0 0 40 40" width="20" height="30" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<path d="M12 4v32" stroke="#a8adb2"/>
+<path d="M8 4h8M8 36h8"/>
+<path d="M28 12l-6 6 6 6" stroke="#a8adb2"/>
+</svg>
+<span class="opt-label">Ceiling height</span>
+</div>
+<div class="opt">
+<span class="chk"></span>
+<svg viewBox="0 0 40 40" width="26" height="26" fill="none" stroke="#6b7076" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round">
+<rect x="8" y="6" width="24" height="30" rx="1.5"/>
+<path d="M8 6v30" stroke="#a8adb2"/>
+<circle cx="24" cy="21" r="1.4" fill="#6b7076" stroke="none"/>
+</svg>
+<span class="opt-label">Access for install</span>
+</div>
+</div>
+</div></div></div>
+<template id="__bundler_thumbnail"><svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#7d8288"/><rect x="30" y="35" width="40" height="30" rx="3" fill="white" opacity="0.8"/></svg></template>
+</body></html>

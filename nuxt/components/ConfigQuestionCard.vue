@@ -8,7 +8,7 @@
  */
 import { marked } from 'marked'
 import DOMPurify from 'dompurify'
-import { findChoiceIcon, FALLBACK_SVG_PATH } from '~/data/choiceIcons'
+import { useChoiceIcon } from '~/composables/useChoiceIcon'
 
 interface Suggestion {
   label: string
@@ -34,15 +34,30 @@ const emit = defineEmits<{
 
 marked.setOptions({ breaks: true, gfm: true })
 
+const { resolveChoiceIcon } = useChoiceIcon()
+
 function renderedMessage(content: string): string {
   const raw = marked.parse(content || '') as string
   if (typeof window === 'undefined') return raw
   return DOMPurify.sanitize(raw)
 }
 
-function choiceIconSvg(iconKey?: string): string {
-  const path = iconKey ? (findChoiceIcon(iconKey)?.svgPath ?? FALLBACK_SVG_PATH) : FALLBACK_SVG_PATH
-  return `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${path}</svg>`
+function buildSvgHtml(svgPath: string): string {
+  return `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>`
+}
+
+function isCustomIcon(key?: string): boolean {
+  return resolveChoiceIcon(key).type === 'img'
+}
+
+function customIconUrl(key?: string): string {
+  const r = resolveChoiceIcon(key)
+  return r.type === 'img' ? r.url : ''
+}
+
+function svgIconHtml(key?: string): string {
+  const r = resolveChoiceIcon(key)
+  return buildSvgHtml(r.type === 'svg' ? r.svgPath : '')
 }
 </script>
 
@@ -66,7 +81,14 @@ function choiceIconSvg(iconKey?: string): string {
         :disabled="preview"
         @click="!preview && emit('suggest', idx)"
       >
-        <span class="config-choice-icon" aria-hidden="true" v-html="choiceIconSvg(s.icon)"></span>
+        <span class="config-choice-icon" aria-hidden="true">
+          <img
+            v-if="isCustomIcon(s.icon)"
+            :src="customIconUrl(s.icon)"
+            alt=""
+          />
+          <span v-else v-html="svgIconHtml(s.icon)"></span>
+        </span>
         <span class="config-choice-body">
           <span class="config-choice-label">{{ s.label || '…' }}</span>
           <span v-if="s.detail" class="config-choice-detail">{{ s.detail }}</span>
@@ -150,6 +172,13 @@ function choiceIconSvg(iconKey?: string): string {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
+}
+.config-choice-icon img {
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  border-radius: 2px;
 }
 .config-choice-body {
   flex: 1;

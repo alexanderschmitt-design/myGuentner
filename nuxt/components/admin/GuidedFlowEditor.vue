@@ -22,6 +22,7 @@ import {
   FALLBACK_SVG_PATH,
   type ChoiceIconGroup
 } from '~/data/choiceIcons'
+import { useChoiceIcon, type CustomIconEntry } from '~/composables/useChoiceIcon'
 
 interface Choice {
   label: string
@@ -285,6 +286,100 @@ function onKeyDown(e: KeyboardEvent) {
 onMounted(() => window.addEventListener('keydown', onKeyDown))
 onUnmounted(() => window.removeEventListener('keydown', onKeyDown))
 
+// -------- Custom Icons --------
+
+const { resolveChoiceIcon, customIcons: globalCustomIcons, refreshCustomIcons } = useChoiceIcon()
+const localCustomIcons = ref<CustomIconEntry[]>([])
+
+const allCustomIcons = computed<CustomIconEntry[]>(() => [
+  ...localCustomIcons.value,
+  ...globalCustomIcons.value.filter(g =>
+    !localCustomIcons.value.find(l => l.icon_key === g.icon_key)
+  )
+])
+
+const filteredCustomIcons = computed<CustomIconEntry[]>(() => {
+  const q = pickerSearch.value.trim().toLowerCase()
+  if (!q) return allCustomIcons.value
+  return allCustomIcons.value.filter(ci =>
+    ci.label.toLowerCase().includes(q) || ci.icon_key.includes(q)
+  )
+})
+
+const customUploadOpen = ref(false)
+const customUploadLabel = ref('')
+const customUploadGroup = ref('')
+const customUploadFile = ref<File | null>(null)
+const customUploadBusy = ref(false)
+
+function onUploadFileChange(e: Event) {
+  customUploadFile.value = (e.target as HTMLInputElement).files?.[0] ?? null
+}
+
+async function submitCustomUpload() {
+  if (!customUploadFile.value || !customUploadLabel.value.trim()) return
+  customUploadBusy.value = true
+  try {
+    const fd = new FormData()
+    fd.append('file', customUploadFile.value)
+    fd.append('label', customUploadLabel.value.trim())
+    if (customUploadGroup.value.trim()) fd.append('groupLabel', customUploadGroup.value.trim())
+    const res = await $fetch<{ ok: boolean; icon: CustomIconEntry; error?: string }>(
+      '/api/admin/custom-icons',
+      { method: 'POST', body: fd }
+    )
+    if (res.ok && res.icon) {
+      localCustomIcons.value.unshift(res.icon)
+      selectIcon(res.icon.icon_key)
+      customUploadOpen.value = false
+      customUploadLabel.value = ''
+      customUploadGroup.value = ''
+      customUploadFile.value = null
+    } else {
+      toast.error(res.error ?? 'Upload fehlgeschlagen')
+    }
+  } catch (e: any) {
+    toast.error(e?.data?.error ?? e?.message ?? 'Upload fehlgeschlagen')
+  } finally {
+    customUploadBusy.value = false
+  }
+}
+
+async function deleteCustomIcon(iconKey: string) {
+  try {
+    const res = await $fetch<{ ok: boolean; error?: string; usedIn?: string[] }>(
+      `/api/admin/custom-icons/${encodeURIComponent(iconKey)}`,
+      { method: 'DELETE' }
+    )
+    if (res.ok) {
+      localCustomIcons.value = localCustomIcons.value.filter(ci => ci.icon_key !== iconKey)
+      await refreshCustomIcons()
+    } else {
+      toast.error(res.error ?? 'Löschen fehlgeschlagen')
+    }
+  } catch (e: any) {
+    toast.error(e?.data?.error ?? e?.message ?? 'Löschen fehlgeschlagen')
+  }
+}
+
+function buildSvgHtml(svgPath: string): string {
+  return `<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${svgPath}</svg>`
+}
+
+function isCustomIcon(key?: string): boolean {
+  return resolveChoiceIcon(key).type === 'img'
+}
+
+function customIconUrl(key?: string): string {
+  const r = resolveChoiceIcon(key)
+  return r.type === 'img' ? r.url : ''
+}
+
+function svgIconHtml(key?: string): string {
+  const r = resolveChoiceIcon(key)
+  return buildSvgHtml(r.type === 'svg' ? r.svgPath : '')
+}
+
 // -------- Vorschau --------
 
 const previewQuestionIdx = ref(0)
@@ -429,7 +524,13 @@ async function onSave() {
                   :title="c.icon ? (findChoiceIcon(c.icon)?.label ?? c.icon) : 'Icon wählen'"
                   @click.stop="openPicker(qIdx, cIdx)"
                 >
-                  <span v-html="choiceIconSvg(c.icon)"></span>
+                  <img
+                    v-if="isCustomIcon(c.icon)"
+                    :src="customIconUrl(c.icon)"
+                    alt=""
+                    style="width:22px;height:22px;object-fit:contain;border-radius:2px"
+                  />
+                  <span v-else v-html="svgIconHtml(c.icon)"></span>
                 </button>
                 <input v-model="c.label" type="text" class="choice-label-input" placeholder="Button label" />
                 <input v-model="c.detail" type="text" class="choice-detail-input" placeholder="Detail line (optional)" />
@@ -630,7 +731,15 @@ async function onSave() {
         <div v-if="pickerCurrentChoice" class="picker-preview-bar">
           <span class="picker-preview-label">Aktuelle Vorschau:</span>
           <div class="picker-preview-choice">
-            <span class="picker-preview-icon" v-html="choiceIconSvg(pickerCurrentChoice.icon)"></span>
+            <span class="picker-preview-icon">
+              <img
+                v-if="isCustomIcon(pickerCurrentChoice.icon)"
+                :src="customIconUrl(pickerCurrentChoice.icon)"
+                alt=""
+                style="width:22px;height:22px;object-fit:contain;border-radius:2px"
+              />
+              <span v-else v-html="svgIconHtml(pickerCurrentChoice.icon)"></span>
+            </span>
             <span class="picker-preview-text">{{ pickerCurrentChoice.label || '…' }}</span>
             <span v-if="pickerCurrentChoice.detail" class="picker-preview-detail">{{ pickerCurrentChoice.detail }}</span>
           </div>
@@ -654,7 +763,83 @@ async function onSave() {
               </button>
             </div>
           </template>
-          <div v-if="filteredPickerGroups.size === 0" class="picker-empty">Keine Icons gefunden.</div>
+          <!-- Eigene Grafiken -->
+          <template v-if="filteredCustomIcons.length > 0 || !pickerSearch.trim()">
+            <div class="picker-group-label">Eigene Grafiken</div>
+            <div class="picker-grid">
+              <!-- Upload-Kachel -->
+              <button
+                type="button"
+                class="picker-icon-btn picker-upload-tile"
+                title="Eigenes Icon hochladen"
+                @click.stop="customUploadOpen = !customUploadOpen"
+              >
+                <span class="picker-upload-plus">+</span>
+                <span class="picker-icon-label">Hochladen</span>
+              </button>
+              <!-- Custom-Icon-Kacheln -->
+              <div
+                v-for="ci in filteredCustomIcons"
+                :key="ci.icon_key"
+                class="picker-icon-wrap"
+              >
+                <button
+                  type="button"
+                  class="picker-icon-btn"
+                  :class="{ 'is-active': pickerCurrentChoice?.icon === ci.icon_key }"
+                  :title="ci.label"
+                  @click="selectIcon(ci.icon_key)"
+                >
+                  <img :src="ci.public_url" :alt="ci.label" style="width:22px;height:22px;object-fit:contain;border-radius:2px" />
+                  <span class="picker-icon-label">{{ ci.label }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="picker-delete-btn"
+                  title="Icon löschen"
+                  @click.stop="deleteCustomIcon(ci.icon_key)"
+                >×</button>
+              </div>
+            </div>
+            <!-- Upload-Formular -->
+            <div v-if="customUploadOpen" class="custom-upload-form" @click.stop>
+              <input
+                type="file"
+                accept=".svg,.png,.webp"
+                class="upload-file-input"
+                @change="onUploadFileChange"
+              />
+              <input
+                v-model="customUploadLabel"
+                type="text"
+                class="upload-text-input"
+                placeholder="Label (Pflicht)"
+              />
+              <input
+                v-model="customUploadGroup"
+                type="text"
+                class="upload-text-input"
+                placeholder="Gruppe (Standard: Eigene Grafiken)"
+              />
+              <div class="upload-actions">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  :disabled="customUploadBusy || !customUploadLabel.trim() || !customUploadFile"
+                  @click="submitCustomUpload"
+                >
+                  {{ customUploadBusy ? 'Lädt…' : 'Hochladen' }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-outline btn-sm"
+                  @click="customUploadOpen = false"
+                >Abbrechen</button>
+              </div>
+            </div>
+          </template>
+
+          <div v-if="filteredPickerGroups.size === 0 && filteredCustomIcons.length === 0 && pickerSearch.trim()" class="picker-empty">Keine Icons gefunden.</div>
         </div>
 
       </div>
@@ -1134,5 +1319,63 @@ async function onSave() {
   font-family: var(--font-ui);
   background: white;
   cursor: pointer;
+}
+
+/* Custom-Icon-Picker */
+.picker-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.picker-delete-btn {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: var(--c-error, #B33A3A);
+  color: white;
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.picker-icon-wrap:hover .picker-delete-btn { display: flex; }
+.picker-upload-tile {
+  border: 1px dashed var(--c-border, #cfcdd6) !important;
+  background: transparent !important;
+}
+.picker-upload-plus {
+  font-size: 18px;
+  line-height: 1;
+  color: var(--c-text-medium, #676377);
+}
+.custom-upload-form {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 5%, white);
+  border: 1px solid color-mix(in srgb, var(--c-brand-blue, #0078BE) 20%, transparent);
+  border-radius: 6px;
+}
+.upload-file-input,
+.upload-text-input {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--c-border, #cfcdd6);
+  border-radius: 4px;
+  background: white;
+}
+.upload-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 2px;
 }
 </style>

@@ -65,8 +65,9 @@ export function useFeatureFlags() {
     return out
   })
 
-  async function setFlag(id: string, on: boolean) {
+  async function setFlag(id: string, on: boolean): Promise<boolean> {
     const key = KEY_PREFIX + id
+    const toast = useToast()
     try {
       const res = await $fetch<{ ok: boolean; error?: string }>('/api/admin/app-settings', {
         method: 'PUT',
@@ -74,11 +75,15 @@ export function useFeatureFlags() {
       })
       if (res?.ok) {
         state.value = { ...(state.value ?? {}), [key]: on }
+        toast.success(`${id} ${on ? 'aktiviert' : 'deaktiviert'}`)
+        return true
       } else {
-        console.error('[useFeatureFlags] setFlag failed:', res?.error)
+        toast.error(`Speichern fehlgeschlagen: ${res?.error ?? 'Unbekannter Fehler'}`)
+        return false
       }
     } catch (err: any) {
-      console.error('[useFeatureFlags] setFlag error:', err?.message || err)
+      toast.error(`Speichern fehlgeschlagen: ${err?.message || err}`)
+      return false
     }
   }
 

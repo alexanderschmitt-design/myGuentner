@@ -446,6 +446,7 @@ const fieldErrors = computed<Map<string, string>>(() => {
 // `.field-error`-Klasse und injiziert eine Inline-Hint-Zeile pro betroffenem
 // Feld. Läuft bei jeder Änderung von `fieldErrors` sowie beim Mount.
 watchEffect(async () => {
+  if (!import.meta.client) return
   const errors = fieldErrors.value
   await nextTick()
   document.querySelectorAll<HTMLElement>('[data-api-param]').forEach(el => {
