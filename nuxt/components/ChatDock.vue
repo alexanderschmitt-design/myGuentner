@@ -1672,9 +1672,8 @@ function pickPreset(p: PresetIntent) {
    ============================================================ */
 .config-question-card {
   margin: 6px 0 14px;
-  padding: 14px 14px 12px;
-  background: color-mix(in srgb, var(--c-brand-blue) 7%, white);
-  border: 1px solid color-mix(in srgb, var(--c-brand-blue) 20%, transparent);
+  background: white;
+  border: 1px solid var(--c-border, #cfcdd6);
   border-left: 4px solid var(--c-brand-blue);
   border-radius: var(--radius-md, 8px);
 }
@@ -1796,11 +1795,9 @@ function pickPreset(p: PresetIntent) {
 .rec-card {
   margin: 6px 0 14px;
   padding: 14px 14px 12px;
-  background: linear-gradient(180deg,
-    color-mix(in srgb, var(--c-success, #2E7D4F) 10%, white) 0%,
-    color-mix(in srgb, var(--c-success, #2E7D4F) 5%, white) 100%);
-  border: 1px solid color-mix(in srgb, var(--c-success, #2E7D4F) 30%, transparent);
-  border-left: 4px solid var(--c-success, #2E7D4F);
+  background: white;
+  border: 1px solid var(--c-border, #cfcdd6);
+  border-left: 4px solid var(--c-brand-blue, #0078BE);
   border-radius: var(--radius-md, 8px);
 }
 .rec-card-head {
