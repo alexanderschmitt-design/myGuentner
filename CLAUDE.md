@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Pflichtlektüre vor jedem Arbeitsbeginn
+
+Vor Beginn neuer Features oder Bugfixes **immer zuerst lesen**:
+- **`Technical_truth.md`** — aktueller technischer Stand: Stack, DB-Schema, API-Endpunkte, Constraints, Änderungslog
+- **`Planning.md`** — Backlog, Prioritäten, Design-Entscheidungen, Technische Schulden
+
+Diese Dokumente werden nach jedem abgeschlossenen Sprint aktualisiert und sind die einzige Quelle der Wahrheit über den Ist-Zustand des Projekts.
+
 ## Project Overview
 
 **myGPC** (my Guntner Product Configurator) — a web application for configuring Guntner heat exchanger / cooling equipment. The app is a 5-step wizard:
