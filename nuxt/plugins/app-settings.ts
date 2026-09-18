@@ -17,7 +17,8 @@ export default defineNuxtPlugin(async () => {
   try {
     const res = await $fetch<{ ok: boolean; settings: AppSettings }>('/api/app-settings')
     state.value = res?.ok ? (res.settings ?? {}) : {}
-  } catch {
+  } catch (err: any) {
+    console.error('[app-settings] Failed to load settings from Supabase:', err?.message ?? err)
     state.value = {}
   }
 })

@@ -4,7 +4,7 @@
  * Stored per-browser via useFeatureFlags() (localStorage).
  */
 
-import { nextTick } from 'vue'
+import { nextTick, ref, computed } from 'vue'
 
 definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'myGPC — Features' })
@@ -27,6 +27,47 @@ function count(id: string): number {
     const raw = window.localStorage.getItem('mygpc_learn_notes')
     return raw ? Object.keys(JSON.parse(raw)).length : 0
   } catch { return 0 }
+}
+
+// --- Diagnose panel ---
+const diagOpen = ref(false)
+const diagLoading = ref(false)
+const diagResult = ref<any>(null)
+const diagError = ref<string | null>(null)
+
+// Raw state that the plugin loaded into useState('app-settings')
+const rawState = useState<Record<string, unknown> | null>('app-settings', () => null)
+const rawStateJson = computed(() => JSON.stringify(rawState.value, null, 2))
+
+async function runDiag() {
+  diagLoading.value = true
+  diagResult.value = null
+  diagError.value = null
+  try {
+    const res = await $fetch<any>('/api/admin/debug/app-settings')
+    diagResult.value = res
+  } catch (err: any) {
+    diagError.value = err?.data?.message ?? err?.message ?? String(err)
+  } finally {
+    diagLoading.value = false
+  }
+}
+
+async function refreshCachedState() {
+  diagLoading.value = true
+  diagError.value = null
+  try {
+    const res = await $fetch<{ ok: boolean; settings: Record<string, unknown> }>('/api/app-settings')
+    if (res?.ok) {
+      rawState.value = res.settings
+    } else {
+      diagError.value = 'GET /api/app-settings returned ok: false'
+    }
+  } catch (err: any) {
+    diagError.value = err?.message ?? String(err)
+  } finally {
+    diagLoading.value = false
+  }
 }
 </script>
 
@@ -63,6 +104,44 @@ function count(id: string): number {
           </label>
         </li>
       </ul>
+    </section>
+
+    <section class="card diag-card">
+      <button class="diag-toggle" @click="diagOpen = !diagOpen">
+        <span>Diagnose</span>
+        <span class="diag-chevron" :class="{ open: diagOpen }">›</span>
+      </button>
+      <div v-if="diagOpen" class="diag-body">
+        <div class="diag-row">
+          <span class="diag-label">useState (Client geladen)</span>
+          <pre class="diag-pre">{{ rawStateJson }}</pre>
+        </div>
+        <div class="diag-actions">
+          <button class="btn btn-outline" :disabled="diagLoading" @click="refreshCachedState">
+            ↺ Refresh Client-State (/api/app-settings)
+          </button>
+          <button class="btn btn-outline" :disabled="diagLoading" @click="runDiag">
+            ⚡ Supabase direkt abfragen (cache-bypass)
+          </button>
+        </div>
+        <p v-if="diagError" class="diag-error">{{ diagError }}</p>
+        <div v-if="diagResult" class="diag-row">
+          <div class="diag-summary">
+            <span :class="diagResult.ok ? 'diag-ok' : 'diag-fail'">{{ diagResult.ok ? '✓ Supabase erreichbar' : '✗ Supabase-Fehler' }}</span>
+            <span class="diag-chip">SUPABASE_URL: {{ diagResult.envPresence?.SUPABASE_URL ? '✓' : '✗ fehlt!' }}</span>
+            <span class="diag-chip">SUPABASE_SECRET_KEY: {{ diagResult.envPresence?.SUPABASE_SECRET_KEY ? '✓' : '✗ fehlt!' }}</span>
+            <span class="diag-chip" :class="diagResult.flagValue === true ? 'diag-ok' : 'diag-warn'">
+              basic_expert_toggle: {{ JSON.stringify(diagResult.flagValue) }}
+            </span>
+            <span v-if="diagResult.flagUpdatedAt" class="diag-chip">zuletzt: {{ diagResult.flagUpdatedAt }}</span>
+          </div>
+          <details class="diag-details">
+            <summary>Alle app_settings Zeilen ({{ diagResult.rows?.length ?? 0 }})</summary>
+            <pre class="diag-pre">{{ JSON.stringify(diagResult.rows, null, 2) }}</pre>
+          </details>
+          <p v-if="diagResult.error" class="diag-error">{{ diagResult.error }}</p>
+        </div>
+      </div>
     </section>
 
     <section class="card hint-card">
@@ -159,6 +238,85 @@ function count(id: string): number {
 }
 .switch input:checked + .slider { background: var(--c-brand-blue); }
 .switch input:checked + .slider::before { transform: translateX(20px); }
+
+.diag-card { padding: 0; overflow: hidden; }
+.diag-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 14px var(--space-4);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-xs);
+  font-weight: 500;
+  color: var(--c-text-medium);
+  text-align: left;
+}
+.diag-toggle:hover { color: var(--c-text); }
+.diag-chevron { font-size: 16px; transition: transform 0.15s; display: inline-block; }
+.diag-chevron.open { transform: rotate(90deg); }
+.diag-body { padding: 0 var(--space-4) var(--space-4); border-top: 1px solid var(--c-border-card); }
+.diag-row { margin-top: var(--space-3); }
+.diag-label {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-medium);
+  margin-bottom: 6px;
+}
+.diag-pre {
+  margin: 0;
+  padding: 10px 12px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-card);
+  border-radius: var(--radius-xs);
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  overflow: auto;
+  max-height: 240px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+.diag-actions { display: flex; gap: 8px; margin-top: var(--space-3); flex-wrap: wrap; }
+.diag-error {
+  margin-top: 10px;
+  padding: 8px 12px;
+  background: color-mix(in srgb, #ef4444 8%, transparent);
+  border-radius: var(--radius-xs);
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: #b91c1c;
+}
+.diag-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.diag-chip {
+  padding: 2px 8px;
+  background: var(--c-bg);
+  border: 1px solid var(--c-border-card);
+  border-radius: 999px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--c-text-medium);
+}
+.diag-ok { color: #16a34a; font-weight: 600; font-size: var(--font-3xs); }
+.diag-fail { color: #dc2626; font-weight: 600; font-size: var(--font-3xs); }
+.diag-warn { color: #d97706; }
+.diag-details summary {
+  cursor: pointer;
+  font-family: var(--font-ui);
+  font-size: var(--font-3xs);
+  color: var(--c-text-medium);
+  margin-bottom: 6px;
+}
 
 .hint-card { border-color: color-mix(in srgb, var(--c-brand-blue) 20%, var(--c-border)); }
 .hint-card ol {
