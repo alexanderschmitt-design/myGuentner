@@ -57,6 +57,21 @@ export interface GuidedSuggestion {
   readonly icon?: string
 }
 
+/** Günther message + follow-up suggestions shown after a user picks a template. */
+export interface PostPickStep {
+  /** Markdown text shown as a Günther turn after template load. Receives
+   *  runtime context so it can reference the template name, param count, etc. */
+  readonly message: (ctx: { templateName: string; paramCount: number; categoryTitle: string }) => string
+  /** Suggestion buttons below the explanation.
+   *  `action: 'navigate'` → triggers the deferred navigation to thermodynamics.
+   *  `action: 'stay'`     → keeps the drawer open for further input (future). */
+  readonly suggestions?: ReadonlyArray<{
+    readonly label: string
+    readonly detail?: string
+    readonly action: 'navigate' | 'stay'
+  }>
+}
+
 export interface GuidedStep {
   readonly id: string
   /** Markdown-safe assistant turn text. Kept short — one paragraph max. */
@@ -67,6 +82,9 @@ export interface GuidedStep {
   readonly suggestions?: readonly GuidedSuggestion[]
   /** Show a "Weiter" button when there are no suggestions (default: yes) */
   readonly showAdvance?: boolean
+  /** When set, applyRecommendation() shows this message + suggestions instead
+   *  of navigating immediately. Navigation happens on 'navigate'-action click. */
+  readonly postPickStep?: PostPickStep
   /**
    * Signalisiert, dass dieser Step bereits beantwortet ist (durch Guided-Q&A
    * auf der Home-Karte, ein zuvor geladenes Template, o.ä.). Wenn beim
@@ -408,17 +426,25 @@ const thermoRefrigerantFlow: GuidedFlow = {
         'Pick one to load a full pre-configured wizard, or skip to fine-tune manually.',
       kind: 'recommendations',
       recommendationCtx: {
-        // Aktuelle Kategorie aus dem Store (Slug + numerische ID via
-        // findCategoryIdBySlug — der Wizard bleibt auf derselben Cat).
         resolveTarget: (store) => {
           const slug = store.currentCategory || 'evaporator-dx'
           return { slug, catId: findCategoryIdBySlug(slug) }
         },
-        // Skip = manueller Weg. Keine Template-Anwendung; User bleibt einfach
-        // auf Thermodynamics und geht per NEXT weiter.
         finalize: () => true
       },
-      showAdvance: false
+      showAdvance: false,
+      postPickStep: {
+        message: ({ templateName, paramCount, categoryTitle }) =>
+          `I've loaded **${templateName}** — ${paramCount} parameters have been pre-filled.\n\n` +
+          `This configuration is based on a proven ${categoryTitle} design from the Güntner portfolio. ` +
+          `Please review the pre-filled values and adjust them to your specific requirements.\n\n` +
+          `**Any special requirements for your application?**`,
+        suggestions: [
+          { label: 'No, values look good — continue', detail: 'Go to thermodynamics', action: 'navigate' },
+          { label: 'Yes, I want to adjust values', detail: 'Stay and fine-tune parameters', action: 'stay' },
+          { label: 'Choose a different template', detail: 'Back to template selection', action: 'stay' }
+        ]
+      }
     }
   ]
 }
@@ -497,7 +523,19 @@ const thermoLiquidFlow: GuidedFlow = {
         },
         finalize: () => true
       },
-      showAdvance: false
+      showAdvance: false,
+      postPickStep: {
+        message: ({ templateName, paramCount, categoryTitle }) =>
+          `I've loaded **${templateName}** — ${paramCount} parameters have been pre-filled.\n\n` +
+          `This configuration is based on a proven ${categoryTitle} design from the Güntner portfolio. ` +
+          `Please review the pre-filled values and adjust them to your specific requirements.\n\n` +
+          `**Any special requirements for your application?**`,
+        suggestions: [
+          { label: 'No, values look good — continue', detail: 'Go to thermodynamics', action: 'navigate' },
+          { label: 'Yes, I want to adjust values', detail: 'Stay and fine-tune parameters', action: 'stay' },
+          { label: 'Choose a different template', detail: 'Back to template selection', action: 'stay' }
+        ]
+      }
     }
   ]
 }

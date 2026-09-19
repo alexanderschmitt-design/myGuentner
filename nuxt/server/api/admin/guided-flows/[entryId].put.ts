@@ -18,7 +18,8 @@ const ALLOWED: Record<string, string> = {
   targetCatId: 'target_cat_id',
   targetSlug: 'target_slug',
   enabled: 'enabled',
-  demoOverride: 'demo_override'
+  demoOverride: 'demo_override',
+  postPickMessage: 'post_pick_message'
 }
 
 const VALID_TARGET_KINDS = new Set(['static', 'refrigerant-map'])

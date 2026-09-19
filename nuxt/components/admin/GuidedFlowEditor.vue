@@ -52,6 +52,7 @@ interface DbFlow {
   enabled: boolean
   updated_at: string
   demo_override?: DemoOverride | null
+  post_pick_message?: string | null
 }
 
 interface TemplateSummary {
@@ -445,7 +446,8 @@ async function onSave() {
                   .filter(i => i.templateId)
                   .map(i => ({ templateId: i.templateId, matchCount: i.matchCount }))
               }
-            : null
+            : null,
+          postPickMessage: draft.value.post_pick_message?.trim() || null
         }
       }
     )
@@ -610,6 +612,22 @@ async function onSave() {
           Refrigerant × Purpose mapping lives in <code>nuxt/data/homeEntryFlows.ts</code>
           (<code>REFRIGERANT_TARGET_MAP</code>) — editing it requires a code change.
         </p>
+      </section>
+
+      <!-- Post-Pick Message -->
+      <section class="editor-section">
+        <h3>Post-Pick Message <span class="badge-optional">optional</span></h3>
+        <p class="section-hint">
+          When a user picks a template from the Recommended Products step, Günther shows this message
+          instead of navigating immediately. Supports Markdown. Leave empty to navigate directly (default behaviour).
+          Use <code>{templateName}</code>, <code>{paramCount}</code>, <code>{categoryTitle}</code> as placeholders.
+        </p>
+        <textarea
+          v-model="draft.post_pick_message"
+          class="field-input post-pick-textarea"
+          rows="4"
+          placeholder="I've loaded **{templateName}** — {paramCount} parameters pre-filled.&#10;&#10;Any special requirements for your application?"
+        />
       </section>
 
       <!-- Demo Override -->
@@ -1231,6 +1249,19 @@ async function onSave() {
   color: #676377;
   font-style: italic;
   font-size: 13px;
+}
+
+/* ---- Post-Pick Message ---- */
+.post-pick-textarea { resize: vertical; min-height: 80px; font-family: inherit; width: 100%; }
+.badge-optional {
+  font-size: var(--font-4xs, 11.58px);
+  font-weight: 400;
+  color: var(--c-text-medium, #676377);
+  background: var(--c-surface-alt, #f5f4f0);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin-left: 6px;
+  vertical-align: middle;
 }
 
 /* ---- Demo Override section ---- */

@@ -79,6 +79,10 @@ export interface EntryFlowConfig {
     enabled: boolean
     items: ReadonlyArray<{ templateId: string; matchCount: number }>
   } | null
+  /** Optional markdown message shown after the user picks a template.
+   *  When set, a PostPickStep is attached to the recommendations step so
+   *  Günther explains the template and asks a follow-up before navigating. */
+  readonly postPickMessage?: string | null
 }
 
 // ============================================================================
@@ -133,7 +137,25 @@ export function buildEntryFlow(config: EntryFlowConfig): GuidedFlow {
       finalize: (ctx) => { finalize(ctx, config) },
       demoOverride: config.demoOverride ?? null
     },
-    showAdvance: false
+    showAdvance: false,
+    ...(config.postPickMessage
+      ? {
+          postPickStep: {
+            message: ({ templateName, paramCount, categoryTitle }) => {
+              // Replace placeholders or use the raw admin text with context appended
+              const base = config.postPickMessage!
+                .replace(/\{templateName\}/g, templateName)
+                .replace(/\{paramCount\}/g, String(paramCount))
+                .replace(/\{categoryTitle\}/g, categoryTitle)
+              return base
+            },
+            suggestions: [
+              { label: 'No, values look good — continue', detail: 'Go to thermodynamics', action: 'navigate' as const },
+              { label: 'Yes, I want to adjust values', detail: 'Stay and fine-tune parameters', action: 'stay' as const }
+            ]
+          }
+        }
+      : {})
   }
 
   return {

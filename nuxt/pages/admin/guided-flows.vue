@@ -30,6 +30,7 @@ interface DbFlow {
   enabled: boolean
   updated_at: string
   demo_override?: DemoOverride | null
+  post_pick_message?: string | null
 }
 
 const toast = useToast()

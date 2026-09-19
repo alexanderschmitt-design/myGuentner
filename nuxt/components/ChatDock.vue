@@ -58,6 +58,26 @@ const route = useRoute()
 const preload = useChatDockPreload()
 const toast = useToast()
 
+// Proaktive Serien-Info-Bubble: wenn der User in Unit Selection eine Serie
+// anklickt und sie in product_series_meta gepflegt ist, schickt Günther
+// automatisch eine Bubble mit Intro-Text + Dokument-Links.
+const { activeSeriesMeta, activeSeriesCode } = useSeriesContext()
+let _lastAnnouncedSeriesCode: string | null = null
+watch(activeSeriesMeta, (meta) => {
+  if (!meta) return
+  if (activeSeriesCode.value === _lastAnnouncedSeriesCode) return
+  if (!meta.introText && !meta.docs?.length) return
+  _lastAnnouncedSeriesCode = activeSeriesCode.value
+
+  const docLines = (meta.docs ?? []).map((d) => {
+    const href = d.dmsId ? `/api/dms/content/${d.dmsId}` : `/api/documents/${d.id}/download`
+    return `📄 [${d.name}](${href})`
+  })
+  const bubble = [meta.introText, ...docLines].filter(Boolean).join('\n\n')
+  history.value.push({ role: 'assistant', content: bubble })
+  nextTick(() => { if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight })
+})
+
 // Chatbot-Tool gpc_apply_template — Watcher wendet das Template auf den
 // Store an sobald das SSE-Event `template_apply` reingekommen ist. Zusätzlich
 // wird der Auto-Apply-Session-Flag gesetzt, damit thermodynamics.vue nicht
@@ -241,6 +261,25 @@ watch(
 )
 
 function onSuggestionByIdx(step: GuidedStep, idx: number) {
+  // Post-pick steps use the step id prefix and their own suggestion action type.
+  if (step.id.startsWith('post-pick-')) {
+    const postSugg = (step as any).__postPickSuggestions?.[idx]
+    if (postSugg?.action === 'navigate' && pendingPostPickNavTarget.value) {
+      history.value = [...history.value, {
+        role: 'user',
+        content: postSugg.label + (postSugg.detail ? ` — ${postSugg.detail}` : '')
+      }]
+      const target = pendingPostPickNavTarget.value
+      pendingPostPickNavTarget.value = null
+      useRouter().push(target)
+    } else if (postSugg?.action === 'stay') {
+      history.value = [...history.value, {
+        role: 'user',
+        content: postSugg.label + (postSugg.detail ? ` — ${postSugg.detail}` : '')
+      }]
+    }
+    return
+  }
   const s = step.suggestions?.[idx]
   if (s) onSuggestion(s, step)
 }
@@ -292,6 +331,9 @@ const recLoading = ref(false)
  *  anderen Kategorie gehört als die vom Guided-Entry-Flow resolvete
  *  Ziel-Kategorie. UI zeigt dann einen Confirm-Turn statt still zu redirekten. */
 const pendingCrossCategory = ref<{ template: RecommendationTemplate; step: GuidedStep; sourceSlug: string; targetSlug: string } | null>(null)
+/** When a postPickStep intercepts navigation, the deferred nav target is stored here
+ *  until the user clicks a 'navigate'-action suggestion. */
+const pendingPostPickNavTarget = ref<string | null>(null)
 const crossCategoryInfo = computed<CrossCategoryInfo | null>(() => {
   if (!pendingCrossCategory.value) return null
   const p = pendingCrossCategory.value
@@ -443,40 +485,81 @@ async function onRecommendationPick(t: RecommendationTemplate, step: GuidedStep)
 
 async function applyRecommendation(t: RecommendationTemplate, step: GuidedStep) {
   pendingCrossCategory.value = null
-  // 1) Template applien (existing store action aus Templates-Feature)
+  // 1) Template applien
   configStore.applyTemplate(t.configuration)
   configStore.noteTemplateApplied(t.id ?? null, t.name ?? null)
 
-  // 2) Sicherstellen dass die Ziel-Kategorie gesetzt ist (Template kann
-  //    unterschiedliche Kategorie tragen — wir nehmen die vom Template).
+  // 2) Ziel-Kategorie setzen
   const targetSlug = t.categorySlug || recTargetSlug.value || configStore.currentCategory
   const cat = targetSlug ? getCategoryBySlug(targetSlug) : null
   const catId = cat ? cat.id : (recTargetCatId.value ?? 0)
   configStore.setProductSection(1)
   configStore.currentCategory = targetSlug || null
 
-  // 3) sessionStorage-Flag setzen damit der thermodynamics-Auto-Apply-Hook
-  //    unser Template nicht überschreibt.
+  // 3) sessionStorage-Flag damit thermodynamics-Auto-Apply-Hook nicht überschreibt
   if (typeof window !== 'undefined' && targetSlug) {
     window.sessionStorage.setItem(`gpc:autoApplied:${targetSlug}`, '1')
   }
 
-  // 4) Transcript-Eintrag als User-Turn (damit der Chat es „bestätigt")
-  history.value = [
-    ...history.value,
-    { role: 'user', content: `Load template: ${t.name}` }
-  ]
-
-  // 5) Flash-Banner triggern
+  // 4) Flash-Banner
   triggerFlash({
     templateName: t.name,
     paramCount: t.paramCount,
     categoryTitle: cat?.title
   })
 
-  // 6) Navigieren
-  await useRouter().push(`/mygpc/${catId}/thermodynamics`)
-  void step
+  const navTarget = `/mygpc/${catId}/thermodynamics`
+  const postPick = step.postPickStep
+
+  if (postPick) {
+    // 5a) Replace the recommendations card in history with a plain user turn
+    // (no guidedStep) so RecommendedProducts is no longer rendered while the
+    // post-pick explanation is showing. We strip the last guidedStep entry
+    // (the r/l-recommendations step) and replace it with the user turn.
+    const withoutLastGuided = history.value.filter((h, i, arr) => {
+      if (!h.guidedStep) return true
+      const lastIdx = arr.map(x => !!x.guidedStep).lastIndexOf(true)
+      return i !== lastIdx
+    })
+    history.value = [...withoutLastGuided, { role: 'user', content: `Load template: ${t.name}` }]
+
+    // Build the explanation message with runtime context
+    const msgText = postPick.message({
+      templateName: t.name,
+      paramCount: t.paramCount,
+      categoryTitle: cat?.title ?? targetSlug ?? ''
+    })
+
+    // Map postPick suggestions to GuidedSuggestion shape (no apply — handled above)
+    const mappedSuggestions = (postPick.suggestions ?? []).map(s => ({
+      label: s.label,
+      detail: s.detail,
+      apply: () => false as const
+    }))
+
+    // Synthetic GuidedStep rendered as a ConfigQuestionCard; the action is
+    // resolved in onSuggestionByIdx via __postPickSuggestions side-channel.
+    const postStep: GuidedStep & { __postPickSuggestions: typeof postPick.suggestions } = {
+      id: `post-pick-${t.id}`,
+      message: msgText,
+      suggestions: mappedSuggestions,
+      showAdvance: false,
+      __postPickSuggestions: postPick.suggestions
+    } as any
+
+    history.value = [...history.value, {
+      role: 'assistant',
+      content: msgText,
+      guidedStep: postStep
+    }]
+
+    // Store nav target — released by onSuggestionByIdx when user clicks 'navigate'
+    pendingPostPickNavTarget.value = navTarget
+  } else {
+    // 5b) Classic behaviour: user-turn + immediate navigation
+    history.value = [...history.value, { role: 'user', content: `Load template: ${t.name}` }]
+    await useRouter().push(navTarget)
+  }
 }
 
 async function onCrossCategoryConfirm() {
@@ -1033,6 +1116,18 @@ function pickPreset(p: PresetIntent) {
                 @cross-confirm="onCrossCategoryConfirm"
                 @cross-cancel="onCrossCategoryCancel"
                 @contact-sales="onContactSales"
+              />
+            </template>
+            <!-- Post-pick explanation step — synthetic step injected after template pick,
+                 not tracked by useGuidedFlow so we match by id prefix instead. -->
+            <template v-else-if="msg.guidedStep
+                            && guidedEnabled
+                            && msg.guidedStep.id.startsWith('post-pick-')">
+              <ConfigQuestionCard
+                :message="msg.content"
+                :suggestions="msg.guidedStep.suggestions ?? []"
+                card-label="TEMPLATE LOADED"
+                @suggest="idx => onSuggestionByIdx(msg.guidedStep!, idx)"
               />
             </template>
             <template v-else-if="msg.guidedStep

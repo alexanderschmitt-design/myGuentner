@@ -197,3 +197,4 @@ Verwaltet unter `/admin/features`. Gespeichert in `app_settings` unter `feature.
 | 2026-09-18 | Chat-Design: hellgrauer Body, weiße Kacheln, KI-Disclaimer |
 | 2026-09-18 | Sales-Kontakt-Formular in RecommendedProducts + `contact_requests` Tabelle |
 | 2026-09-18 | Alle grünen rec-card Styles → blau (konsistentes Farbschema) |
+| 2026-09-18 | Post-Template-Pick: Serien-Erklärung + Folgefragen nach Template-Wahl im Guided Flow |

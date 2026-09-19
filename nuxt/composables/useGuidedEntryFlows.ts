@@ -41,10 +41,12 @@ interface DbFlow {
   target_slug: string | null
   enabled: boolean
   demo_override?: DemoOverride | null
+  post_pick_message?: string | null
 }
 
 function dbRowToConfig(row: DbFlow): EntryFlowConfig | null {
   const demoOverride = row.demo_override ?? null
+  const postPickMessage = row.post_pick_message ?? null
   if (row.target_kind === 'static') {
     if (row.target_cat_id == null || !row.target_slug) return null
     return {
@@ -54,7 +56,8 @@ function dbRowToConfig(row: DbFlow): EntryFlowConfig | null {
       questions: row.questions,
       fixedParams: row.fixed_params,
       target: { catId: row.target_cat_id, slug: row.target_slug },
-      demoOverride
+      demoOverride,
+      postPickMessage
     }
   }
   // refrigerant-map: Code-Resolver derselben entryId wiederverwenden.
@@ -67,7 +70,8 @@ function dbRowToConfig(row: DbFlow): EntryFlowConfig | null {
     questions: row.questions,
     fixedParams: row.fixed_params,
     target: codeConfig.target,
-    demoOverride
+    demoOverride,
+    postPickMessage
   }
 }
 

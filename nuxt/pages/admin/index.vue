@@ -67,6 +67,12 @@ const cards: Card[] = [
     title: 'Home Sections',
     description: 'Sichtbarkeit der Startseiten-Tabs pro Browser umschalten.',
     icon: 'M2 3h12v3H2z M2 8h12v3H2z M2 13h8v1H2z'
+  },
+  {
+    to: '/admin/products',
+    title: 'Produktserien',
+    description: 'Chatbot-Intro-Text, Dokumente und Templates pro Güntner-Serie pflegen.',
+    icon: 'M2 3h5v10H2z M9 3h5v10H9z M4 7h1 M11 7h1 M4 10h1 M11 10h1'
   }
 ]
 </script>

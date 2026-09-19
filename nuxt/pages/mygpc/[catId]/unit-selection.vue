@@ -103,6 +103,8 @@ function clearModelFilter() {
   singleSelectedUnit.value = null
 }
 
+const { announceSeriesSelected } = useSeriesContext()
+
 function toggleSeries(id: string) {
   const s = SERIES.value.find(x => x.id === id)
   if (!s) return
@@ -120,7 +122,10 @@ function toggleSeries(id: string) {
     return
   }
   if (selectedSeries.value.has(id)) selectedSeries.value.delete(id)
-  else selectedSeries.value.add(id)
+  else {
+    selectedSeries.value.add(id)
+    announceSeriesSelected(id)
+  }
   selectedSeries.value = new Set(selectedSeries.value)
 }
 
