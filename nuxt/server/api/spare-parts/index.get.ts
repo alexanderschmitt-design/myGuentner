@@ -21,7 +21,7 @@ export default defineEventHandler(async (event) => {
   const sb = getSupabaseServiceClient()
   let query = sb
     .from('spare_parts')
-    .select('id, code, description, category, price, price_strike, availability, series_codes, specs', { count: 'exact' })
+    .select('id, code, description, category, price, price_strike, availability, series_codes, specs, doc_ids, notes', { count: 'exact' })
     .order('category', { ascending: true })
     .order('code', { ascending: true })
     .range(offset, offset + limit - 1)

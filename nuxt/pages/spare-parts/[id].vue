@@ -1,61 +1,110 @@
 <script setup lang="ts">
 /**
- * /spare-parts/:id — Spare-part detail page.
- *
- * Mirrors Figma file WHGL55cJW0T7FwpmczbwB0 (node "Spare part details page — External"):
- *   Top     — breadcrumbs
- *   Hero    — 2-col: product image (left) + info card (right)
- *   Section — Required included parts (N)
- *   Section — Technical details
- *   Section — Documents (N)
- *   Footer  — GTC disclaimer
- *
- * All primary content is derived from useSparePartsData() so the list and
- * the detail always show the same values for the same product id.
+ * /spare-parts/:id — Spare-part detail page (DB-backed).
  */
 
-import { AVAILABILITY_LABEL, detailSpecs, documentsFor, documentCount, useSparePartsData } from '~/composables/useSparePartsData'
-import type { PartRow } from '~/composables/useSparePartsData'
+type Availability = 'in-stock' | 'out-of-stock' | 'not-available' | 'no-longer-available'
+
+interface DocRef {
+  id: string
+  name: string
+  type: string
+  dmsId: string | null
+  source: string
+}
+
+interface DBSparePart {
+  id: number
+  code: string
+  description: string | null
+  category: string | null
+  sub_category: string | null
+  price: number | null
+  price_strike: number | null
+  availability: string
+  series_codes: string[] | null
+  specs: Record<string, any> | null
+  doc_ids?: string[]
+  notes?: string | null
+  docs?: DocRef[]
+}
+
+const AVAILABILITY_LABEL: Record<string, string> = {
+  'in-stock': 'In Stock',
+  'out-of-stock': 'Out of Stock',
+  'not-available': 'Not Available',
+  'no-longer-available': 'No Longer Available'
+}
 
 const route  = useRoute()
 const router = useRouter()
 
-const { getById, getRelated } = useSparePartsData()
-
 const id      = computed(() => String(route.params.id))
-const product = computed<PartRow | undefined>(() => getById(id.value))
+const loading = ref(true)
+const product = ref<DBSparePart | null>(null)
 
 useHead(() => ({
   title: product.value ? `myGüntner — ${product.value.code}` : 'myGüntner — Spare part'
 }))
 
-// If we hit a bad id, bounce back to the list rather than showing a broken page
-onMounted(() => {
-  if (!product.value) router.replace('/spare-parts')
+onMounted(async () => {
+  try {
+    const res = await $fetch<{ ok: boolean; part: DBSparePart | null }>(`/api/spare-parts/${id.value}`)
+    if (res.ok && res.part) {
+      product.value = res.part
+    } else {
+      router.replace('/spare-parts')
+    }
+  } catch {
+    router.replace('/spare-parts')
+  }
+  loading.value = false
 })
 
 // ---------- Derived detail-page data ----------
-const requiredParts = computed(() => {
+
+function fmtEur(n: number | null): string {
+  if (n == null) return '—'
+  return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
+}
+
+// specPairs from JSONB specs field
+const specPairs = computed(() => {
   const p = product.value
   if (!p) return []
-  const req = (p.accessories || []).filter(a => a.role === 'required')
-  if (req.length) return req.map(a => ({ thumb: a.thumb, category: a.category, code: a.code }))
-  // Fallback: siblings in the same category so the section always has something
-  return getRelated(p).slice(0, 6).map(r => ({ thumb: r.thumb, category: r.category, code: r.code }))
+  const pairs: { label: string; value: string }[] = []
+  if (p.sub_category) pairs.push({ label: 'Sub-category', value: p.sub_category })
+  const sc = Array.isArray(p.series_codes) ? p.series_codes : []
+  if (sc.length) pairs.push({ label: 'Compatible series', value: sc.join(', ') })
+  if (p.specs && typeof p.specs === 'object') {
+    for (const [k, v] of Object.entries(p.specs)) {
+      if (v != null && v !== '') pairs.push({ label: String(k), value: String(v) })
+    }
+  }
+  return pairs
 })
 
+const price        = computed(() => fmtEur(product.value?.price ?? null))
+const priceStrike  = computed(() => product.value?.price_strike != null ? fmtEur(product.value.price_strike) : null)
+const availability = computed<Availability>(() => (product.value?.availability ?? 'not-available') as Availability)
+
+// Documents (resolved from doc_ids via API)
+const docsCount    = computed(() => product.value?.docs?.length ?? 0)
+const documents    = computed(() => product.value?.docs ?? [])
+const showAllDocs  = ref(false)
+const visibleDocs  = computed(() => showAllDocs.value ? documents.value : documents.value.slice(0, 3))
+
+function docHref(doc: DocRef): string {
+  return doc.dmsId ? `/api/dms/content/${doc.dmsId}` : `/api/documents/${doc.id}/download`
+}
+
+// No DB-backed related parts yet
+const requiredParts  = computed(() => [])
 const showAllRequired = ref(false)
-const visibleRequired = computed(() => showAllRequired.value ? requiredParts.value : requiredParts.value.slice(0, 3))
+const visibleRequired = computed(() => [])
 
-const showAllDocs = ref(false)
-const documents   = computed(() => product.value ? documentsFor(product.value) : [])
-const visibleDocs = computed(() => showAllDocs.value ? documents.value : documents.value.slice(0, 3))
-
-const specPairs   = computed(() => product.value ? detailSpecs(product.value) : [])
-const docsCount   = computed(() => product.value ? documentCount(product.value) : 0)
-
-const heroIndex   = ref(0)
-const heroSlides  = 4      // decorative — matches Figma pagination dots
+const heroIndex  = ref(0)
+const heroSlides = 4
 function heroPrev() { heroIndex.value = (heroIndex.value - 1 + heroSlides) % heroSlides }
 function heroNext() { heroIndex.value = (heroIndex.value + 1) % heroSlides }
 
@@ -64,7 +113,10 @@ function checkCompatibility() { /* placeholder */ }
 </script>
 
 <template>
-  <div v-if="product" class="detail">
+  <div v-if="loading" class="detail">
+    <p class="empty-state">Loading…</p>
+  </div>
+  <div v-else-if="product" class="detail">
     <!-- Breadcrumbs -->
     <nav class="crumbs" aria-label="Breadcrumb">
       <NuxtLink to="/overview" class="crumb">Overview</NuxtLink>
@@ -79,7 +131,7 @@ function checkCompatibility() { /* placeholder */ }
     <!-- Hero: image + info card -->
     <section class="hero">
       <div class="hero-image">
-        <SparePartThumb :kind="product.thumb" :size="480" contain />
+        <SparePartThumb kind="box" :size="480" contain />
         <div class="hero-pagination">
           <div class="dots">
             <span
@@ -105,10 +157,6 @@ function checkCompatibility() { /* placeholder */ }
             <div class="brand-mark" aria-hidden="true">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M6 12h12M12 6v12"/></svg>
             </div>
-            <span v-if="product.isKit || (product.accessories && product.accessories.length)" class="kit-badge">
-              Product Kit
-              <span class="kit-badge-count">{{ product.kitCount ?? (product.accessories?.length ?? 1) }}</span>
-            </span>
           </div>
           <div class="hero-tools">
             <button type="button" class="icon-btn" aria-label="Save to project">
@@ -129,12 +177,9 @@ function checkCompatibility() { /* placeholder */ }
         </div>
 
         <div class="hero-price">
-          <span class="hp-current">{{ product.price }}</span>
-          <span v-if="product.priceStrike" class="hp-was">{{ product.priceStrike }}</span>
-          <span v-if="product.savings" class="hp-savings">{{ product.savings }}</span>
+          <span class="hp-current">{{ price }}</span>
+          <span v-if="priceStrike" class="hp-was">{{ priceStrike }}</span>
         </div>
-
-        <p v-if="product.subCode" class="hero-subcode">{{ product.subCode }}</p>
 
         <div class="hero-divider" />
 
@@ -148,34 +193,15 @@ function checkCompatibility() { /* placeholder */ }
         <div class="hero-divider" />
 
         <div class="hero-meta">
-          <div v-if="product.kitRefs && product.kitRefs.length" class="meta-row">
-            <span class="meta-label">Kit</span>
-            <span class="meta-value">{{ product.kitRefs.join(', ') }}</span>
-            <button type="button" class="meta-jump" aria-label="Jump to kit">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M6 4h5v5"/></svg>
-            </button>
-          </div>
-          <div v-if="product.technicalPreview" class="meta-row">
-            <span class="meta-label">Technical details</span>
-            <span class="meta-value">{{ product.technicalPreview }}</span>
-            <a href="#technical" class="meta-jump" aria-label="Jump to technical details">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M6 4h5v5"/></svg>
-            </a>
-          </div>
           <div class="meta-row">
             <span class="meta-label">Availability</span>
             <span class="meta-value">
-              <span class="sp-badge" :class="`sp-badge--${product.availability}`">
-                <span v-if="product.availabilityCount">{{ product.availabilityCount }} </span>{{ AVAILABILITY_LABEL[product.availability] }}
-              </span>
+              <span class="sp-badge" :class="`sp-badge--${availability}`">{{ AVAILABILITY_LABEL[availability] }}</span>
             </span>
           </div>
-          <div class="meta-row">
-            <span class="meta-label">Documentation</span>
-            <span class="meta-value">{{ docsCount }} documents available</span>
-            <a href="#documents" class="meta-jump" aria-label="Jump to documents">
-              <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 11l6-6M6 4h5v5"/></svg>
-            </a>
+          <div v-if="product.description" class="meta-row">
+            <span class="meta-label">Description</span>
+            <span class="meta-value">{{ product.description }}</span>
           </div>
         </div>
 
@@ -213,16 +239,15 @@ function checkCompatibility() { /* placeholder */ }
     <!-- Technical details -->
     <section id="technical" class="section">
       <h2 class="section-title">Technical details</h2>
-      <div v-if="product.technicalDetails" class="tech-table-wrap">
+      <div v-if="specPairs.length" class="tech-table-wrap">
         <table class="tech-table">
           <thead>
-            <tr>
-              <th v-for="(col, i) in product.technicalDetails.columns" :key="`col-${i}`">{{ col }}</th>
-            </tr>
+            <tr><th>Property</th><th>Value</th></tr>
           </thead>
           <tbody>
-            <tr v-for="(row, i) in product.technicalDetails.rows" :key="`row-${i}`">
-              <td v-for="(cell, j) in row" :key="`cell-${i}-${j}`">{{ cell }}</td>
+            <tr v-for="(pair, i) in specPairs" :key="i">
+              <td>{{ pair.label }}</td>
+              <td>{{ pair.value }}</td>
             </tr>
           </tbody>
         </table>
@@ -235,12 +260,12 @@ function checkCompatibility() { /* placeholder */ }
       <h2 class="section-title">Documents ({{ docsCount }})</h2>
       <div class="docs-grid">
         <article v-for="(doc, i) in visibleDocs" :key="`doc-${i}`" class="doc-card">
-          <p class="doc-tag">Document</p>
-          <p class="doc-title">{{ doc.title }}</p>
-          <p class="doc-meta">{{ doc.category }} • {{ doc.language }}</p>
-          <button type="button" class="doc-download" aria-label="Download document">
+          <p class="doc-tag">{{ doc.type || 'Document' }}</p>
+          <p class="doc-title">{{ doc.name }}</p>
+          <p class="doc-meta">{{ doc.source === 'dms' ? 'DMS' : 'Upload' }}</p>
+          <a :href="docHref(doc)" target="_blank" rel="noopener" class="doc-download" aria-label="Download document">
             <svg viewBox="0 0 20 20" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3v10M6 9l4 4 4-4M4 16h12"/></svg>
-          </button>
+          </a>
         </article>
       </div>
       <button v-if="documents.length > 3" type="button" class="show-more-btn" @click="showAllDocs = !showAllDocs">
@@ -531,7 +556,8 @@ function checkCompatibility() { /* placeholder */ }
   border-bottom: 1px solid var(--c-border-card);
 }
 .tech-table tbody tr:last-child td { border-bottom: none; }
-.tech-empty { color: var(--c-text-medium); font-size: var(--font-2xs); margin: 0; }
+.tech-empty  { color: var(--c-text-medium); font-size: var(--font-2xs); margin: 0; }
+.empty-state { color: var(--c-text-medium); font-size: var(--font-2xs); padding: var(--space-lg); text-align: center; }
 
 /* Documents */
 .docs-grid {

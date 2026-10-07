@@ -1,44 +1,160 @@
 <script setup lang="ts">
 /**
  * /spare-parts — mySpareParts portal page.
- *
- * Layout mirrors Figma file WHGL55cJW0T7FwpmczbwB0, node 4338:42144:
- *   Header   — "Spare parts" title + search
- *   Filters  — All spare parts / Fans / Heating elements / Other
- *   Table    — Product (illustrated thumbnail + code), Description, Specification,
- *              Dimension, Availability, Price, Actions
- *              (rows with linked / recommended parts expand smoothly on click)
- *   Footer   — Pagination + GTC disclaimer
+ * Data sourced from /api/spare-parts (spare_parts DB table).
  */
-
-import type { PartRow, PartFilter, AccessoryRow } from '~/composables/useSparePartsData'
-import { AVAILABILITY_LABEL, useSparePartsData } from '~/composables/useSparePartsData'
 
 useHead({ title: 'myGüntner — Spare Parts' })
 
-const { rows: ROWS } = useSparePartsData()
+type PartFilter   = 'all' | 'fans' | 'heating' | 'other'
+type Availability = 'in-stock' | 'out-of-stock' | 'not-available' | 'no-longer-available'
+type ThumbKind    = 'fan' | 'fan-alt' | 'heating-tray' | 'heating-element' | 'protection-grill' | 'defrost-hose' | 'connection-cable' | 'box'
 
+interface DBSparePart {
+  id: number
+  code: string
+  description: string | null
+  category: string | null
+  sub_category: string | null
+  price: number | null
+  price_strike: number | null
+  availability: string
+  series_codes: string[] | null
+  specs: Record<string, any> | null
+}
+
+interface PartRow {
+  id: string
+  thumb: ThumbKind
+  category: string
+  code: string
+  description: string
+  specColumns: [string[], string[]]
+  dimensionLabel: string
+  dimensionValue: string
+  availability: Availability
+  availabilityCount?: string
+  price: string
+  priceStrike?: string
+  savings?: string
+  hasPricingDetails?: boolean
+  pricingDetails?: { label: string; value: string }[]
+  replacementFor?: string
+  quantity?: number
+  quantityEditable?: boolean
+  accessories?: any[]
+}
+
+interface AccSection {
+  role: 'required' | 'recommended'
+  label: string
+  priceLabel: string
+  items: any[]
+}
+
+const availabilityLabel: Record<string, string> = {
+  'in-stock': 'In Stock',
+  'out-of-stock': 'Out of Stock',
+  'not-available': 'Not Available',
+  'no-longer-available': 'No Longer Available'
+}
+
+function thumbForCategory(cat: string | null): ThumbKind {
+  if (!cat) return 'box'
+  const c = cat.toLowerCase()
+  if (c.includes('fan')) return 'fan'
+  if (c.includes('heat')) return 'heating-element'
+  if (c.includes('grill') || c.includes('protection')) return 'protection-grill'
+  if (c.includes('cable') || c.includes('connection')) return 'connection-cable'
+  if (c.includes('hose') || c.includes('defrost')) return 'defrost-hose'
+  return 'box'
+}
+
+function fmtEur(n: number | null): string {
+  if (n == null) return '—'
+  return n.toLocaleString('de-DE', { style: 'currency', currency: 'EUR' })
+}
+
+function buildSpecColumns(p: DBSparePart): [string[], string[]] {
+  const labels: string[] = []
+  const values: string[] = []
+  if (p.sub_category) { labels.push('Sub-category'); values.push(p.sub_category) }
+  const sc = Array.isArray(p.series_codes) ? p.series_codes : []
+  if (sc.length) { labels.push('Series'); values.push(sc.slice(0, 4).join(', ')) }
+  if (p.specs && typeof p.specs === 'object') {
+    for (const [k, v] of Object.entries(p.specs).slice(0, 2)) {
+      if (v != null && v !== '') { labels.push(String(k)); values.push(String(v)) }
+    }
+  }
+  if (!labels.length) { labels.push('Code'); values.push(p.code) }
+  return [labels, values]
+}
+
+function dbToRow(p: DBSparePart): PartRow {
+  const sc = Array.isArray(p.series_codes) ? p.series_codes : []
+  return {
+    id: String(p.id),
+    thumb: thumbForCategory(p.category),
+    category: p.category ?? 'Other',
+    code: p.code,
+    description: p.description ?? '',
+    specColumns: buildSpecColumns(p),
+    dimensionLabel: 'Series',
+    dimensionValue: sc.join(', ') || '—',
+    availability: (p.availability as Availability) ?? 'not-available',
+    price: fmtEur(p.price),
+    priceStrike: p.price_strike != null ? fmtEur(p.price_strike) : undefined,
+    hasPricingDetails: false,
+    accessories: []
+  }
+}
+
+// ---- State ----
+
+const parts       = ref<PartRow[]>([])
+const total       = ref(0)
+const loading     = ref(false)
 const activeFilter = ref<PartFilter>('all')
 const search       = ref('')
 const expanded     = ref<Set<string>>(new Set())
 const pricingOpen  = ref<string | null>(null)
-const currentPage  = ref(3)
-const totalPages   = 5
+const currentPage  = ref(1)
+const PAGE_SIZE    = 50
 
-function partMatchesFilter(row: PartRow): boolean {
-  if (activeFilter.value === 'all')     return true
-  if (activeFilter.value === 'fans')    return row.thumb === 'fan' || row.thumb === 'fan-alt' || row.category === 'Fan'
-  if (activeFilter.value === 'heating') return row.category.toLowerCase().includes('heat')
-  return !row.category.toLowerCase().includes('heat') && row.category !== 'Fan'
+const totalPages = computed(() => Math.max(1, Math.ceil(total.value / PAGE_SIZE)))
+
+async function loadParts() {
+  loading.value = true
+  try {
+    const offset = (currentPage.value - 1) * PAGE_SIZE
+    const params = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String(offset) })
+    if (search.value.trim()) params.set('search', search.value.trim())
+    if (activeFilter.value === 'fans')    params.set('category', 'Fans')
+    if (activeFilter.value === 'heating') params.set('category', 'Heating elements')
+
+    const res = await $fetch<{ ok: boolean; parts: DBSparePart[]; total: number }>(
+      `/api/spare-parts?${params}`
+    )
+    if (res.ok) {
+      parts.value = res.parts.map(dbToRow)
+      total.value = res.total
+    }
+  } catch { }
+  loading.value = false
 }
 
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+watch(search, () => {
+  currentPage.value = 1
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(loadParts, 300)
+})
+watch(activeFilter, () => { currentPage.value = 1; loadParts() })
+watch(currentPage, loadParts)
+
 const filteredRows = computed(() => {
-  const q = search.value.trim().toLowerCase()
-  return ROWS.filter(r => {
-    if (!partMatchesFilter(r)) return false
-    if (q && !`${r.code} ${r.description} ${r.category}`.toLowerCase().includes(q)) return false
-    return true
-  })
+  if (activeFilter.value !== 'other') return parts.value
+  return parts.value.filter(r => !['Fans', 'Heating elements'].includes(r.category))
 })
 
 function toggleRow(id: string) {
@@ -54,6 +170,7 @@ function togglePricing(id: string) {
 function closePricing() { pricingOpen.value = null }
 
 onMounted(() => {
+  loadParts()
   const onDocClick = (e: MouseEvent) => {
     if (!(e.target as HTMLElement).closest('.sp-info-btn, .sp-pricing-popover')) closePricing()
   }
@@ -62,28 +179,20 @@ onMounted(() => {
 })
 
 function goPage(n: number) {
-  if (n < 1 || n > totalPages) return
+  if (n < 1 || n > totalPages.value) return
   currentPage.value = n
 }
 
 const rowQty = ref<Record<string, number>>({})
 function qtyFor(id: string, initial = 1): number { return rowQty.value[id] ?? initial }
-function setQty(id: string, next: number)     { rowQty.value = { ...rowQty.value, [id]: Math.max(0, next) } }
+function setQty(id: string, next: number) { rowQty.value = { ...rowQty.value, [id]: Math.max(0, next) } }
 
-function addToCart(_r: PartRow | AccessoryRow) { /* wire to cart service */ }
+function addToCart(_r: PartRow | any) { /* wire to cart service */ }
 
-const availabilityLabel = AVAILABILITY_LABEL
-
-interface AccSection {
-  role: 'required' | 'recommended'
-  label: string
-  priceLabel: string
-  items: AccessoryRow[]
-}
 function accSections(r: PartRow): AccSection[] {
   const acc = r.accessories || []
-  const req: AccSection = { role: 'required',    label: 'Required product',    priceLabel: 'Price already included', items: acc.filter(a => a.role === 'required') }
-  const rec: AccSection = { role: 'recommended', label: 'Recommended product', priceLabel: 'Price not included',     items: acc.filter(a => a.role === 'recommended') }
+  const req: AccSection = { role: 'required',    label: 'Required product',    priceLabel: 'Price already included', items: acc.filter((a: any) => a.role === 'required') }
+  const rec: AccSection = { role: 'recommended', label: 'Recommended product', priceLabel: 'Price not included',     items: acc.filter((a: any) => a.role === 'recommended') }
   return [req, rec].filter(s => s.items.length)
 }
 </script>
@@ -329,7 +438,10 @@ function accSections(r: PartRow): AccSection[] {
             </tr>
           </template>
 
-          <tr v-if="!filteredRows.length">
+          <tr v-if="loading">
+            <td class="empty" colspan="7">Loading…</td>
+          </tr>
+          <tr v-else-if="!filteredRows.length">
             <td class="empty" colspan="7">No spare parts match your filter.</td>
           </tr>
         </tbody>

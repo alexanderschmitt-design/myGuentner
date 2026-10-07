@@ -18,7 +18,7 @@ useHead({ title: 'myGPC — Home' })
 
 const { visibility } = useSectionVisibility()
 
-type TabId = 'unit' | 'coil' | 'mygps' | 'application' | 'refrigerant' | 'api-services'
+type TabId = 'unit' | 'coil' | 'mygps' | 'application' | 'refrigerant' | 'api-services' | 'catalog'
 
 const activeTab = useHomeTab()
 
@@ -29,6 +29,7 @@ const visibleTabs = computed<TabId[]>(() => {
   if (v.coils)          t.push('coil')
   if (v.application)    t.push('application')
   if (v.refrigerant)    t.push('refrigerant')
+  if (v.catalog)        t.push('catalog')
   if (v['api-services']) t.push('api-services')
   if (v.mygps)          t.push('mygps')
   return t
@@ -236,6 +237,12 @@ const COILS = [
           :class="{ active: activeTab === 'refrigerant' }"
           @click="activeTab = 'refrigerant'"
         >BY REFRIGERANT</button>
+        <button
+          v-if="visibility.catalog"
+          role="tab"
+          class="tab-btn"
+          @click="navigateTo('/mygpc/catalog')"
+        >CATALOG</button>
         <button
           v-if="visibility['api-services']"
           role="tab"
