@@ -8,7 +8,12 @@ export interface ProductPreviewData {
   imagePath: string
 }
 
-defineProps<{ data: ProductPreviewData }>()
+defineProps<{
+  data: ProductPreviewData
+  /** Set to false when the card is embedded in ChatProductMessageGroup
+   *  (buttons live in the group, not in the card). Default true. */
+  showActions?: boolean
+}>()
 
 const emit = defineEmits<{
   (e: 'action', action: 'more-info' | 'configure' | 'contact-sales'): void
@@ -50,11 +55,11 @@ const emit = defineEmits<{
     <!-- Description -->
     <p v-if="data.description" class="ppc-desc">{{ data.description }}</p>
     <p v-else class="ppc-desc ppc-desc--placeholder">
-      Hochwertiges Güntner-Produkt — wählen Sie eine der Optionen unten, um mehr zu erfahren.
+      Hochwertiges Güntner-Produkt aus dem Programm von Güntner.
     </p>
 
     <!-- Actions -->
-    <div class="ppc-actions">
+    <div v-if="showActions !== false" class="ppc-actions">
       <button type="button" class="ppc-btn ppc-btn--info" @click="emit('action', 'more-info')">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="8" cy="8" r="6.5"/>

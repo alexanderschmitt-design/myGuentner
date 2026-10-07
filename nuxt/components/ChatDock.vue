@@ -12,7 +12,7 @@ import ChatMessage from './ChatMessage.vue'
 import ModalDialog from './ModalDialog.vue'
 import ConfigQuestionCard from './ConfigQuestionCard.vue'
 import RecommendedProducts from './RecommendedProducts.vue'
-import ChatProductPreviewCard from './ChatProductPreviewCard.vue'
+import ChatProductMessageGroup from './ChatProductMessageGroup.vue'
 import type { CrossCategoryInfo } from './RecommendedProducts.vue'
 import type { ProductPreviewData } from './ChatProductPreviewCard.vue'
 import type { RagSource, ToolCall, UserContext } from '~/composables/useChatStream'
@@ -48,7 +48,7 @@ interface HistoryEntry {
   /** When set, this turn is a scripted Guided-Pass step. The renderer
    *  shows suggestion buttons underneath it. */
   guidedStep?: GuidedStep
-  /** When set, renders a ChatProductPreviewCard instead of a chat bubble. */
+  /** When set, renders a ChatProductMessageGroup (card + bubble + actions). */
   productPreview?: ProductPreviewData
 }
 
@@ -1175,9 +1175,9 @@ function pickPreset(p: PresetIntent) {
                 <span v-else-if="tc.ok === undefined" class="tool-chip-summary tool-chip-pending-dots">…</span>
               </span>
             </div>
-            <!-- Product Preview Card — instant, no AI round-trip -->
+            <!-- Product message group: card + Günther bubble + action buttons -->
             <template v-if="msg.productPreview">
-              <ChatProductPreviewCard
+              <ChatProductMessageGroup
                 :data="msg.productPreview"
                 @action="action => onProductPreviewAction(action, msg.productPreview!)"
               />
