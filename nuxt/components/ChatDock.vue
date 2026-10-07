@@ -12,7 +12,9 @@ import ChatMessage from './ChatMessage.vue'
 import ModalDialog from './ModalDialog.vue'
 import ConfigQuestionCard from './ConfigQuestionCard.vue'
 import RecommendedProducts from './RecommendedProducts.vue'
+import ChatProductPreviewCard from './ChatProductPreviewCard.vue'
 import type { CrossCategoryInfo } from './RecommendedProducts.vue'
+import type { ProductPreviewData } from './ChatProductPreviewCard.vue'
 import type { RagSource, ToolCall, UserContext } from '~/composables/useChatStream'
 import type { GuidedStep } from '~/data/guidedFlows'
 import { LEARN_CATEGORIES, resolveElementMeta, type LearnCategory } from '~/composables/useLearnMode'
@@ -46,6 +48,8 @@ interface HistoryEntry {
   /** When set, this turn is a scripted Guided-Pass step. The renderer
    *  shows suggestion buttons underneath it. */
   guidedStep?: GuidedStep
+  /** When set, renders a ChatProductPreviewCard instead of a chat bubble. */
+  productPreview?: ProductPreviewData
 }
 
 const history = ref<HistoryEntry[]>([])
@@ -57,11 +61,68 @@ const homeTab = useHomeTab()
 const route = useRoute()
 const preload = useChatDockPreload()
 const toast = useToast()
+const productCtx = useChatDockProduct()
+
+// Map catalog category → wizard catId for the "Konfigurieren" card action.
+const PITCH_CAT_MAP: Record<string, number> = {
+  'Air Coolers':        2,
+  'Condensers':         3,
+  'Dry Coolers':        4,
+  'CO₂ Gas Coolers':   10,
+  'Liquid Coolers':     6,
+}
+
+// When a new product context arrives, replace any existing preview card in
+// the history and inject a fresh one. No AI call — instant local render.
+watch(productCtx, async (ctx) => {
+  if (!ctx) return
+  history.value = history.value.filter(h => !h.productPreview)
+  history.value.push({
+    role: 'assistant' as const,
+    content: '',
+    productPreview: {
+      productName:  ctx.productName,
+      category:     ctx.category,
+      subcategory:  ctx.subcategory,
+      series:       ctx.series,
+      description:  ctx.description,
+      imagePath:    ctx.imagePath,
+    },
+  })
+  await nextTick()
+  scrollToEnd()
+})
+
+function onProductPreviewAction(action: 'more-info' | 'configure' | 'contact-sales', data: ProductPreviewData) {
+  if (action === 'more-info') {
+    productCtx.value = null
+    inputValue.value = `Erzähl mir mehr über **${data.productName}** aus der Kategorie ${data.category}: technische Spezifikationen, typische Anwendungsbereiche und verfügbare Konfigurationsoptionen.`
+    nextTick(() => submit())
+  } else if (action === 'configure') {
+    const catId = PITCH_CAT_MAP[data.category] ?? null
+    productCtx.value = null
+    if (catId !== null) {
+      const cat = getCategoryById(catId)
+      if (cat) {
+        configStore.setProductSection(1)
+        configStore.currentCategory = cat.slug
+      }
+      useRouter().push(`/mygpc/${catId}/thermodynamics`)
+    } else {
+      useRouter().push('/')
+    }
+    isOpen.value = false
+  } else {
+    productCtx.value = null
+    inputValue.value = `Ich möchte den Güntner-Vertrieb kontaktieren, um mehr über **${data.productName}** zu erfahren. Wie kann ich Kontakt aufnehmen?`
+    nextTick(() => submit())
+  }
+}
 
 // Proaktive Serien-Info-Bubble: wenn der User in Unit Selection eine Serie
 // anklickt und sie in product_series_meta gepflegt ist, schickt Günther
 // automatisch eine Bubble mit Intro-Text + Dokument-Links.
-const { activeSeriesMeta, activeSeriesCode } = useSeriesContext()
+const { activeSeriesMeta, activeSeriesCode, activeVariantMeta, activeVariantKey } = useSeriesContext()
 let _lastAnnouncedSeriesCode: string | null = null
 watch(activeSeriesMeta, (meta) => {
   if (!meta) return
@@ -74,6 +135,24 @@ watch(activeSeriesMeta, (meta) => {
     return `📄 [${d.name}](${href})`
   })
   const bubble = [meta.introText, ...docLines].filter(Boolean).join('\n\n')
+  history.value.push({ role: 'assistant', content: bubble })
+  nextTick(() => { if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight })
+})
+
+// Proaktive Varianten-Info-Bubble: wenn die angewählte Serie eine gepflegte
+// Variante (product_variant_meta) hat, zeigt Günther die Produkt-Beschreibung.
+let _lastAnnouncedVariantKey: string | null = null
+watch(activeVariantMeta, (meta) => {
+  if (!meta) return
+  if (activeVariantKey.value === _lastAnnouncedVariantKey) return
+  if (!meta.description && !meta.docs?.length) return
+  _lastAnnouncedVariantKey = activeVariantKey.value
+
+  const docLines = (meta.docs ?? []).map((d) => {
+    const href = d.dmsId ? `/api/dms/content/${d.dmsId}` : `/api/documents/${d.id}/download`
+    return `📄 [${d.name}](${href})`
+  })
+  const bubble = [`**${meta.seriesVariant}** — ${meta.description}`, ...docLines].filter(Boolean).join('\n\n')
   history.value.push({ role: 'assistant', content: bubble })
   nextTick(() => { if (bodyRef.value) bodyRef.value.scrollTop = bodyRef.value.scrollHeight })
 })
@@ -1096,13 +1175,20 @@ function pickPreset(p: PresetIntent) {
                 <span v-else-if="tc.ok === undefined" class="tool-chip-summary tool-chip-pending-dots">…</span>
               </span>
             </div>
+            <!-- Product Preview Card — instant, no AI round-trip -->
+            <template v-if="msg.productPreview">
+              <ChatProductPreviewCard
+                :data="msg.productPreview"
+                @action="action => onProductPreviewAction(action, msg.productPreview!)"
+              />
+            </template>
             <!-- Guided-Pass turn: rendered as "Konfigurationsfrage"-Card
                  (blue-tinted panel + choice cards) statt der Standard-
                  Chat-Bubble. Nur für den AKTUELLEN Step — historische
                  guided-Turns würden hier nichts mehr rendern, sind aber
                  durch commitGuidedStep bereits aus der Transkript-Liste
                  entfernt worden. -->
-            <template v-if="msg.guidedStep
+            <template v-else-if="msg.guidedStep
                             && guidedEnabled
                             && guided.currentStep.value?.id === msg.guidedStep.id
                             && msg.guidedStep.kind === 'recommendations'">
@@ -2284,4 +2370,5 @@ function pickPreset(p: PresetIntent) {
   max-height: 300px;
   overflow-y: auto;
 }
+
 </style>

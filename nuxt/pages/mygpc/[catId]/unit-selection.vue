@@ -577,6 +577,19 @@ const canProceed = computed(() => selectedSeries.value.size > 0)
 const { thermoUrl, searchUrl } = useCategory()
 useHead({ title: `myGPC — Unit Selection (${current.value.title}${current.value.sublabel ? ' ' + current.value.sublabel : ''})` })
 
+// Maps wizard category IDs to catalog_products.category strings for the slider.
+const CATALOG_CATEGORY_MAP: Record<number, string> = {
+  0:  'Air Coolers',
+  1:  'Air Coolers',
+  2:  'Air Coolers',
+  3:  'Condensers',
+  4:  'Dry Coolers',
+  5:  'Condensers',
+  6:  'Liquid Coolers',
+  10: 'CO₂ Gas Coolers',
+}
+const sliderCategory = computed(() => CATALOG_CATEGORY_MAP[current.value.id] ?? '')
+
 // Templates modal state
 const templatesOpen = ref(false)
 const toast = useToast()
@@ -1498,6 +1511,11 @@ function resetConfig() {
       </div>
     </Teleport>
 
+    <!-- Recommended products from same catalog category -->
+    <div v-if="sliderCategory" class="ps-wrapper">
+      <CatalogProductSlider :category="sliderCategory" />
+    </div>
+
     <!-- Bottom nav -->
     <div class="bottom-nav">
       <button class="btn btn-text" @click="goBack">
@@ -1521,6 +1539,10 @@ function resetConfig() {
   max-width: 1440px;
   margin: 0 auto;
   padding: var(--space-lg) var(--space-sm) var(--space-sm);
+}
+
+.ps-wrapper {
+  padding: 0 0 8px;
 }
 
 /* Sub-toolbar */

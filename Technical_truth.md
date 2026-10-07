@@ -1,6 +1,6 @@
 # Technical Truth — myGPC / myGüntner
 > Dieses Dokument ist die kanonische technische Referenz. Es wird nach jedem abgeschlossenen Feature-Block aktualisiert.
-> **Zuletzt aktualisiert:** 2026-09-18
+> **Zuletzt aktualisiert:** 2026-09-19
 
 ---
 
@@ -97,25 +97,35 @@ Browser
 |---|---|---|
 | `app_settings` | Feature-Flags + Section-Visibility | `key` (z.B. `feature.chatbot`), `value` (bool), `updated_by` |
 | `guided_flows` | Guided-Q&A-Flow-Definitionen | `id`, `title`, `category_slug`, `steps` (jsonb), `is_active` |
-| `templates` | User-erstellte Konfigurations-Templates | `id`, `name`, `category_slug`, `configuration` (jsonb) |
-| `system_templates` | Güntner-kuratierte Templates | wie templates + `is_system=true`, `match_fields` |
+| `user_templates` | User + System-Templates | `id`, `name`, `category_slug`, `configuration` (jsonb), `is_system`, `visibility` |
 | `chat_messages` | Persistierte Chat-Verläufe | `id`, `session_id`, `role`, `content`, `sources` |
 | `chat_feedback` | 👍/👎 Feedback auf Antworten | `message_id`, `rating`, `correction_text` |
 | `custom_icons` | Eigene Icons für Guided-Flow-Choices | `key`, `svg_content` / `img_url` |
 | `contact_requests` | Sales-Kontakt-Formular aus Chatbot | `name`, `email`, `message`, `template_names[]`, `context` (jsonb) |
 | `documents` | RAG-Dokumente | `id`, `title`, `content_hash`, `provider` |
 | `embeddings` | Vektor-Embeddings für RAG | `document_id`, `embedding` (vector), `metadata` |
+| `product_series_meta` | Chatbot-Intro + Dokumente pro Serie | `series_code` (PK), `intro_text`, `doc_ids` (jsonb), `template_ids` (jsonb), `priority_params` (jsonb) |
+| `product_variant_meta` | Beschreibung + Dokumente + Templates pro Variante | `series_variant` (PK, z.B. "GAMC PX"), `series_code`, `description`, `doc_ids`, `template_ids`, `priority_params` (jsonb) |
+| `products` | Importierter CSV-Produktkatalog | `product_code` (PK), `series_code`, `series_variant`, `power_kw`, `defrost`, `fan_technology`, `fin_material`, `fin_spacing`, `surface_m2` u.v.m. |
+| `spare_parts` | Ersatzteil-Preisbuch aus Excel | `id` (PK), `code`, `description`, `category`, `price`, `price_strike`, `availability`, `series_codes` (jsonb), `specs` (jsonb) |
 
 ---
 
 ## 7. API-Endpunkte (Nitro)
 
-### Öffentlich
+### Öffentlich (authentifiziert via `requireUser`)
 | Methode | Route | Beschreibung |
 |---|---|---|
 | GET | `/api/app-settings` | Feature-Flags + Section-Visibility (30s gecacht) |
 | POST | `/api/chat` | SSE-Streaming-Chat via Claude |
 | POST | `/api/contact-sales` | Sales-Kontakt-Formular speichern |
+| GET | `/api/guided-flows` | Aktive Guided Flows |
+| POST | `/api/recommendations` | Template-Empfehlung nach Guided-Flow-Abschluss |
+| GET | `/api/products/:seriesCode` | Series-Meta für Chatbot-Bubble (introText, docs, templates) |
+| GET | `/api/products/variants/:variantKey` | Varianten-Meta für Chatbot-Bubble (description, docs, templates) |
+| GET | `/api/spare-parts` | Ersatzteil-Liste (search, category, limit, offset) |
+| GET | `/api/spare-parts/:id` | Einzelnes Ersatzteil per ID |
+| GET | `/api/templates` | User-Templates |
 
 ### Admin (auth-gated via `requireAdmin`)
 | Methode | Route | Beschreibung |
@@ -128,6 +138,15 @@ Browser
 | POST/PUT/DELETE | `/api/admin/users/...` | User-Verwaltung |
 | POST/DELETE | `/api/admin/custom-icons/...` | Custom-Icons für Guided Flows |
 | GET | `/api/admin/debug/app-settings` | Debug: Supabase direkt abfragen (cache-bypass) |
+| GET | `/api/admin/products` | Serien-Meta-Übersicht |
+| GET | `/api/admin/products/catalog` | Produktkatalog (search, series, limit, offset) |
+| PUT | `/api/admin/products/:seriesCode` | Serien-Meta upsert (introText, docIds, priorityParams) |
+| GET | `/api/admin/products/:seriesCode/attributes` | Attributverteilungen pro Serie |
+| GET | `/api/admin/products/variants` | Alle Varianten aus DB + Metadaten |
+| PUT | `/api/admin/products/variants/:variantKey` | Varianten-Meta upsert |
+| GET | `/api/admin/products/variants/:variantKey/attributes` | Attributverteilungen pro Variante |
+| POST | `/api/admin/products/variants/:variantKey/generate-templates` | System-Templates per Kartesischem Produkt generieren |
+| GET | `/api/admin/spare-parts` | Admin-Ersatzteil-Liste |
 
 ---
 
@@ -198,3 +217,9 @@ Verwaltet unter `/admin/features`. Gespeichert in `app_settings` unter `feature.
 | 2026-09-18 | Sales-Kontakt-Formular in RecommendedProducts + `contact_requests` Tabelle |
 | 2026-09-18 | Alle grünen rec-card Styles → blau (konsistentes Farbschema) |
 | 2026-09-18 | Post-Template-Pick: Serien-Erklärung + Folgefragen nach Template-Wahl im Guided Flow |
+| 2026-09-19 | Zweistufige Produktadministration: `product_variant_meta` DB + 6 Admin-Routen |
+| 2026-09-19 | Template-Generator: Kartesisches Produkt aus priority_params → `user_templates` (is_system=true) |
+| 2026-09-19 | ChatDock: proaktive Varianten-Bubble bei Serienauswahl in Unit Selection |
+| 2026-09-19 | Spare Parts: User-facing Seiten auf DB verbunden (`/api/spare-parts` + `/api/spare-parts/:id`) |
+| 2026-09-19 | Neue Seite: `/produkte/:variantKey` — User-facing Varianten-Detailseite |
+| 2026-09-19 | Admin: Kältemittelgruppe (series_variant) aus Serien-level Prioritätsparametern entfernt |

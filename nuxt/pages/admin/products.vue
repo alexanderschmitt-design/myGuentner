@@ -14,7 +14,8 @@ definePageMeta({ layout: 'admin', middleware: 'admin' })
 useHead({ title: 'myGPC — Produkte & Ersatzteile' })
 
 // ---- Tab-State ----
-const activeTab = ref<'serien' | 'produkte' | 'ersatzteile'>('serien')
+const activeTab = ref<'serien' | 'produkte' | 'ersatzteile' | 'katalog'>('serien')
+const catalogProductsTotal = ref<number | null>(null)
 
 // ---- Produkte-Tab ----
 interface CatalogProduct {
@@ -112,7 +113,31 @@ watch(spareCategory, () => { spareOffset.value = 0; loadSpareParts() })
 watch(activeTab, (tab) => {
   if (tab === 'produkte' && !catalogProducts.value.length) loadCatalog()
   if (tab === 'ersatzteile' && !spareParts.value.length) loadSpareParts()
+  if (tab === 'katalog' && !katalogEntries.value.length) loadKatalogEntries()
 })
+
+// ── Sync-State ────────────────────────────────────────────────────────────────
+const syncLoading = ref(false)
+const syncDryRun = ref(false)
+const syncError = ref('')
+const syncResult = ref<{
+  dryRun: boolean; total: number; preview?: number; created?: number; skipped: number;
+  products: { id: string; product_name: string; category: string; subcategory: string }[]
+} | null>(null)
+
+async function runSync() {
+  syncLoading.value = true; syncError.value = ''; syncResult.value = null
+  try {
+    const res = await $fetch<{ ok: boolean; dryRun: boolean; total: number; preview?: number; created?: number; skipped: number; products: any[]; error?: string }>(
+      '/api/admin/products/sync-images',
+      { method: 'POST', body: { dryRun: syncDryRun.value } }
+    )
+    if (!res.ok) throw new Error(res.error ?? 'Fehler beim Sync')
+    syncResult.value = res
+    if (!res.dryRun) loadKatalogEntries()
+  } catch (e: any) { syncError.value = e.message ?? 'Unbekannter Fehler' }
+  syncLoading.value = false
+}
 
 function fmtPrice(p: number | null) {
   if (p == null) return '—'
@@ -413,6 +438,177 @@ function filteredDocs(code: string): DocOption[] {
   if (!q) return docOptions.value.slice(0, 30)
   return docOptions.value.filter(d => d.name.toLowerCase().includes(q)).slice(0, 30)
 }
+
+// ── Katalog-Einträge (catalog_products CRUD) ─────────────────────────────────
+
+interface KatalogEntry {
+  id: string
+  product_name: string
+  category: string
+  subcategory: string
+  series: string | null
+  description: string | null
+  application: string | null
+  features_certifications: string | null
+  url: string | null
+  image_path: string | null
+  fan_technology: string | null
+  fin_spacing: string | null
+  defrost_type: string | null
+  price: number | null
+  is_active: boolean
+  is_auto_generated: boolean
+}
+
+const katalogEntries   = ref<KatalogEntry[]>([])
+const katalogTotal     = ref(0)
+const katalogLoading   = ref(false)
+const katalogSearch    = ref('')
+const katalogCategory  = ref('')
+const katalogOffset    = ref(0)
+const KATALOG_LIMIT    = 50
+const katalogExpanded  = reactive<Record<string, boolean>>({})
+const katalogEditState = reactive<Record<string, Partial<KatalogEntry>>>({})
+const katalogSaving    = reactive<Record<string, boolean>>({})
+
+const KATALOG_CATEGORIES = [
+  'Air Coolers', 'Condensers', 'Dry Coolers', 'CO₂ Gas Coolers', 'Liquid Coolers', 'OEM Heat Exchangers',
+]
+
+function getKatalogEdit(id: string): Partial<KatalogEntry> {
+  if (!katalogEditState[id]) {
+    const e = katalogEntries.value.find(x => x.id === id)
+    if (e) katalogEditState[id] = { ...e }
+  }
+  return katalogEditState[id] ?? {}
+}
+
+function toggleKatalogExpand(id: string) {
+  katalogExpanded[id] = !katalogExpanded[id]
+  if (katalogExpanded[id]) getKatalogEdit(id)
+}
+
+async function loadKatalogEntries() {
+  katalogLoading.value = true
+  try {
+    const params = new URLSearchParams({ limit: String(KATALOG_LIMIT), offset: String(katalogOffset.value) })
+    if (katalogSearch.value)   params.set('search',   katalogSearch.value)
+    if (katalogCategory.value) params.set('category', katalogCategory.value)
+    const res = await $fetch<{ ok: boolean; entries: KatalogEntry[]; total: number }>(
+      `/api/admin/products/catalog-entries?${params}`
+    )
+    if (res.ok) {
+      katalogEntries.value = res.entries
+      katalogTotal.value   = res.total
+      catalogProductsTotal.value = res.total
+    }
+  } catch (e: any) { toast.error('Fehler Katalog-Einträge: ' + e.message) }
+  katalogLoading.value = false
+}
+
+async function saveKatalogEntry(id: string) {
+  katalogSaving[id] = true
+  try {
+    const edit = getKatalogEdit(id)
+    const res = await $fetch<{ ok: boolean; entry?: KatalogEntry; error?: string }>(
+      `/api/admin/products/catalog-entries/${id}`,
+      { method: 'PUT', body: edit }
+    )
+    if (!res.ok) throw new Error(res.error ?? 'Unbekannter Fehler')
+    const idx = katalogEntries.value.findIndex(x => x.id === id)
+    if (idx >= 0 && res.entry) katalogEntries.value[idx] = res.entry
+    katalogExpanded[id] = false
+    delete katalogEditState[id]
+    toast.success(`${edit.product_name} gespeichert`)
+  } catch (e: any) { toast.error(`Fehler: ${e.message}`) }
+  katalogSaving[id] = false
+}
+
+function cancelKatalogEdit(id: string) {
+  katalogExpanded[id] = false
+  delete katalogEditState[id]
+}
+
+let katalogSearchTimer: ReturnType<typeof setTimeout> | null = null
+watch([katalogSearch, katalogCategory], () => {
+  katalogOffset.value = 0
+  if (katalogSearchTimer) clearTimeout(katalogSearchTimer)
+  katalogSearchTimer = setTimeout(loadKatalogEntries, 300)
+})
+
+// ── Media Picker ──────────────────────────────────────────────────────────────
+
+const mediaPicker = reactive({
+  open: false, targetId: '', search: '', filter: 'eu' as 'eu' | 'all',
+  images: [] as string[], loading: false, fallback: false,
+})
+
+const filteredMediaImages = computed(() => {
+  const q = mediaPicker.search.toLowerCase()
+  return q ? mediaPicker.images.filter(p => p.toLowerCase().includes(q)) : mediaPicker.images
+})
+
+async function loadMediaImages() {
+  mediaPicker.loading = true
+  try {
+    const res = await $fetch<{ ok: boolean; images: string[]; fallback?: boolean }>(
+      `/api/admin/products/images?filter=${mediaPicker.filter}`
+    )
+    if (res.ok) { mediaPicker.images = res.images; mediaPicker.fallback = res.fallback ?? false }
+  } catch { }
+  mediaPicker.loading = false
+}
+
+async function openMediaPicker(id: string) {
+  mediaPicker.targetId = id; mediaPicker.search = ''; mediaPicker.open = true
+  if (!mediaPicker.images.length) await loadMediaImages()
+}
+
+async function setMediaFilter(f: 'eu' | 'all') {
+  mediaPicker.filter = f; mediaPicker.images = []
+  await loadMediaImages()
+}
+
+function pickImage(path: string) {
+  if (mediaPicker.targetId === '__new__') { createForm.image_path = path }
+  else { const edit = getKatalogEdit(mediaPicker.targetId); edit.image_path = path }
+  mediaPicker.open = false
+}
+
+// ── Create Product Modal ──────────────────────────────────────────────────────
+
+const BLANK_CREATE_FORM = () => ({
+  product_name: '', category: 'Air Coolers', subcategory: 'COMPACT',
+  series: '', description: '', application: '', features_certifications: '',
+  url: '', image_path: '', fan_technology: '', fin_spacing: '', defrost_type: '',
+  price: 0, is_active: true,
+})
+
+const createModal  = ref(false)
+const createSaving = ref(false)
+const createError  = ref('')
+const createForm   = reactive(BLANK_CREATE_FORM())
+
+function openCreateModal() {
+  Object.assign(createForm, BLANK_CREATE_FORM()); createError.value = ''; createModal.value = true
+}
+
+function closeCreateModal() { createModal.value = false }
+
+async function saveNewProduct() {
+  if (!createForm.product_name.trim()) { createError.value = 'Produktname ist erforderlich'; return }
+  createSaving.value = true; createError.value = ''
+  try {
+    const res = await $fetch<{ ok: boolean; entry?: KatalogEntry; error?: string }>(
+      '/api/admin/products/catalog-entries',
+      { method: 'POST', body: { ...createForm } }
+    )
+    if (!res.ok) throw new Error(res.error ?? 'Fehler beim Speichern')
+    if (res.entry) { katalogEntries.value.unshift(res.entry); katalogTotal.value++; catalogProductsTotal.value = (catalogProductsTotal.value ?? 0) + 1 }
+    toast.success(`${createForm.product_name} angelegt`); closeCreateModal()
+  } catch (e: any) { createError.value = e.message ?? 'Unbekannter Fehler' }
+  createSaving.value = false
+}
 </script>
 
 <template>
@@ -439,6 +635,11 @@ function filteredDocs(code: string): DocOption[] {
         :class="{ 'tab-btn--active': activeTab === 'ersatzteile' }"
         @click="activeTab = 'ersatzteile'"
       >Ersatzteile</button>
+      <button
+        class="tab-btn"
+        :class="{ 'tab-btn--active': activeTab === 'katalog' }"
+        @click="activeTab = 'katalog'"
+      >Katalog</button>
     </div>
 
     <!-- ===================== TAB: SERIEN ===================== -->
@@ -865,7 +1066,387 @@ function filteredDocs(code: string): DocOption[] {
       </div>
     </div><!-- /tab ersatzteile -->
 
+    <!-- ===================== TAB: KATALOG ===================== -->
+    <div v-if="activeTab === 'katalog'" class="katalog-tab">
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="stat-card">
+          <span class="stat-number">{{ catalogProductsTotal ?? '…' }}</span>
+          <span class="stat-label">Katalog-Produkte</span>
+        </div>
+      </div>
+
+      <!-- Sync card -->
+      <div class="sync-card">
+        <h3 class="sync-title">Produktbilder synchronisieren</h3>
+        <p class="sync-desc">
+          Scannt <code>/public/images/products/</code> nach EU-Hero-Bildern und legt fehlende
+          Einträge automatisch in <code>catalog_products</code> an.
+          Funktioniert nur im lokalen Dev-Modus (kein Vercel-Serverless).
+        </p>
+        <label class="dry-run-label">
+          <input type="checkbox" v-model="syncDryRun" />
+          Nur Vorschau (kein Einfügen)
+        </label>
+        <button class="btn btn-primary sync-btn" :disabled="syncLoading" @click="runSync()">
+          <span v-if="syncLoading">Synchronisiere…</span>
+          <span v-else>Produktbilder synchronisieren</span>
+        </button>
+        <p v-if="syncError" class="sync-error">{{ syncError }}</p>
+        <div v-if="syncResult" class="sync-result">
+          <p class="sync-summary">
+            <template v-if="syncResult.dryRun">
+              Vorschau: <strong>{{ syncResult.preview }}</strong> würden angelegt,
+              <strong>{{ syncResult.skipped }}</strong> bereits vorhanden ({{ syncResult.total }} EU-Bilder)
+            </template>
+            <template v-else>
+              <strong>{{ syncResult.created }}</strong> neue Produkte angelegt,
+              <strong>{{ syncResult.skipped }}</strong> bereits vorhanden ({{ syncResult.total }} EU-Bilder)
+            </template>
+          </p>
+          <ul v-if="syncResult.products.length" class="sync-product-list">
+            <li v-for="p in syncResult.products" :key="p.id">
+              <span class="sync-product-name">{{ p.product_name }}</span>
+              <span class="sync-product-meta">{{ p.category }} · {{ p.subcategory }}</span>
+            </li>
+          </ul>
+          <p v-else class="sync-none">Alle EU-Bilder sind bereits im Katalog vorhanden.</p>
+        </div>
+      </div>
+
+      <!-- Catalog entries table -->
+      <div class="ke-section">
+        <div class="ke-header">
+          <div class="ke-header-left">
+            <h3 class="ke-title">Katalog-Produkte</h3>
+            <span class="ke-total">{{ katalogTotal }} Einträge</span>
+          </div>
+          <div class="ke-header-right">
+            <input v-model="katalogSearch" type="search" placeholder="Name, Serie …" class="ke-search" />
+            <select v-model="katalogCategory" class="ke-cat-select">
+              <option value="">Alle Kategorien</option>
+              <option v-for="c in KATALOG_CATEGORIES" :key="c" :value="c">{{ c }}</option>
+            </select>
+            <button class="ke-create-btn" @click="openCreateModal">
+              <svg viewBox="0 0 14 14" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="7" y1="1" x2="7" y2="13"/><line x1="1" y1="7" x2="13" y2="7"/></svg>
+              Neues Produkt
+            </button>
+          </div>
+        </div>
+
+        <div v-if="katalogLoading" class="ke-loading">Lade…</div>
+        <div v-else class="ke-table-wrap">
+          <table class="ke-table">
+            <thead>
+              <tr>
+                <th class="ke-th ke-th-img"></th>
+                <th class="ke-th">Name</th>
+                <th class="ke-th">Kategorie</th>
+                <th class="ke-th">Linie</th>
+                <th class="ke-th">Fan</th>
+                <th class="ke-th">Abtauung</th>
+                <th class="ke-th ke-th-center">Aktiv</th>
+                <th class="ke-th ke-th-auto"></th>
+              </tr>
+            </thead>
+            <tbody>
+              <template v-for="e in katalogEntries" :key="e.id">
+                <tr class="ke-row" :class="{ 'ke-row--expanded': katalogExpanded[e.id] }">
+                  <td class="ke-td ke-td-img">
+                    <img :src="e.image_path ?? '/images/products/Floor Air Cooler EU.png'" class="ke-thumb" loading="lazy" :alt="e.product_name" />
+                  </td>
+                  <td class="ke-td">
+                    <div class="ke-name">{{ e.product_name }}</div>
+                    <div v-if="e.series" class="ke-series">{{ e.series }}</div>
+                  </td>
+                  <td class="ke-td"><span class="ke-badge ke-badge--cat">{{ e.category }}</span></td>
+                  <td class="ke-td"><span class="ke-badge ke-badge--sub">{{ e.subcategory }}</span></td>
+                  <td class="ke-td ke-td-mono">{{ e.fan_technology ?? '—' }}</td>
+                  <td class="ke-td ke-td-mono">{{ e.defrost_type ?? '—' }}</td>
+                  <td class="ke-td ke-td-center">
+                    <span class="ke-active-dot" :class="e.is_active ? 'ke-active-dot--on' : 'ke-active-dot--off'"></span>
+                  </td>
+                  <td class="ke-td ke-td-action">
+                    <button class="ke-expand-btn" @click="toggleKatalogExpand(e.id)">{{ katalogExpanded[e.id] ? '▲' : '▼' }}</button>
+                  </td>
+                </tr>
+                <tr v-if="katalogExpanded[e.id]" class="ke-edit-row">
+                  <td colspan="8" class="ke-edit-cell">
+                    <div class="ke-edit-form">
+                      <div class="ke-fields-grid">
+                        <div class="ke-field">
+                          <label class="ke-label">Produktname</label>
+                          <input v-model="getKatalogEdit(e.id).product_name" class="ke-input" type="text" />
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Kategorie</label>
+                          <select v-model="getKatalogEdit(e.id).category" class="ke-select">
+                            <option v-for="c in KATALOG_CATEGORIES" :key="c" :value="c">{{ c }}</option>
+                          </select>
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Linie</label>
+                          <select v-model="getKatalogEdit(e.id).subcategory" class="ke-select">
+                            <option value="COMPACT">COMPACT</option>
+                            <option value="VARIO">VARIO</option>
+                            <option value="Application Specific">Application Specific</option>
+                          </select>
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Serie</label>
+                          <input v-model="getKatalogEdit(e.id).series" class="ke-input" type="text" />
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Ventilatortechnik</label>
+                          <select v-model="getKatalogEdit(e.id).fan_technology" class="ke-select">
+                            <option value="">—</option><option value="EC">EC</option><option value="AC">AC</option>
+                          </select>
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Abtauung</label>
+                          <select v-model="getKatalogEdit(e.id).defrost_type" class="ke-select">
+                            <option value="">—</option><option value="Luft">Luft</option><option value="Elektrisch">Elektrisch</option><option value="Heißgas">Heißgas</option>
+                          </select>
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Lamellenabstand</label>
+                          <input v-model="getKatalogEdit(e.id).fin_spacing" class="ke-input" type="text" placeholder="z.B. 4mm" />
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Preis (€)</label>
+                          <input v-model.number="getKatalogEdit(e.id).price" class="ke-input" type="number" step="0.01" min="0" />
+                        </div>
+                      </div>
+                      <div class="ke-field ke-field--full">
+                        <label class="ke-label">Beschreibung</label>
+                        <textarea v-model="getKatalogEdit(e.id).description" class="ke-textarea" rows="2" />
+                      </div>
+                      <div class="ke-fields-grid ke-fields-grid--2">
+                        <div class="ke-field">
+                          <label class="ke-label">Anwendung</label>
+                          <input v-model="getKatalogEdit(e.id).application" class="ke-input" type="text" />
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">Zertifikate</label>
+                          <input v-model="getKatalogEdit(e.id).features_certifications" class="ke-input" type="text" />
+                        </div>
+                        <div class="ke-field">
+                          <label class="ke-label">URL</label>
+                          <input v-model="getKatalogEdit(e.id).url" class="ke-input" type="url" />
+                        </div>
+                      </div>
+                      <!-- Image picker -->
+                      <div class="ke-field ke-field--full">
+                        <label class="ke-label">Bild (IMAGE_PATH)</label>
+                        <div v-if="getKatalogEdit(e.id).image_path" class="ip-preview">
+                          <div class="ip-thumb-wrap">
+                            <img :src="getKatalogEdit(e.id).image_path!" class="ip-thumb" :alt="e.product_name" />
+                            <button class="ip-remove-btn" title="Bild entfernen" @click="getKatalogEdit(e.id).image_path = null">
+                              <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+                            </button>
+                          </div>
+                          <div class="ip-info">
+                            <span class="ip-path">{{ getKatalogEdit(e.id).image_path }}</span>
+                            <button class="ip-change-btn" @click="openMediaPicker(e.id)">Anderes Bild wählen</button>
+                          </div>
+                        </div>
+                        <div v-else class="ip-dropzone" @click="openMediaPicker(e.id)">
+                          <svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="4"/><circle cx="14" cy="15" r="3"/><path d="M4 28l8-8 6 6 5-5 9 7"/></svg>
+                          <div class="ip-dropzone-text">
+                            <span>Kein Bild zugewiesen</span>
+                            <span class="ip-dropzone-hint">Klicken zum Auswählen aus <code>/images/products/</code></span>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="ke-active-toggle">
+                        <label class="ke-check-label">
+                          <input type="checkbox" v-model="getKatalogEdit(e.id).is_active" />
+                          Im Frontend sichtbar (is_active)
+                        </label>
+                        <span v-if="e.is_auto_generated" class="ke-auto-badge">Auto-generiert</span>
+                      </div>
+                      <div class="ke-edit-footer">
+                        <button class="ke-cancel-btn" @click="cancelKatalogEdit(e.id)">Abbrechen</button>
+                        <button class="btn btn-primary" :disabled="katalogSaving[e.id]" @click="saveKatalogEntry(e.id)">
+                          {{ katalogSaving[e.id] ? 'Speichern …' : 'Speichern' }}
+                        </button>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </template>
+              <tr v-if="!katalogEntries.length">
+                <td colspan="8" class="ke-empty">Keine Katalog-Produkte gefunden</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div v-if="katalogTotal > KATALOG_LIMIT" class="ke-pagination">
+          <button class="pg-btn" :disabled="katalogOffset === 0" @click="katalogOffset -= KATALOG_LIMIT; loadKatalogEntries()">‹ Zurück</button>
+          <span class="pg-info">{{ katalogOffset + 1 }}–{{ Math.min(katalogOffset + KATALOG_LIMIT, katalogTotal) }} / {{ katalogTotal }}</span>
+          <button class="pg-btn" :disabled="katalogOffset + KATALOG_LIMIT >= katalogTotal" @click="katalogOffset += KATALOG_LIMIT; loadKatalogEntries()">Weiter ›</button>
+        </div>
+      </div>
+
+    </div><!-- /tab katalog -->
+
   </div>
+
+  <!-- Media Picker Modal -->
+  <Teleport to="body">
+    <div v-if="mediaPicker.open" class="mp-overlay" @click.self="mediaPicker.open = false">
+      <div class="mp-modal" role="dialog" aria-modal="true">
+        <div class="mp-header">
+          <div class="mp-header-left">
+            <h3 class="mp-title">Bild auswählen</h3>
+            <span v-if="mediaPicker.fallback" class="mp-fallback-note">Statische Liste (Dev-Modus für vollständige Auswahl)</span>
+          </div>
+          <div class="mp-header-right">
+            <div class="mp-filter-tabs">
+              <button class="mp-filter-btn" :class="{ 'mp-filter-btn--active': mediaPicker.filter === 'eu' }" @click="setMediaFilter('eu')">Hero-Bilder (EU)</button>
+              <button class="mp-filter-btn" :class="{ 'mp-filter-btn--active': mediaPicker.filter === 'all' }" @click="setMediaFilter('all')">Alle Bilder</button>
+            </div>
+            <input v-model="mediaPicker.search" type="search" class="mp-search" placeholder="Suchen (z.B. Flat, Condenser) …" />
+            <button class="mp-close-btn" @click="mediaPicker.open = false">
+              <svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+            </button>
+          </div>
+        </div>
+        <div class="mp-body">
+          <div v-if="mediaPicker.loading" class="mp-loading">Lade Bilder…</div>
+          <div v-else-if="!filteredMediaImages.length" class="mp-empty">Keine Bilder gefunden für „{{ mediaPicker.search }}"</div>
+          <div v-else class="mp-grid">
+            <button
+              v-for="path in filteredMediaImages" :key="path"
+              class="mp-card"
+              :class="{ 'mp-card--selected': (mediaPicker.targetId === '__new__' ? createForm.image_path : getKatalogEdit(mediaPicker.targetId).image_path) === path }"
+              @click="pickImage(path)"
+            >
+              <div class="mp-card-img-wrap"><img :src="path" class="mp-card-img" loading="lazy" /></div>
+              <span class="mp-card-name">{{ path.split('/').pop()?.replace(' EU.png','').replace('.png','') }}</span>
+              <div v-if="(mediaPicker.targetId === '__new__' ? createForm.image_path : getKatalogEdit(mediaPicker.targetId).image_path) === path" class="mp-card-check">✓</div>
+            </button>
+          </div>
+        </div>
+        <div class="mp-footer">
+          <span class="mp-count">{{ filteredMediaImages.length }} Bild{{ filteredMediaImages.length !== 1 ? 'er' : '' }}</span>
+          <button class="ke-cancel-btn" @click="mediaPicker.open = false">Abbrechen</button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+
+  <!-- Create Product Modal -->
+  <Teleport to="body">
+    <div v-if="createModal" class="mp-overlay" @click.self="closeCreateModal">
+      <div class="mp-modal cm-modal" role="dialog" aria-modal="true">
+        <div class="mp-header">
+          <h3 class="mp-title">Neues Produkt anlegen</h3>
+          <button class="mp-close-btn" @click="closeCreateModal">
+            <svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/></svg>
+          </button>
+        </div>
+        <div class="mp-body cm-body">
+          <div class="ke-fields-grid">
+            <div class="ke-field">
+              <label class="ke-label">Produktname <span class="cm-req">*</span></label>
+              <input v-model="createForm.product_name" class="ke-input" type="text" placeholder="z.B. Cubic COMPACT Air Cooler" />
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Kategorie <span class="cm-req">*</span></label>
+              <select v-model="createForm.category" class="ke-select">
+                <option v-for="c in KATALOG_CATEGORIES" :key="c" :value="c">{{ c }}</option>
+              </select>
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Linie <span class="cm-req">*</span></label>
+              <select v-model="createForm.subcategory" class="ke-select">
+                <option value="COMPACT">COMPACT</option>
+                <option value="VARIO">VARIO</option>
+                <option value="Application Specific">Application Specific</option>
+              </select>
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Serie</label>
+              <input v-model="createForm.series" class="ke-input" type="text" />
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Ventilatortechnik</label>
+              <select v-model="createForm.fan_technology" class="ke-select">
+                <option value="">—</option><option value="EC">EC</option><option value="AC">AC</option>
+              </select>
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Abtauung</label>
+              <select v-model="createForm.defrost_type" class="ke-select">
+                <option value="">—</option><option value="Luft">Luft</option><option value="Elektrisch">Elektrisch</option><option value="Heißgas">Heißgas</option>
+              </select>
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Lamellenabstand</label>
+              <input v-model="createForm.fin_spacing" class="ke-input" type="text" placeholder="z.B. 4mm" />
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Preis (€)</label>
+              <input v-model.number="createForm.price" class="ke-input" type="number" step="0.01" min="0" />
+            </div>
+          </div>
+          <div class="ke-field ke-field--full">
+            <label class="ke-label">Beschreibung</label>
+            <textarea v-model="createForm.description" class="ke-textarea" rows="2" placeholder="Kurze Produktbeschreibung …" />
+          </div>
+          <div class="ke-fields-grid ke-fields-grid--2">
+            <div class="ke-field">
+              <label class="ke-label">Anwendung</label>
+              <input v-model="createForm.application" class="ke-input" type="text" />
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">Zertifikate</label>
+              <input v-model="createForm.features_certifications" class="ke-input" type="text" placeholder="NSF, UL …" />
+            </div>
+            <div class="ke-field">
+              <label class="ke-label">URL</label>
+              <input v-model="createForm.url" class="ke-input" type="url" placeholder="https://…" />
+            </div>
+          </div>
+          <!-- Image picker for create form -->
+          <div class="ke-field ke-field--full">
+            <label class="ke-label">Bild (IMAGE_PATH)</label>
+            <div v-if="createForm.image_path" class="ip-preview">
+              <div class="ip-thumb-wrap">
+                <img :src="createForm.image_path" class="ip-thumb" alt="Produktbild" />
+                <button class="ip-remove-btn" title="Bild entfernen" @click="createForm.image_path = ''">
+                  <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+                </button>
+              </div>
+              <div class="ip-info">
+                <span class="ip-path">{{ createForm.image_path }}</span>
+                <button class="ip-change-btn" @click="openMediaPicker('__new__')">Anderes Bild wählen</button>
+              </div>
+            </div>
+            <div v-else class="ip-dropzone" @click="openMediaPicker('__new__')">
+              <svg viewBox="0 0 40 40" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35" aria-hidden="true"><rect x="4" y="4" width="32" height="32" rx="4"/><circle cx="14" cy="15" r="3"/><path d="M4 28l8-8 6 6 5-5 9 7"/></svg>
+              <div class="ip-dropzone-text">
+                <span>Kein Bild zugewiesen</span>
+                <span class="ip-dropzone-hint">Klicken zum Auswählen</span>
+              </div>
+            </div>
+          </div>
+          <div class="ke-active-toggle">
+            <label class="ke-check-label"><input type="checkbox" v-model="createForm.is_active" /> Im Frontend sichtbar</label>
+          </div>
+          <p v-if="createError" class="cm-error">{{ createError }}</p>
+        </div>
+        <div class="mp-footer">
+          <button class="ke-cancel-btn" @click="closeCreateModal">Abbrechen</button>
+          <button class="btn btn-primary" :disabled="createSaving" @click="saveNewProduct">
+            {{ createSaving ? 'Anlegen …' : 'Produkt anlegen' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </Teleport>
 </template>
 
 <style scoped>
@@ -1422,4 +2003,131 @@ function filteredDocs(code: string): DocOption[] {
   font-size: var(--font-3xs);
   color: var(--c-text-medium);
 }
+
+/* ── Stats / Sync ─────────────────────────────────────────────────────────── */
+.stats-row { display: flex; gap: var(--space-3); margin-bottom: var(--space-4); flex-wrap: wrap; }
+.stat-card { padding: 14px 20px; background: white; border: 1px solid var(--c-border); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: 4px; min-width: 140px; }
+.stat-number { font-family: var(--font-mono); font-size: 28px; font-weight: 700; color: var(--c-brand-blue, #003865); line-height: 1; }
+.stat-label { font-family: var(--font-ui); font-size: var(--font-3xs); color: var(--c-text-medium); }
+.sync-card { padding: 20px; background: white; border: 1px solid var(--c-border); border-radius: var(--radius-md); margin-bottom: var(--space-4); display: flex; flex-direction: column; gap: var(--space-3); }
+.sync-title { font-family: var(--font-ui); font-size: var(--font-sm); font-weight: 600; color: var(--c-text-dark); margin: 0; }
+.sync-desc { font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-medium); margin: 0; line-height: 1.5; }
+.sync-desc code { background: var(--c-bg-light); padding: 1px 5px; border-radius: 3px; font-family: var(--font-mono); font-size: var(--font-3xs); }
+.dry-run-label { display: flex; align-items: center; gap: 8px; font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-dark); cursor: pointer; }
+.sync-btn { align-self: flex-start; }
+.sync-error { color: #c00; font-family: var(--font-ui); font-size: var(--font-sm); margin: 0; }
+.sync-result { padding: 14px; background: #f9f9fb; border: 1px solid var(--c-border); border-radius: var(--radius-sm); }
+.sync-summary { font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-dark); margin: 0 0 10px; }
+.sync-product-list { margin: 0; padding: 0 0 0 16px; display: flex; flex-direction: column; gap: 4px; }
+.sync-product-list li { font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-dark); display: flex; align-items: baseline; gap: 10px; }
+.sync-product-name { font-weight: 500; }
+.sync-product-meta { font-family: var(--font-mono); font-size: var(--font-3xs); color: var(--c-text-medium); }
+.sync-none { font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-medium); margin: 0; font-style: italic; }
+
+/* ── Katalog-Einträge ────────────────────────────────────────────────────────── */
+.ke-section { margin-top: var(--space-5); border: 1px solid var(--c-border); border-radius: var(--radius-md); background: white; overflow: hidden; }
+.ke-header { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: 12px 16px; border-bottom: 1px solid var(--c-border); flex-wrap: wrap; background: var(--c-surface-subtle, #f9f9fb); }
+.ke-header-left { display: flex; align-items: center; gap: var(--space-3); }
+.ke-title { font-family: var(--font-ui); font-size: var(--font-sm); font-weight: 600; color: var(--c-text-dark); margin: 0; }
+.ke-total { font-family: var(--font-ui); font-size: var(--font-3xs); color: var(--c-text-medium); background: var(--c-bg-light); border: 1px solid var(--c-border); border-radius: 20px; padding: 2px 10px; }
+.ke-header-right { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; }
+.ke-search { padding: 6px 10px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: var(--font-xs); width: 200px; background: white; }
+.ke-cat-select { padding: 6px 10px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: var(--font-xs); background: white; }
+.ke-create-btn { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; background: var(--c-brand-blue, #003865); color: white; border: none; border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: var(--font-xs); font-weight: 600; cursor: pointer; white-space: nowrap; transition: opacity 0.12s; }
+.ke-create-btn:hover { opacity: 0.88; }
+.ke-loading { padding: var(--space-5); text-align: center; color: var(--c-text-medium); font-family: var(--font-ui); font-size: var(--font-xs); }
+.ke-table-wrap { overflow-x: auto; }
+.ke-table { width: 100%; border-collapse: collapse; }
+.ke-th { padding: 8px 12px; font-family: var(--font-ui); font-size: var(--font-3xs); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--c-text-medium); text-align: left; border-bottom: 1px solid var(--c-border); background: var(--c-surface-subtle, #f9f9fb); white-space: nowrap; }
+.ke-th-img { width: 52px; }
+.ke-th-center { text-align: center; }
+.ke-th-auto { width: 48px; }
+.ke-td { padding: 8px 12px; font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-dark); border-bottom: 1px solid var(--c-border-light, #eee); vertical-align: middle; }
+.ke-td-img { width: 52px; padding: 4px 8px; }
+.ke-td-mono { font-family: var(--font-mono); font-size: var(--font-3xs); color: var(--c-text-medium); }
+.ke-td-center { text-align: center; }
+.ke-td-action { width: 48px; text-align: center; }
+.ke-row:hover { background: #f5f5f7; }
+.ke-row--expanded { background: #f0f4ff; }
+.ke-thumb { width: 40px; height: 32px; object-fit: contain; border-radius: 4px; background: #f5f5f5; display: block; }
+.ke-name { font-weight: 500; }
+.ke-series { font-family: var(--font-mono); font-size: var(--font-3xs); color: var(--c-text-medium); }
+.ke-badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; font-family: var(--font-ui); }
+.ke-badge--cat { background: #e8f0fe; color: #174ea6; }
+.ke-badge--sub { background: #e6f4ea; color: #1e7e34; }
+.ke-active-dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.ke-active-dot--on { background: #2e7d32; }
+.ke-active-dot--off { background: #bbb; }
+.ke-expand-btn { border: none; background: transparent; cursor: pointer; color: var(--c-text-medium); font-size: 11px; padding: 4px 8px; border-radius: 4px; transition: background 0.1s; }
+.ke-expand-btn:hover { background: var(--c-border); }
+.ke-edit-row { background: #f0f4ff; }
+.ke-edit-cell { padding: 0; }
+.ke-edit-form { padding: 16px; display: flex; flex-direction: column; gap: 12px; border-top: 2px solid var(--c-brand-blue, #003865); }
+.ke-fields-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.ke-fields-grid--2 { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+.ke-field { display: flex; flex-direction: column; gap: 4px; }
+.ke-field--full { grid-column: 1 / -1; }
+.ke-label { font-family: var(--font-ui); font-size: var(--font-3xs); font-weight: 600; color: var(--c-text-medium); text-transform: uppercase; letter-spacing: 0.05em; }
+.ke-input, .ke-select { padding: 6px 10px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: var(--font-xs); background: white; width: 100%; box-sizing: border-box; }
+.ke-input:focus, .ke-select:focus { outline: none; border-color: var(--c-brand-blue, #003865); }
+.ke-textarea { padding: 6px 10px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: var(--font-xs); background: white; width: 100%; box-sizing: border-box; resize: vertical; }
+.ke-textarea:focus { outline: none; border-color: var(--c-brand-blue, #003865); }
+.ke-active-toggle { display: flex; align-items: center; gap: var(--space-4); }
+.ke-check-label { display: flex; align-items: center; gap: var(--space-2); font-family: var(--font-ui); font-size: var(--font-sm); color: var(--c-text-dark); cursor: pointer; }
+.ke-auto-badge { font-family: var(--font-ui); font-size: var(--font-3xs); color: #7a5800; background: #fff8e1; border: 1px solid #ffe082; border-radius: 20px; padding: 2px 10px; font-weight: 500; }
+.ke-edit-footer { display: flex; align-items: center; justify-content: flex-end; gap: var(--space-2); padding-top: 8px; border-top: 1px solid #eee; }
+.ke-cancel-btn { padding: 6px 16px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: white; font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-medium); cursor: pointer; }
+.ke-cancel-btn:hover { background: #f5f5f7; }
+.ke-empty { text-align: center; padding: var(--space-5); color: var(--c-text-medium); font-family: var(--font-ui); font-size: var(--font-xs); }
+.ke-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-3); padding: 12px; border-top: 1px solid var(--c-border); }
+
+/* ── Inline Image Picker ──────────────────────────────────────────────────── */
+.ip-preview { display: flex; align-items: center; gap: 14px; padding: 10px; border: 1px solid var(--c-border); border-radius: var(--radius-md); background: #f9f9fb; }
+.ip-thumb-wrap { position: relative; flex-shrink: 0; width: 100px; height: 72px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); overflow: hidden; background: white; display: flex; align-items: center; justify-content: center; }
+.ip-thumb { max-width: 100%; max-height: 100%; object-fit: contain; }
+.ip-remove-btn { position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; border: none; border-radius: 50%; background: rgba(0,0,0,0.55); color: white; cursor: pointer; transition: background 0.12s; }
+.ip-remove-btn:hover { background: #c00; }
+.ip-info { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ip-path { font-family: var(--font-mono); font-size: var(--font-3xs); color: var(--c-text-medium); word-break: break-all; }
+.ip-change-btn { align-self: flex-start; padding: 5px 12px; border: 1px solid var(--c-brand-blue, #003865); border-radius: var(--radius-sm); background: white; font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-brand-blue, #003865); cursor: pointer; transition: all 0.12s; }
+.ip-change-btn:hover { background: var(--c-brand-blue, #003865); color: white; }
+.ip-dropzone { display: flex; align-items: center; gap: 14px; padding: 16px; border: 2px dashed var(--c-border); border-radius: var(--radius-md); background: #f9f9fb; cursor: pointer; transition: all 0.14s; }
+.ip-dropzone:hover { border-color: var(--c-brand-blue, #003865); background: #f0f4ff; }
+.ip-dropzone-text { display: flex; flex-direction: column; gap: 3px; font-family: var(--font-ui); }
+.ip-dropzone-text span:first-child { font-size: var(--font-sm); font-weight: 500; color: var(--c-text-dark); }
+.ip-dropzone-hint { font-size: var(--font-xs); color: var(--c-text-medium); }
+.ip-dropzone-hint code { background: var(--c-bg-light); padding: 1px 5px; border-radius: 3px; }
+
+/* ── Media Picker Modal ───────────────────────────────────────────────────── */
+.mp-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.mp-modal { background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.25); width: 100%; max-width: 860px; max-height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+.cm-modal { max-width: 700px; }
+.mp-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--c-border); flex-wrap: wrap; background: #f9f9fb; }
+.mp-header-left { display: flex; align-items: center; gap: 10px; }
+.mp-title { font-family: var(--font-ui); font-size: 15px; font-weight: 600; color: var(--c-text-dark); margin: 0; }
+.mp-fallback-note { font-family: var(--font-ui); font-size: var(--font-3xs); color: #7a5800; background: #fff8e1; border: 1px solid #ffe082; border-radius: 20px; padding: 2px 10px; }
+.mp-header-right { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.mp-filter-tabs { display: flex; gap: 2px; background: var(--c-bg-light); border: 1px solid var(--c-border); border-radius: var(--radius-sm); padding: 2px; }
+.mp-filter-btn { padding: 4px 12px; border: none; border-radius: 4px; background: transparent; font-family: var(--font-ui); font-size: var(--font-3xs); font-weight: 500; color: var(--c-text-medium); cursor: pointer; white-space: nowrap; transition: all 0.1s; }
+.mp-filter-btn--active { background: white; color: var(--c-brand-blue, #003865); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.mp-search { padding: 6px 12px; border: 1px solid var(--c-border); border-radius: var(--radius-sm); font-family: var(--font-ui); font-size: var(--font-xs); width: 200px; background: white; }
+.mp-search:focus { outline: none; border-color: var(--c-brand-blue, #003865); }
+.mp-close-btn { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--c-border); border-radius: var(--radius-sm); background: white; cursor: pointer; color: var(--c-text-medium); transition: all 0.1s; }
+.mp-close-btn:hover { background: #fff0f0; border-color: #f66; color: #c00; }
+.mp-body { flex: 1; overflow-y: auto; padding: 16px 20px; }
+.cm-body { display: flex; flex-direction: column; gap: 12px; }
+.mp-loading, .mp-empty { text-align: center; padding: 40px; color: var(--c-text-medium); font-family: var(--font-ui); font-size: var(--font-xs); }
+.mp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.mp-card { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px; border: 2px solid var(--c-border); border-radius: var(--radius-md); background: white; cursor: pointer; transition: all 0.12s; position: relative; text-align: center; }
+.mp-card:hover { border-color: var(--c-brand-blue, #003865); box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.mp-card--selected { border-color: var(--c-brand-blue, #003865); background: #f0f4ff; }
+.mp-card-img-wrap { width: 100%; height: 80px; display: flex; align-items: center; justify-content: center; background: #f9f9fb; border-radius: 4px; overflow: hidden; }
+.mp-card-img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.mp-card-name { font-family: var(--font-ui); font-size: 10px; color: var(--c-text-medium); line-height: 1.3; word-break: break-word; }
+.mp-card--selected .mp-card-name { color: var(--c-brand-blue, #003865); font-weight: 600; }
+.mp-card-check { position: absolute; top: 4px; right: 4px; width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; background: var(--c-brand-blue, #003865); color: white; border-radius: 50%; font-size: 10px; font-weight: 700; }
+.mp-footer { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--c-border); background: #f9f9fb; }
+.mp-count { font-family: var(--font-ui); font-size: var(--font-xs); color: var(--c-text-medium); }
+.cm-req { color: #c00; }
+.cm-error { color: #c00; font-family: var(--font-ui); font-size: var(--font-sm); margin: 0; padding: 8px 12px; background: #fff0f0; border: 1px solid #fcc; border-radius: var(--radius-sm); }
 </style>

@@ -34,9 +34,10 @@ const isAdmin = computed<boolean>(() => {
   return email.length > 0 && allowlist.includes(email)
 })
 
-// Step-nav under /mygpc/* + on the Datasheet page (both are wizard steps).
+// Step-nav under /mygpc/* (but not the standalone catalog) + on the Datasheet page.
 const showStepNav = computed(
-  () => route.path.startsWith('/mygpc') || route.path === '/gpc-details'
+  () => (route.path.startsWith('/mygpc') && route.path !== '/mygpc/catalog')
+    || route.path === '/gpc-details'
 )
 
 const panelsOpen = ref(false)
