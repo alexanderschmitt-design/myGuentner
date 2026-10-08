@@ -62,7 +62,7 @@ async function* parseSSE(response: Response): AsyncGenerator<any> {
 }
 
 export async function* askOpenRouter(query: string, chunks: any[], options: AskOptions = {}): AsyncIterable<LlmEvent> {
-  const language = options.language || 'de'
+  const language = options.language || 'en'
   const effort = options.effort || 'medium'
   // 2048 default (statt 4096) — passt unter das OpenRouter-Free-Tier-Limit
   // von ~2661 Tokens. Wer Guthaben auflädt, kann pro Request via

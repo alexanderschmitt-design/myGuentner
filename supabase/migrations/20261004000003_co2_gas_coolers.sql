@@ -7,34 +7,34 @@ VALUES
 
 -- CO₂ Gas Coolers — COMPACT
 ('co2-c-01', 'CO₂ Gas Coolers', 'COMPACT', 'V-shape COMPACT CO₂ Gas Cooler',
- 'V-förmiger Gaskühler für CO₂-Transkritisch-Anlagen in Supermärkten und Verbrauchermärkten. Kompakte Stellfläche, hohe Leistungsdichte.',
+ 'V-shape gas cooler for CO₂ transcritical systems in supermarkets and retail. Compact footprint with high power density.',
  'Commercial Refrigeration / CO₂ Transcritical', 'Standard',
  'https://guntner.com/products/co2-gas-coolers/v-shape-compact'),
 
 ('co2-c-02', 'CO₂ Gas Coolers', 'COMPACT', 'Flat COMPACT CO₂ Gas Cooler',
- 'Flacher Gaskühler für CO₂-Systeme mit Dach- oder Wandmontage. Niedrige Bauhöhe für gebäudeintegrierte Installationen.',
+ 'Flat gas cooler for CO₂ systems with rooftop or wall mounting. Low-profile design for building-integrated installations.',
  'Commercial Refrigeration / CO₂ Transcritical', 'Standard',
  'https://guntner.com/products/co2-gas-coolers/flat-compact'),
 
 -- CO₂ Gas Coolers — VARIO
 ('co2-v-01', 'CO₂ Gas Coolers', 'VARIO', 'V-shape VARIO CO₂ Gas Cooler',
- 'Konfigurierbarer V-Form-Gaskühler für CO₂-Transkritisch-Anlagen. Skalierbar von Supermarkt bis Industriekälte, optimierte EC-Ventilatorsteuerung.',
+ 'Configurable V-shape gas cooler for CO₂ transcritical systems. Scalable from supermarket to industrial refrigeration with optimised EC fan control.',
  'Industrial & Commercial Refrigeration / CO₂ Transcritical', 'UL',
  'https://guntner.com/products/co2-gas-coolers/v-shape-vario'),
 
 ('co2-v-02', 'CO₂ Gas Coolers', 'VARIO', 'Flat VARIO CO₂ Gas Cooler',
- 'Horizontaler Gaskühler für CO₂ mit variabler Konfiguration. Ideal für Bauhöhenbeschränkungen bei gleichzeitig hohen Leistungsanforderungen.',
+ 'Horizontal gas cooler for CO₂ with variable configuration. Ideal for height-restricted sites with high performance requirements.',
  'Industrial Refrigeration / CO₂ Transcritical', 'UL',
  'https://guntner.com/products/co2-gas-coolers/flat-vario'),
 
 -- CO₂ Gas Coolers — Application Specific
 ('co2-a-01', 'CO₂ Gas Coolers', 'Application Specific', 'V-shape VARIO CO₂ Gas Cooler with hydroBLU™',
- 'CO₂-Gaskühler mit adiabatischer Vorkühlung für extreme Sommertemperaturen. Reduziert den Gasdruck im transkritischen Betrieb erheblich und steigert die Effizienz.',
+ 'CO₂ gas cooler with adiabatic pre-cooling for extreme summer temperatures. Significantly reduces gas pressure in transcritical operation and boosts efficiency.',
  'Commercial & Industrial CO₂ Transcritical', 'UL, hydroBLU™',
  'https://guntner.com/products/co2-gas-coolers/v-shape-vario-hydroblu'),
 
 ('co2-a-02', 'CO₂ Gas Coolers', 'Application Specific', 'Modular CO₂ Gas Cooler',
- 'Modular aufgebauter Gaskühler für skalierbare CO₂-Verbundanlagen. Einzelne Sektionen können unabhängig geregelt werden — ideal für Phasenerweiterungen.',
+ 'Modular gas cooler for scalable CO₂ compound systems. Individual sections can be controlled independently — ideal for phased expansions.',
  'Industrial & Logistics / CO₂ Transcritical', 'Custom',
  'https://guntner.com/products/co2-gas-coolers/modular')
 

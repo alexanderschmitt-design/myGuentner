@@ -44,7 +44,7 @@ export function bellaConfig() {
 }
 
 export async function* askBella(query: string, chunks: any[], options: AskOptions = {}): AsyncIterable<LlmEvent> {
-  const language = options.language || 'de'
+  const language = options.language || 'en'
   const effort = options.effort || 'medium'
   const useThinking = options.thinking === true
   const maxTokens = options.maxTokens || 4096

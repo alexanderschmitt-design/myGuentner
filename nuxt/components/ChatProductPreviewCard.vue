@@ -30,7 +30,7 @@ const emit = defineEmits<{
         <circle cx="34" cy="28" r="2.2" fill="white"/>
         <path d="M23 33.5 Q28 36 33 33.5" stroke="white" stroke-width="1.8" stroke-linecap="round" fill="none"/>
       </svg>
-      <span>Produktvorschau von Günther</span>
+      <span>Product Preview by Günther</span>
     </div>
 
     <!-- Image -->
@@ -55,7 +55,7 @@ const emit = defineEmits<{
     <!-- Description -->
     <p v-if="data.description" class="ppc-desc">{{ data.description }}</p>
     <p v-else class="ppc-desc ppc-desc--placeholder">
-      Hochwertiges Güntner-Produkt aus dem Programm von Güntner.
+      A premium Güntner product from the Güntner range.
     </p>
 
     <!-- Actions -->
@@ -65,20 +65,20 @@ const emit = defineEmits<{
           <circle cx="8" cy="8" r="6.5"/>
           <path d="M8 7.5v4M8 5.5h.01"/>
         </svg>
-        Weitere Infos
+        More Info
       </button>
       <button type="button" class="ppc-btn ppc-btn--configure" @click="emit('action', 'configure')">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <circle cx="8" cy="8" r="2.5"/>
           <path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.2 3.2l1.4 1.4M11.4 11.4l1.4 1.4M11.4 3.2l-1.4 1.4M4.6 11.4l-1.4 1.4"/>
         </svg>
-        So ein Produkt konfigurieren
+        Configure this product
       </button>
       <button type="button" class="ppc-btn ppc-btn--sales" @click="emit('action', 'contact-sales')">
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M2 3h12v9a1 1 0 01-1 1H3a1 1 0 01-1-1V3z"/><path d="M2 3l6 5 6-5"/>
         </svg>
-        Sales-Mitarbeiter kontaktieren
+        Contact Sales
       </button>
     </div>
   </div>

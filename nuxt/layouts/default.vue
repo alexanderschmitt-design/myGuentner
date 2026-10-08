@@ -44,12 +44,14 @@ const panelsOpen = ref(false)
 const search = ref('')
 const toolsMenuOpen = ref(false)
 const profileOpen   = ref(false)
+const searchOpen    = ref(false)
 
 onMounted(() => {
   const onDocClick = (e: MouseEvent) => {
     const t = e.target as HTMLElement
     if (!t.closest('.tools-menu, .nav-link-tools')) toolsMenuOpen.value = false
     if (!t.closest('.profile-menu, .avatar-group'))  profileOpen.value = false
+    if (!t.closest('.search-overlay-bar, .search-icon-btn')) searchOpen.value = false
   }
   document.addEventListener('click', onDocClick)
   onBeforeUnmount(() => document.removeEventListener('click', onDocClick))
@@ -94,6 +96,7 @@ async function logout() {
           <GuentnerLogo />
         </NuxtLink>
 
+        <!-- Full search bar — desktop only (hidden below 1280px via CSS) -->
         <label class="search-field">
           <span class="search-icon" aria-hidden="true">
             <svg viewBox="0 0 20 20" width="20" height="20">
@@ -109,15 +112,59 @@ async function logout() {
             </svg>
           </span>
         </label>
+
+        <!-- Search icon button — tablet/mobile only (shown below 1280px via CSS) -->
+        <button
+          type="button"
+          class="search-icon-btn"
+          aria-label="Open search"
+          @click.stop="searchOpen = !searchOpen"
+        >
+          <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+            <circle cx="9" cy="9" r="6"/>
+            <line x1="13.5" y1="13.5" x2="17" y2="17"/>
+          </svg>
+        </button>
       </div>
+
+      <!-- Search overlay — appears over the full header on tablet/mobile when searchOpen -->
+      <Transition name="search-slide">
+        <div v-if="searchOpen" class="search-overlay-bar" @click.stop>
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <circle cx="9" cy="9" r="6"/>
+              <line x1="13.5" y1="13.5" x2="17" y2="17"/>
+            </svg>
+          </span>
+          <input
+            v-model="search"
+            type="search"
+            class="search-overlay-input"
+            placeholder="Search anything"
+            aria-label="Search"
+            autofocus
+            @keydown.escape="searchOpen = false"
+          />
+          <button
+            type="button"
+            class="search-close-btn"
+            aria-label="Close search"
+            @click="searchOpen = false"
+          >
+            <svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+              <line x1="5" y1="5" x2="15" y2="15"/><line x1="15" y1="5" x2="5" y2="15"/>
+            </svg>
+          </button>
+        </div>
+      </Transition>
 
       <nav class="right-nav">
         <div class="nav-items">
-          <NuxtLink to="/overview" class="nav-link" :class="{ active: route.path === '/overview' }">Overview</NuxtLink>
+          <NuxtLink to="/overview" class="nav-link nav-overview" :class="{ active: route.path === '/overview' }">Overview</NuxtLink>
           <NuxtLink to="/" class="nav-link" :class="{ active: route.path === '/' || route.path.startsWith('/mygpc') }">myGPC</NuxtLink>
-          <NuxtLink to="/spare-parts" class="nav-link" :class="{ active: route.path === '/spare-parts' }">mySpareParts</NuxtLink>
-          <NuxtLink to="/projects" class="nav-link" :class="{ active: route.path === '/projects' }">myProjects</NuxtLink>
-          <div class="tools-menu">
+          <NuxtLink to="/spare-parts" class="nav-link nav-secondary" :class="{ active: route.path === '/spare-parts' }">mySpareParts</NuxtLink>
+          <NuxtLink to="/projects" class="nav-link nav-secondary" :class="{ active: route.path === '/projects' }">myProjects</NuxtLink>
+          <div class="tools-menu nav-secondary">
             <button
               type="button"
               class="nav-link nav-link-caret nav-link-tools"
@@ -143,16 +190,16 @@ async function logout() {
               </div>
             </Transition>
           </div>
-          <NuxtLink to="/documents" class="nav-link" :class="{ active: route.path === '/documents' }">Documents</NuxtLink>
+          <NuxtLink to="/documents" class="nav-link nav-secondary" :class="{ active: route.path === '/documents' }">Documents</NuxtLink>
         </div>
 
         <div class="header-icons">
-          <button type="button" class="icon-btn" aria-label="Favorites">
+          <button type="button" class="icon-btn icon-secondary" aria-label="Favorites">
             <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M10 2.5l2.5 5.1 5.6.8-4.05 3.95.96 5.6L10 15.3l-5.01 2.65.96-5.6L1.9 8.4l5.6-.8L10 2.5z"/>
             </svg>
           </button>
-          <button type="button" class="icon-btn" aria-label="Notifications">
+          <button type="button" class="icon-btn icon-secondary" aria-label="Notifications">
             <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
               <path d="M4.5 13.5v-3a5.5 5.5 0 1 1 11 0v3l1.5 2h-14l1.5-2z"/>
               <path d="M8 16.5a2 2 0 0 0 4 0"/>
@@ -194,6 +241,26 @@ async function logout() {
                   <span class="profile-name">{{ displayName(user.email) }}</span>
                   <NuxtLink to="/account" class="profile-view" @click="profileOpen = false">View profile</NuxtLink>
                 </span>
+              </div>
+
+              <!-- Collapsed nav links — only visible on tablet/mobile (< 1280px) -->
+              <div class="profile-nav-links">
+                <NuxtLink to="/spare-parts" class="profile-item" role="menuitem" :class="{ 'profile-item--active': route.path === '/spare-parts' }" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h12v12H4z"/><path d="M8 4v4M12 4v4M4 10h12"/></svg>
+                  <span>mySpareParts</span>
+                </NuxtLink>
+                <NuxtLink to="/projects" class="profile-item" role="menuitem" :class="{ 'profile-item--active': route.path === '/projects' }" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="14" height="11" rx="1"/><path d="M7 5V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/></svg>
+                  <span>myProjects</span>
+                </NuxtLink>
+                <NuxtLink to="/tools/adiabatic-efficiency" class="profile-item" role="menuitem" :class="{ 'profile-item--active': route.path.startsWith('/tools') }" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12l4-8 3 6 3-4 4 6"/><path d="M3 16h14"/></svg>
+                  <span>myTools</span>
+                </NuxtLink>
+                <NuxtLink to="/documents" class="profile-item" role="menuitem" :class="{ 'profile-item--active': route.path === '/documents' }" @click="profileOpen = false">
+                  <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3h8l2 2v12H5z"/><path d="M8 8h6M8 11h4"/></svg>
+                  <span>Documents</span>
+                </NuxtLink>
               </div>
 
               <div class="profile-section">
@@ -711,12 +778,106 @@ async function logout() {
 .footer-links a:hover { color: var(--c-text); }
 .copy { color: var(--c-text-medium); }
 
-/* ---------- Responsive ---------- */
+/* ── Search icon button — tablet/mobile only ─────────────────────────────── */
+.search-icon-btn {
+  display: none; /* shown via media query below */
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  background: var(--c-nav-search-bg);
+  border-radius: var(--radius-md);
+  color: var(--c-nav-search-trailing);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.search-icon-btn:hover { background: var(--c-border); color: var(--c-text); }
+
+/* ── Search overlay bar ───────────────────────────────────────────────────── */
+.search-overlay-bar {
+  position: absolute;
+  inset: 0;
+  background: var(--c-nav-background);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 var(--space-xs);
+  z-index: 5;
+}
+.search-overlay-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-ui);
+  font-size: var(--font-xs);
+  color: var(--c-nav-search-text);
+}
+.search-overlay-input::placeholder { color: var(--c-nav-search-text); }
+.search-close-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: transparent;
+  color: var(--c-nav-button-text);
+  cursor: pointer;
+  border-radius: var(--radius-xs);
+  transition: background 0.15s;
+}
+.search-close-btn:hover { background: var(--c-nav-search-bg); }
+
+.search-slide-enter-active, .search-slide-leave-active {
+  transition: opacity 0.15s, transform 0.12s;
+}
+.search-slide-enter-from, .search-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+/* ── Profile nav links (collapsed nav items for tablet/mobile) ───────────── */
+.profile-nav-links {
+  display: none; /* shown via media query below */
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+  border-bottom: 1px solid var(--c-border-card);
+}
+.profile-item--active {
+  color: var(--c-brand-blue);
+  background: color-mix(in srgb, var(--c-brand-blue) 8%, white);
+  font-weight: 500;
+}
+.profile-item--active svg { color: var(--c-brand-blue); }
+
+/* ── Responsive: 1280px — collapse secondary nav + search ────────────────── */
+@media (max-width: 1279px) {
+  .search-field { display: none; }
+  .search-icon-btn { display: inline-flex; }
+  .nav-secondary { display: none !important; }
+  .profile-nav-links { display: flex; }
+  /* Ensure site-header is the positioning context for the overlay */
+  .site-header { position: relative; }
+}
+
+/* ── Responsive: 768px — mobile only ────────────────────────────────────── */
+@media (max-width: 767px) {
+  .nav-overview { display: none; }
+  .icon-secondary { display: none; }
+}
+
+/* ── Responsive: 900px — wrap to two rows (existing behaviour, updated) ──── */
 @media (max-width: 900px) {
   .site-header { flex-wrap: wrap; padding: 10px var(--space-4); gap: var(--space-3); }
   .left-nav { order: 2; flex-basis: 100%; }
   .right-nav { order: 1; margin-left: auto; }
-  .nav-items { display: none; }
   .site-main { padding: var(--space-4); }
   .site-main.with-panel { padding-right: var(--space-4); }
   .side-panel { width: 100vw; }

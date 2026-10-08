@@ -209,7 +209,7 @@ export default defineEventHandler(async (event) => {
     const llm = getActiveLlm(dbProvider || undefined)
     console.log('[chat] provider=', llm.name, 'dbProvider=', dbProvider, 'model=', body.model || dbModel || '(default)')
     const stream = llm.ask(query, chunks, {
-      language: body.language || 'de',
+      language: body.language || 'en',
       effort: body.effort || 'medium',
       thinking: body.thinking === true,
       // Kein Endpoint-Default mehr — jeder Adapter kennt sein eigenes Limit

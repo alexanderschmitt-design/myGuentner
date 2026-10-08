@@ -156,18 +156,18 @@ async function submitContact() {
         <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M14 10.5c0 .3-.1.6-.2.9-.1.3-.3.5-.5.7-.4.4-.8.5-1.3.5-.3 0-.7-.1-1-.2L8 10.5l-2.5 1.4c-.5.3-1 .4-1.5.3-.5-.1-.9-.4-1.2-.8-.3-.4-.4-.9-.3-1.4L3 7 1.5 5.1C1.2 4.7 1 4.2 1.1 3.7c.1-.5.3-.9.7-1.2.4-.3.9-.4 1.4-.3L5 2.8 6.5 1.2c.4-.4.8-.5 1.3-.5.5 0 1 .2 1.3.5L10.5 2.8l1.8-.6c.5-.1 1 0 1.4.3.4.3.6.7.7 1.2.1.5-.1 1-.4 1.4L12.5 7l.5 2.5c.1.3 0 .7-.1 1z"/>
         </svg>
-        <span>Güntner Sales kontaktieren</span>
+        <span>Contact Güntner Sales</span>
       </div>
-      <p class="rec-sales-desc">Unsere Fachberater helfen Ihnen gerne persönlich bei der Produktauswahl und Projektplanung.</p>
+      <p class="rec-sales-desc">Our specialists are happy to assist you personally with product selection and project planning.</p>
 
       <div v-if="contactDone" class="rec-sales-done">
         <svg viewBox="0 0 16 16" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 8l4 4 8-8"/></svg>
-        Ihre Anfrage wurde gesendet — wir melden uns in Kürze!
+        Your request has been sent — we'll be in touch shortly!
       </div>
 
       <template v-else>
         <button v-if="!showContact" type="button" class="rec-sales-btn" @click="showContact = true">
-          Beratungsgespräch anfragen
+          Request a consultation
         </button>
 
         <div v-else class="rec-sales-form">
@@ -176,31 +176,31 @@ async function submitContact() {
               v-model="contactName"
               type="text"
               class="rec-sales-input"
-              placeholder="Ihr Name (optional)"
+              placeholder="Your name (optional)"
               autocomplete="name"
             />
             <input
               v-model="contactEmail"
               type="email"
               class="rec-sales-input"
-              placeholder="Ihre E-Mail-Adresse *"
+              placeholder="Your email address *"
               autocomplete="email"
             />
             <textarea
               v-model="contactMsg"
               class="rec-sales-input rec-sales-textarea"
               rows="3"
-              placeholder="Persönliche Nachricht (optional) — z. B. Projektdetails, Anwendungsfall …"
+              placeholder="Personal message (optional) — e.g. project details, use case…"
             />
           </div>
           <div class="rec-sales-form-actions">
-            <button type="button" class="rec-sales-cancel" @click="showContact = false">Abbrechen</button>
+            <button type="button" class="rec-sales-cancel" @click="showContact = false">Cancel</button>
             <button
               type="button"
               class="rec-sales-submit"
               :disabled="!contactEmail.trim() || contactSending"
               @click="submitContact"
-            >{{ contactSending ? 'Wird gesendet …' : 'Anfrage senden' }}</button>
+            >{{ contactSending ? 'Sending…' : 'Send request' }}</button>
           </div>
         </div>
       </template>

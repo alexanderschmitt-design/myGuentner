@@ -59,7 +59,7 @@ async function* parseSSE(response: Response): AsyncGenerator<any> {
 }
 
 export async function* askGemini(query: string, chunks: any[], options: AskOptions = {}): AsyncIterable<LlmEvent> {
-  const language = options.language || 'de'
+  const language = options.language || 'en'
   const effort = options.effort || 'medium'
   const maxTokens = options.maxTokens || 4096
   const history = Array.isArray(options.history) ? options.history : []

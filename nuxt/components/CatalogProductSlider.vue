@@ -81,14 +81,14 @@ function openProduct(p: CatalogProduct) {
   <section v-if="!pending && products.length" class="ps">
     <div class="ps-head">
       <div class="ps-head-text">
-        <span class="ps-label">Das könnte Sie auch interessieren</span>
-        <span class="ps-sub">Weitere Produkte aus dieser Kategorie</span>
+        <span class="ps-label">You might also like</span>
+        <span class="ps-sub">More products from this category</span>
       </div>
       <div class="ps-arrows">
         <button
           class="ps-arrow"
           :disabled="!canScrollLeft"
-          aria-label="Zurück"
+          aria-label="Previous"
           type="button"
           @click="scroll('left')"
         >
@@ -99,7 +99,7 @@ function openProduct(p: CatalogProduct) {
         <button
           class="ps-arrow"
           :disabled="!canScrollRight"
-          aria-label="Weiter"
+          aria-label="Next"
           type="button"
           @click="scroll('right')"
         >

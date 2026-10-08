@@ -242,7 +242,7 @@ const COILS = [
           role="tab"
           class="tab-btn"
           @click="navigateTo('/mygpc/catalog')"
-        >CATALOG</button>
+        >PRODUCTS</button>
         <button
           v-if="visibility['api-services']"
           role="tab"

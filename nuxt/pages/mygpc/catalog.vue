@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { getCatalogProductImagePath } from '~/utils/productImagePath'
 
-useHead({ title: 'myGPC — Catalog' })
+useHead({ title: 'myGPC — Products' })
 
 const route  = useRoute()
 const router = useRouter()
@@ -44,6 +44,11 @@ const SUBCATEGORIES = ['COMPACT', 'VARIO', 'Application Specific']
 const APP_OPTIONS   = ['Commercial', 'Industrial', 'HVAC', 'Food Processing', 'Agriculture', 'Data Centers']
 const FAN_OPTIONS   = ['EC', 'AC']
 const DEFROST_OPTIONS = ['Luft', 'Elektrisch', 'Heißgas']
+const DEFROST_LABEL_MAP: Record<string, string> = {
+  'Luft': 'Air',
+  'Elektrisch': 'Electric',
+  'Heißgas': 'Hot Gas',
+}
 
 // ── Filter state (URL-synced) ─────────────────────────────────────────────────
 
@@ -183,18 +188,18 @@ onBeforeUnmount(() => document.removeEventListener('click', closeDd))
 
 // ── Computed labels ───────────────────────────────────────────────────────────
 
-const lineLabel = computed(() => selectedSubcategory.value || 'Alle Linien')
-const appLabel  = computed(() => selectedApp.value || 'Alle Bereiche')
+const lineLabel = computed(() => selectedSubcategory.value || 'All Lines')
+const appLabel  = computed(() => selectedApp.value || 'All Applications')
 
 const fanLabel = computed(() => {
-  if (!selectedFans.value.length) return 'Alle'
+  if (!selectedFans.value.length) return 'All'
   if (selectedFans.value.length === 1) return selectedFans.value[0]
-  return selectedFans.value.join(' & ') + ' Ventilatoren'
+  return selectedFans.value.join(' & ') + ' Fans'
 })
 
 const defrostLabel = computed(() => {
-  if (!selectedDefrosts.value.length) return 'Alle'
-  return selectedDefrosts.value.join(', ')
+  if (!selectedDefrosts.value.length) return 'All'
+  return selectedDefrosts.value.map(d => DEFROST_LABEL_MAP[d] ?? d).join(', ')
 })
 
 const hasActiveSubFilters = computed(() =>
@@ -228,14 +233,14 @@ function appBadge(p: CatalogProduct): string {
 
       <!-- Row 1: Categories + Search + View Toggle -->
       <div class="cfb-row1">
-        <span class="cfb-label">Kategorie:</span>
+        <span class="cfb-label">CATEGORY:</span>
 
         <div class="cfb-cats">
           <button
             class="cfb-cat"
             :class="{ active: !selectedCategory }"
             @click="setCategory('')"
-          >Alle</button>
+          >All</button>
           <button
             v-for="def in CATEGORY_DEFS"
             :key="def.id"
@@ -257,7 +262,7 @@ function appBadge(p: CatalogProduct): string {
             <input
               v-model="search"
               type="search"
-              placeholder="Schnellsuche (z.B. Agri, Blast, EC)…"
+              placeholder="Quick search (e.g. Agri, Blast, EC)…"
               @input="onSearchInput"
             />
           </label>
@@ -267,7 +272,7 @@ function appBadge(p: CatalogProduct): string {
               class="cfb-view-btn"
               :class="{ active: viewMode === 'grid' }"
               :aria-pressed="viewMode === 'grid'"
-              title="Kachelansicht"
+              title="Grid view"
               @click="viewMode = 'grid'"
             >
               <svg viewBox="0 0 16 16" width="15" height="15" fill="currentColor" aria-hidden="true">
@@ -281,7 +286,7 @@ function appBadge(p: CatalogProduct): string {
               class="cfb-view-btn"
               :class="{ active: viewMode === 'list' }"
               :aria-pressed="viewMode === 'list'"
-              title="Listenansicht"
+              title="List view"
               @click="viewMode = 'list'"
             >
               <svg viewBox="0 0 16 16" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
@@ -307,7 +312,7 @@ function appBadge(p: CatalogProduct): string {
             :class="{ active: !!selectedSubcategory, open: openDd === 'linie' }"
             @click="toggleDd('linie')"
           >
-            <span class="cfb-dd-prefix">Linie:</span>
+            <span class="cfb-dd-prefix">Line:</span>
             <span class="cfb-dd-val">{{ lineLabel }}</span>
             <svg class="cfb-dd-arrow" viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
               <path d="M1 1l4 4 4-4"/>
@@ -318,7 +323,7 @@ function appBadge(p: CatalogProduct): string {
               class="cfb-dd-opt"
               :class="{ active: !selectedSubcategory }"
               @click="setSubcategory('')"
-            >Alle Linien</button>
+            >All Lines</button>
             <button
               v-for="s in SUBCATEGORIES"
               :key="s"
@@ -336,7 +341,7 @@ function appBadge(p: CatalogProduct): string {
             :class="{ active: !!selectedApp, open: openDd === 'app' }"
             @click="toggleDd('app')"
           >
-            <span class="cfb-dd-prefix">Anwendung:</span>
+            <span class="cfb-dd-prefix">Application:</span>
             <span class="cfb-dd-val">{{ appLabel }}</span>
             <svg class="cfb-dd-arrow" viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
               <path d="M1 1l4 4 4-4"/>
@@ -347,7 +352,7 @@ function appBadge(p: CatalogProduct): string {
               class="cfb-dd-opt"
               :class="{ active: !selectedApp }"
               @click="setApp('')"
-            >Alle Bereiche</button>
+            >All Applications</button>
             <button
               v-for="a in APP_OPTIONS"
               :key="a"
@@ -365,7 +370,7 @@ function appBadge(p: CatalogProduct): string {
             :class="{ active: selectedFans.length > 0, open: openDd === 'fans' }"
             @click="toggleDd('fans')"
           >
-            <span class="cfb-dd-prefix">Technik:</span>
+            <span class="cfb-dd-prefix">Technology:</span>
             <span class="cfb-dd-val">{{ fanLabel }}</span>
             <span v-if="selectedFans.length" class="cfb-dd-badge">{{ selectedFans.length }}</span>
             <svg class="cfb-dd-arrow" viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
@@ -380,19 +385,19 @@ function appBadge(p: CatalogProduct): string {
               :class="{ active: selectedFans.includes(f) }"
             >
               <input type="checkbox" :value="f" :checked="selectedFans.includes(f)" @change="toggleFan(f)" />
-              {{ f }} Ventilatoren
+              {{ f }} Fans
             </label>
           </div>
         </div>
 
-        <!-- Abtauung dropdown (multi-select) -->
+        <!-- Defrost dropdown (multi-select) -->
         <div class="cfb-dd" @click.stop>
           <button
             class="cfb-dd-trigger"
             :class="{ active: selectedDefrosts.length > 0, open: openDd === 'defrost' }"
             @click="toggleDd('defrost')"
           >
-            <span class="cfb-dd-prefix">Abtauung:</span>
+            <span class="cfb-dd-prefix">Defrost:</span>
             <span class="cfb-dd-val">{{ defrostLabel }}</span>
             <span v-if="selectedDefrosts.length" class="cfb-dd-badge">{{ selectedDefrosts.length }}</span>
             <svg class="cfb-dd-arrow" viewBox="0 0 10 6" width="10" height="6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
@@ -407,7 +412,7 @@ function appBadge(p: CatalogProduct): string {
               :class="{ active: selectedDefrosts.includes(d) }"
             >
               <input type="checkbox" :value="d" :checked="selectedDefrosts.includes(d)" @change="toggleDefrost(d)" />
-              {{ d }}
+              {{ DEFROST_LABEL_MAP[d] ?? d }}
             </label>
           </div>
         </div>
@@ -421,7 +426,7 @@ function appBadge(p: CatalogProduct): string {
           <svg viewBox="0 0 14 14" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
             <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
           </svg>
-          Filter zurücksetzen
+          Reset filters
         </button>
 
       </div>
@@ -429,9 +434,9 @@ function appBadge(p: CatalogProduct): string {
       <!-- Row 3: Summary -->
       <div class="cfb-summary">
         <span class="cfb-dot" aria-hidden="true"></span>
-        <template v-if="pending">Suche…</template>
+        <template v-if="pending">Searching…</template>
         <template v-else>
-          Zeige <strong>{{ totalCount.toLocaleString('de-DE') }}</strong> Modelle
+          Showing <strong>{{ totalCount.toLocaleString('en-US') }}</strong> models
           <template v-if="selectedCategory"> in <strong>{{ selectedCategory }}</strong></template>
         </template>
       </div>
@@ -455,8 +460,8 @@ function appBadge(p: CatalogProduct): string {
             <line x1="16" y1="24" x2="32" y2="24"/>
             <line x1="24" y1="16" x2="24" y2="32"/>
           </svg>
-          <p>Keine Produkte für diese Filter gefunden.</p>
-          <button class="btn btn-outline" @click="clearAll">Filter zurücksetzen</button>
+          <p>No products found for these filters.</p>
+          <button class="btn btn-outline" @click="clearAll">Reset filters</button>
         </div>
 
         <!-- Grid view -->
@@ -467,7 +472,7 @@ function appBadge(p: CatalogProduct): string {
             class="catalog-card catalog-card--clickable"
             role="button"
             tabindex="0"
-            :aria-label="`${p.product_name} – Mit Günther besprechen`"
+            :aria-label="`${p.product_name} – Discuss with Günther`"
             @click="openProductInChat({ productName: p.product_name, category: p.category, subcategory: p.subcategory, series: p.series, description: p.description, imagePath: getCatalogProductImagePath(p) })"
             @keydown.enter="openProductInChat({ productName: p.product_name, category: p.category, subcategory: p.subcategory, series: p.series, description: p.description, imagePath: getCatalogProductImagePath(p) })"
           >
@@ -513,7 +518,7 @@ function appBadge(p: CatalogProduct): string {
                   <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                     <path d="M2 3.5a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H6l-3 2v-2H3a1 1 0 01-1-1v-7z"/>
                   </svg>
-                  Mit Günther besprechen
+                  Discuss with Günther
                 </button>
                 <a
                   v-if="p.url"
@@ -521,7 +526,7 @@ function appBadge(p: CatalogProduct): string {
                   target="_blank"
                   rel="noopener noreferrer"
                   class="catalog-link-btn"
-                  :aria-label="`Produktseite ${p.product_name}`"
+                  :aria-label="`Product page ${p.product_name}`"
                   @click.stop
                 >
                   <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
@@ -538,11 +543,11 @@ function appBadge(p: CatalogProduct): string {
           <table class="catalog-table">
             <thead>
               <tr>
-                <th>Produkt</th>
-                <th>Kategorie</th>
-                <th>Linie</th>
-                <th>Anwendung</th>
-                <th>Zertifikate</th>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Line</th>
+                <th>Application</th>
+                <th>Certifications</th>
                 <th>Link</th>
               </tr>
             </thead>
@@ -582,7 +587,7 @@ function appBadge(p: CatalogProduct): string {
                     target="_blank"
                     rel="noopener noreferrer"
                     class="catalog-ext-link"
-                    :aria-label="`Produktseite ${p.product_name}`"
+                    :aria-label="`Product page ${p.product_name}`"
                   >
                     <svg viewBox="0 0 14 14" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
                       <path d="M8 2h4v4"/><path d="M12 2L6 8"/><path d="M6 3H2v9h9V9"/>
@@ -596,7 +601,7 @@ function appBadge(p: CatalogProduct): string {
         </div>
 
         <!-- Pagination -->
-        <nav v-if="totalPages > 1" class="catalog-pagination" aria-label="Seiten">
+        <nav v-if="totalPages > 1" class="catalog-pagination" aria-label="Pages">
           <button class="page-btn" :disabled="page <= 1" @click="goPage(page - 1)">
             <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><path d="M10 12L6 8l4-4"/></svg>
           </button>

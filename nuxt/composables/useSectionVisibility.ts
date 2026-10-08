@@ -33,7 +33,7 @@ export const SECTIONS: Section[] = [
   { id: 'application',   label: 'By Application',     description: 'Industry-first cards (Data Centers, Food Processing, Industrial Refrigeration)', defaultVisible: true },
   { id: 'refrigerant',   label: 'By Refrigerant',     description: '3 refrigerant-family teasers (Natural, Brine, Synthetic)', defaultVisible: true },
   { id: 'coils',         label: 'Bare Coils',         description: '6 bare-coil products routing to the coil configurator (productSection=2)', defaultVisible: true },
-  { id: 'catalog',       label: 'Catalog',            description: 'Product Listing Page — browse & filter all Güntner products by series, technology, and specs', defaultVisible: true },
+  { id: 'catalog',       label: 'Products',           description: 'Product Listing Page — browse & filter all Güntner products by series, technology, and specs', defaultVisible: true },
   { id: 'api-services',  label: 'API & MCP Services', description: 'myGPC API + MCP Server enterprise integration cards', defaultVisible: false }
 ]
 
