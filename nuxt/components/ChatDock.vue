@@ -690,11 +690,25 @@ function onRecommendationSkip(step: GuidedStep) {
   runRecommendationFinalize(step)
 }
 
+// In parameter-guide mode (thermodynamics / unit-selection), auto-advance past
+// recommendation steps — the card is suppressed anyway and the next step
+// shows the "Continue to Unit Selection →" navigation CTA.
+watch(
+  () => guided.currentStep.value?.kind,
+  (kind) => {
+    if (kind === 'recommendations' && isParameterGuideRoute.value) {
+      guided.advance()
+    }
+  },
+  { immediate: true }
+)
+
 // Watcher: sobald der aktive Step ein Recommendation-Step ist → Templates laden
+// (only when NOT in parameter-guide mode to avoid a wasted API call)
 watch(
   () => guided.currentStep.value,
   (step) => {
-    if (step?.kind === 'recommendations') {
+    if (step?.kind === 'recommendations' && !isParameterGuideRoute.value) {
       loadRecommendationsForStep(step)
     } else {
       recTemplates.value = []
@@ -952,12 +966,22 @@ const startSubtitle = computed(() =>
 )
 
 /** Quick-prompt suggestions shown instead of category presets on thermo/unit routes. */
-const paramGuideQuickPrompts: string[] = [
-  'What evaporation temperature should I use?',
-  'Which refrigerant fits my application?',
-  'How do I set the right capacity?',
-  'Explain inlet air temperature',
-]
+const paramGuideQuickPrompts = computed<string[]>(() => {
+  if (/unit-selection/.test(route.path)) {
+    return [
+      'Which series should I select?',
+      'EC or AC fans — what fits my use case?',
+      'How do I set dimension limits?',
+      'Show me the results now',
+    ]
+  }
+  return [
+    'What evaporation temperature should I use?',
+    'Which refrigerant fits my application?',
+    'How do I set the right capacity?',
+    'Explain inlet air temperature',
+  ]
+})
 
 /** Programmatically send a message (used by quick-prompt chips). */
 async function sendMessage(text: string) {

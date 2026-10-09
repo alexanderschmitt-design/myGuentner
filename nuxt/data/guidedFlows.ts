@@ -445,6 +445,24 @@ const thermoRefrigerantFlow: GuidedFlow = {
           { label: 'Choose a different template', detail: 'Back to template selection', action: 'stay' }
         ]
       }
+    },
+    {
+      // Shown in parameter-guide mode (thermodynamics entered directly) after
+      // the recommendations step is auto-skipped. Navigates to unit-selection.
+      id: 'r-continue-unit',
+      message:
+        'Your thermodynamics parameters are set. When you\'re happy with the values on the left, ' +
+        'continue to Unit Selection to find the matching Güntner units.',
+      suggestions: [
+        {
+          label: 'Continue to Unit Selection →',
+          detail: 'Browse and filter Güntner product series',
+          apply: (ctx) => {
+            const slug = ctx.store.currentCategory || 'evaporator-dx'
+            ctx.push(`/mygpc/${findCategoryIdBySlug(slug)}/unit-selection`)
+          }
+        }
+      ]
     }
   ]
 }
@@ -536,6 +554,53 @@ const thermoLiquidFlow: GuidedFlow = {
           { label: 'Choose a different template', detail: 'Back to template selection', action: 'stay' }
         ]
       }
+    },
+    {
+      id: 'l-continue-unit',
+      message:
+        'Your thermodynamics parameters are set. When you\'re happy with the values on the left, ' +
+        'continue to Unit Selection to find the matching Güntner units.',
+      suggestions: [
+        {
+          label: 'Continue to Unit Selection →',
+          detail: 'Browse and filter Güntner product series',
+          apply: (ctx) => {
+            const slug = ctx.store.currentCategory || 'air-cooler'
+            ctx.push(`/mygpc/${findCategoryIdBySlug(slug)}/unit-selection`)
+          }
+        }
+      ]
+    }
+  ]
+}
+
+// ============================================================================
+// Unit Selection — series + options guide then route to results
+// ============================================================================
+
+const unitSelectionFlow: GuidedFlow = {
+  id: 'unit-selection-guide',
+  title: 'Unit Selection',
+  match: (route) => /^\/mygpc\/\d+\/unit-selection$/.test(route.path),
+  steps: [
+    {
+      id: 'us-overview',
+      message:
+        'You\'re now in **Unit Selection**. On the left panel you can:\n\n' +
+        '- ☑ Select which **series** (product families) to include\n' +
+        '- Set **motor technology** preference under Options (EC saves 30–50% energy, AC is cost-optimised)\n' +
+        '- Add **limitations** like max dimensions or noise level\n\n' +
+        'When the filters match your requirements, click **Show Results** to calculate the matching units.',
+      suggestions: [
+        {
+          label: 'Show Results →',
+          detail: 'Calculate and display matching Güntner units',
+          apply: (ctx) => {
+            const slug = ctx.store.currentCategory || 'evaporator-dx'
+            ctx.push(`/mygpc/${findCategoryIdBySlug(slug)}/search`)
+          }
+        }
+      ]
     }
   ]
 }
@@ -561,6 +626,7 @@ export const GUIDED_FLOWS: readonly GuidedFlow[] = [
   ...HOME_ENTRY_FLOWS,
   homeUnitFlow,
   homeApplicationFlow,
+  unitSelectionFlow,
   thermoLiquidFlow,
   thermoRefrigerantFlow
 ]
