@@ -425,9 +425,11 @@ function runTemplateIntro(guidance: import('~/composables/useTemplateFlash').Tem
   // Suppress the capacity-guidance flow for this thermodynamics visit.
   guided.dismiss()
 
-  // Block the guided-flow watcher and wipe any existing guided step before
-  // opening the dock (opening triggers the watcher).
+  // Set flag BEFORE any reactive mutations so the context-reset watcher
+  // (which fires in the same microtask flush, after this watcher) and the
+  // guided watcher (triggered by isOpen change) both see it as true.
   isTemplateIntroPending.value = true
+
   history.value = history.value.filter(h => !h.guidedStep && !h.templateGuidance)
 
   // Push the structured guidance card — no LLM streaming needed.
@@ -445,11 +447,14 @@ function runTemplateIntro(guidance: import('~/composables/useTemplateFlash').Tem
   ]
 
   isOpen.value = true
-  nextTick(() => scrollToEnd())
 
-  // Re-dismiss in case the context-reset watcher ran and called guided.reset().
-  guided.dismiss()
-  isTemplateIntroPending.value = false
+  // Clear the flag only after the next tick so all watchers queued in this
+  // flush (context-reset at line 917, guided watcher) still see it as true.
+  nextTick(() => {
+    scrollToEnd()
+    guided.dismiss()
+    isTemplateIntroPending.value = false
+  })
 }
 
 // Fires when navigating TO thermodynamics after applyRecommendation().
