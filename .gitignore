@@ -40,4 +40,9 @@ Thumbs.db
 figma-node-*.png
 
 
-nuxt/public/images/products/
+
+# Product images — only compressed WebP hero images are tracked
+nuxt/public/images/products/*.png
+nuxt/public/images/products/*.jpg
+nuxt/public/images/products/*.jpeg
+nuxt/public/images/products/*.zip
