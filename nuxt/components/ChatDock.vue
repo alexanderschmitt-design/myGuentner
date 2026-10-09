@@ -252,6 +252,8 @@ function buildUserContext(): UserContext {
 
   if (/^\/mygpc\/\d+\/(thermodynamics|unit-selection)$/.test(route.path)) {
     ctx.assistantMode = 'parameter-guide'
+  } else if (/^\/mygpc\/\d+\/search$/.test(route.path)) {
+    ctx.assistantMode = 'results-guide'
   }
 
   return ctx
@@ -307,6 +309,12 @@ const guidedEnabled = computed(() => flags.isOn('guided_pass'))
  *  switches to direct parameter-advisory mode; template/recommendation UI is suppressed. */
 const isParameterGuideRoute = computed(() =>
   /^\/mygpc\/\d+\/(thermodynamics|unit-selection)$/.test(route.path)
+)
+
+/** True when the user is on the results/search page — category presets are
+ *  suppressed and Günther acts as a results-navigation assistant. */
+const isResultsRoute = computed(() =>
+  /^\/mygpc\/\d+\/search$/.test(route.path)
 )
 /** True wenn der aktive Guided-Flow einer der Home-Karten-Q&A-Flows ist
  *  (byapplication/byrefrigerant). Steuert nur das Header-Label der Card:
@@ -904,6 +912,18 @@ function performReset() {
   history.value = []
   stream.reset()
   guided.reset()
+
+  // On the results page, inject a static orientation message instead of
+  // the guided-flow card — there's no active flow here, just result context.
+  if (/^\/mygpc\/\d+\/search$/.test(route.path)) {
+    history.value = [{
+      role: 'assistant',
+      content: 'Your matching Güntner units are listed in the table. I can help you:\n\n- **Understand a column** — capacity, airflow, dimensions, noise level, option codes\n- **Compare models** — EC vs AC fans, capacity headroom, weight trade-offs\n- **Narrow the list** — suggest filters based on your priorities\n\nJust ask, or click any row to open the datasheet.'
+    }]
+    scrollToEnd()
+    return
+  }
+
   // Nach reset() hat guided den aktiven Flow neu gematched. Wenn dabei
   // ein Step aktiv ist, direkt in die frische history committen — sonst
   // hätte der User leere history + aktiven Guided-Step (Card unsichtbar).
@@ -959,11 +979,11 @@ const activeLocale = computed(() => {
 // weiter möglich, aber die Empty-State-Zeile ist eine feste Marketing-
 // Zeile in EN).
 const startPrompt = computed(() => 'Hello, I\'m Günther')
-const startSubtitle = computed(() =>
-  isParameterGuideRoute.value
-    ? 'Ask me about any parameter — I\'ll explain what it means and suggest the right value for your application.'
-    : 'I will help you to configure the right product for your special need.'
-)
+const startSubtitle = computed(() => {
+  if (isResultsRoute.value) return 'Your matching units are shown in the table. Ask me to explain a column, compare models, or narrow the list.'
+  if (isParameterGuideRoute.value) return 'Ask me about any parameter — I\'ll explain what it means and suggest the right value for your application.'
+  return 'I will help you to configure the right product for your special need.'
+})
 
 /** Quick-prompt suggestions shown instead of category presets on thermo/unit routes. */
 const paramGuideQuickPrompts = computed<string[]>(() => {
@@ -1220,8 +1240,8 @@ function pickPreset(p: PresetIntent) {
               </button>
             </div>
             <!-- Standard presets — nur zeigen wenn KEIN Guided-Flow schon aktiv ist
-                 und nicht auf Parameter-Guide-Routen. -->
-            <div v-else-if="transcript.length === 0 && !isTemplateIntroPending && !isParameterGuideRoute" class="start-presets">
+                 und nicht auf Parameter-Guide- oder Results-Routen. -->
+            <div v-else-if="transcript.length === 0 && !isTemplateIntroPending && !isParameterGuideRoute && !isResultsRoute" class="start-presets">
               <button
                 v-for="p in presets"
                 :key="p.id"

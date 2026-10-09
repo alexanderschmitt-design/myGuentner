@@ -108,7 +108,7 @@ export interface UserContext {
   selectedUnitKey?: string | null
   /** Set to 'parameter-guide' on thermodynamics / unit-selection views so
    *  Günther switches to direct parameter-advisory mode instead of RAG-only. */
-  assistantMode?: 'parameter-guide'
+  assistantMode?: 'parameter-guide' | 'results-guide'
 }
 
 export interface ChatRequest {
