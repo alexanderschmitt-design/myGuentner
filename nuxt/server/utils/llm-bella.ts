@@ -56,7 +56,7 @@ export async function* askBella(query: string, chunks: any[], options: AskOption
   const systemBlocks = [
     {
       type: 'text' as const,
-      text: composeSystemPrompt({ language }),
+      text: composeSystemPrompt({ language, userContext: options.userContext }),
       cache_control: { type: 'ephemeral' as const }
     }
   ]

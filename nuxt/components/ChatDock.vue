@@ -250,6 +250,10 @@ function buildUserContext(): UserContext {
     unitSystem: configStore.unitSystem
   }
 
+  if (/^\/mygpc\/\d+\/(thermodynamics|unit-selection)$/.test(route.path)) {
+    ctx.assistantMode = 'parameter-guide'
+  }
+
   return ctx
 }
 
@@ -298,6 +302,12 @@ watch([() => stream.text.value, () => transcript.value.length], scrollToEnd)
 // but user turns and free-form Günther replies stay in place.
 // --------------------------------------------------------------------------
 const guidedEnabled = computed(() => flags.isOn('guided_pass'))
+
+/** True when the user is on thermodynamics or unit-selection — Günther
+ *  switches to direct parameter-advisory mode; template/recommendation UI is suppressed. */
+const isParameterGuideRoute = computed(() =>
+  /^\/mygpc\/\d+\/(thermodynamics|unit-selection)$/.test(route.path)
+)
 /** True wenn der aktive Guided-Flow einer der Home-Karten-Q&A-Flows ist
  *  (byapplication/byrefrigerant). Steuert nur das Header-Label der Card:
  *    - true  → "CONFIGURATION QUESTION"
@@ -935,7 +945,26 @@ const activeLocale = computed(() => {
 // weiter möglich, aber die Empty-State-Zeile ist eine feste Marketing-
 // Zeile in EN).
 const startPrompt = computed(() => 'Hello, I\'m Günther')
-const startSubtitle = computed(() => 'I will help you to configure the right product for your special need.')
+const startSubtitle = computed(() =>
+  isParameterGuideRoute.value
+    ? 'Ask me about any parameter — I\'ll explain what it means and suggest the right value for your application.'
+    : 'I will help you to configure the right product for your special need.'
+)
+
+/** Quick-prompt suggestions shown instead of category presets on thermo/unit routes. */
+const paramGuideQuickPrompts: string[] = [
+  'What evaporation temperature should I use?',
+  'Which refrigerant fits my application?',
+  'How do I set the right capacity?',
+  'Explain inlet air temperature',
+]
+
+/** Programmatically send a message (used by quick-prompt chips). */
+async function sendMessage(text: string) {
+  if (!text.trim() || stream.isStreaming.value) return
+  inputValue.value = text
+  await submit()
+}
 
 interface PresetIntent {
   id: string
@@ -1142,10 +1171,33 @@ function pickPreset(p: PresetIntent) {
             </div>
             <h2 class="start-headline">{{ startPrompt }}</h2>
             <p class="start-subtitle">{{ startSubtitle }}</p>
-            <!-- Presets nur zeigen wenn KEIN Guided-Flow schon aktiv ist —
-                 sonst hat der User die Auswahl-Karte des Flows unmittelbar
-                 darunter und würde doppelte Choices sehen. -->
-            <div v-if="transcript.length === 0 && !isTemplateIntroPending" class="start-presets">
+            <!-- Parameter-guide quick prompts (thermodynamics / unit-selection) -->
+            <div v-if="transcript.length === 0 && isParameterGuideRoute" class="start-presets">
+              <button
+                v-for="q in paramGuideQuickPrompts"
+                :key="q"
+                type="button"
+                class="start-preset"
+                :disabled="stream.isStreaming.value"
+                @click="sendMessage(q)"
+              >
+                <span class="preset-icon" aria-hidden="true">
+                  <svg viewBox="0 0 20 20" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="10" cy="10" r="8"/>
+                    <path d="M10 6v5l3 3"/>
+                  </svg>
+                </span>
+                <span class="preset-label">{{ q }}</span>
+                <span class="preset-arrow" aria-hidden="true">
+                  <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M5 3l5 5-5 5"/>
+                  </svg>
+                </span>
+              </button>
+            </div>
+            <!-- Standard presets — nur zeigen wenn KEIN Guided-Flow schon aktiv ist
+                 und nicht auf Parameter-Guide-Routen. -->
+            <div v-else-if="transcript.length === 0 && !isTemplateIntroPending && !isParameterGuideRoute" class="start-presets">
               <button
                 v-for="p in presets"
                 :key="p.id"
@@ -1214,6 +1266,7 @@ function pickPreset(p: PresetIntent) {
                  entfernt worden. -->
             <template v-else-if="msg.guidedStep
                             && guidedEnabled
+                            && !isParameterGuideRoute
                             && guided.currentStep.value?.id === msg.guidedStep.id
                             && msg.guidedStep.kind === 'recommendations'">
               <RecommendedProducts

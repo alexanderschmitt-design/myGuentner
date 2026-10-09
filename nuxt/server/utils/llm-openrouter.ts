@@ -84,7 +84,7 @@ export async function* askOpenRouter(query: string, chunks: any[], options: AskO
     return
   }
 
-  let systemText = composeSystemPrompt({ language })
+  let systemText = composeSystemPrompt({ language, userContext: options.userContext })
   if (detailedMode) {
     systemText += '\n\nDETAIL-MODUS AKTIV:\nGib eine vollständige, detaillierte Antwort. Zitiere konkrete Werte, Tabellen, Zahlen und Einheiten WORTWÖRTLICH aus dem Kontext. Knapp-Regel außer Kraft — Vollständigkeit hat Vorrang.'
   }

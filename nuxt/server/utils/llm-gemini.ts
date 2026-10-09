@@ -95,7 +95,7 @@ export async function* askGemini(query: string, chunks: any[], options: AskOptio
   })
   contents.push({ role: 'user', parts: [{ text: userText }] })
 
-  let systemText = composeSystemPrompt({ language })
+  let systemText = composeSystemPrompt({ language, userContext: options.userContext })
   if (detailedMode) {
     systemText += '\n\nDETAIL-MODUS AKTIV:\nGib eine vollständige, detaillierte Antwort. Zitiere konkrete Werte, Tabellen, Zahlen und Einheiten WORTWÖRTLICH aus dem Kontext. Knapp-Regel außer Kraft — Vollständigkeit hat Vorrang.'
   }

@@ -31,7 +31,7 @@ const MAX_QUERY_LEN = 4000
 const USER_CONTEXT_SCALAR_KEYS = [
   'route', 'categorySlug', 'categoryTitle',
   'guidedFlowId', 'guidedFlowTitle', 'guidedPathLabel',
-  'wizardStep', 'homeTab', 'selectedUnitKey'
+  'wizardStep', 'homeTab', 'selectedUnitKey', 'assistantMode'
 ] as const
 
 const USER_CONTEXT_PARAM_KEYS = [
