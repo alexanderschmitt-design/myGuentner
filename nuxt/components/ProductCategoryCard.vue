@@ -124,32 +124,26 @@ defineProps<{
   color: var(--c-brand-dark-grey);           /* #3c3c3b */
 }
 
-/* CTA button — pastel Güntner blue (Figma token
-   guntner/color/background/primary-light = #a8c2f3). Kept identical
-   for Unit and Bare-Coil variants so both categories share one
-   interaction language. */
 .tile-cta {
   width: 100%;
   padding: var(--space-xs2) var(--space-xs);
-  background: var(--c-background-primary-light);
-  color: var(--c-brand-blue);
+  background: var(--c-brand-blue, #0078BE);
+  color: #fff;
   border: none;
-  border-radius: 0;                          /* sharp corners, match card */
+  border-radius: 0;
   font-family: var(--font-ui);
   font-size: var(--font-2xs);                /* 14.17px */
   line-height: var(--lh-2xs);
-  font-weight: 500;
+  font-weight: 600;
   letter-spacing: 0.1px;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s;
+  transition: background 0.15s;
 }
 .tile-cta:hover {
-  background: var(--c-background-primary-medium);
-  color: white;
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 82%, black);
 }
 .tile-cta:active {
-  background: var(--c-brand-blue);
-  color: white;
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 70%, black);
 }
 .tile-cta:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
 

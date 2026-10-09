@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { getCatalogProductImagePath } from '~/utils/productImagePath'
+import { sortCatalogProducts } from '~/utils/catalogSort'
 
 useHead({ title: 'myGPC — Products' })
 
@@ -71,14 +72,32 @@ const openDd   = ref('')
 
 // ── API: category counts ──────────────────────────────────────────────────────
 
-const { data: countsData } = await useFetch<{ ok: boolean; counts: CategoryCount[] }>(
-  '/api/products/catalog-counts'
-)
+const { data: countsData } = await useFetch<{
+  ok: boolean
+  counts: CategoryCount[]
+  subcategories: string[]
+  applications: string[]
+  fanTechnologies: string[]
+  defrostTypes: string[]
+}>('/api/products/catalog-counts')
+
 const countMap = computed<Record<string, number>>(() => {
   const m: Record<string, number> = {}
   for (const c of countsData.value?.counts ?? []) m[c.category] = c.count
   return m
 })
+
+// Only expose categories / sub-filter options that have at least one product
+const visibleCategories    = computed(() => CATEGORY_DEFS.filter(d => (countMap.value[d.id] ?? 0) > 0))
+const availableSubcats     = computed(() => new Set(countsData.value?.subcategories  ?? []))
+const availableApps        = computed(() => new Set(countsData.value?.applications   ?? []))
+const availableFans        = computed(() => new Set(countsData.value?.fanTechnologies ?? []))
+const availableDefrosts    = computed(() => new Set(countsData.value?.defrostTypes    ?? []))
+
+const visibleSubcategories = computed(() => SUBCATEGORIES.filter(s  => availableSubcats.value.has(s)))
+const visibleApps          = computed(() => APP_OPTIONS.filter(a    => availableApps.value.has(a)))
+const visibleFans          = computed(() => FAN_OPTIONS.filter(f    => availableFans.value.has(f)))
+const visibleDefrosts      = computed(() => DEFROST_OPTIONS.filter(d => availableDefrosts.value.has(d)))
 
 // ── API: products ─────────────────────────────────────────────────────────────
 
@@ -101,7 +120,7 @@ const { data, pending } = await useFetch<{ ok: boolean; products: CatalogProduct
   { query: apiQuery, watch: [apiQuery] }
 )
 
-const products   = computed(() => data.value?.products ?? [])
+const products   = computed(() => sortCatalogProducts(data.value?.products ?? []))
 const totalCount = computed(() => data.value?.total    ?? 0)
 const totalPages = computed(() => Math.max(1, Math.ceil(totalCount.value / LIMIT)))
 
@@ -242,14 +261,14 @@ function appBadge(p: CatalogProduct): string {
             @click="setCategory('')"
           >All</button>
           <button
-            v-for="def in CATEGORY_DEFS"
+            v-for="def in visibleCategories"
             :key="def.id"
             class="cfb-cat"
             :class="{ active: selectedCategory === def.id }"
             @click="setCategory(def.id)"
           >
             {{ def.name }}
-            <span v-if="countMap[def.id]" class="cfb-cat-count">{{ countMap[def.id] }}</span>
+            <span class="cfb-cat-count">{{ countMap[def.id] }}</span>
           </button>
         </div>
 
@@ -306,7 +325,7 @@ function appBadge(p: CatalogProduct): string {
       <div class="cfb-row2">
 
         <!-- Linie dropdown -->
-        <div class="cfb-dd" @click.stop>
+        <div v-if="visibleSubcategories.length" class="cfb-dd" @click.stop>
           <button
             class="cfb-dd-trigger"
             :class="{ active: !!selectedSubcategory, open: openDd === 'linie' }"
@@ -325,7 +344,7 @@ function appBadge(p: CatalogProduct): string {
               @click="setSubcategory('')"
             >All Lines</button>
             <button
-              v-for="s in SUBCATEGORIES"
+              v-for="s in visibleSubcategories"
               :key="s"
               class="cfb-dd-opt"
               :class="{ active: selectedSubcategory === s }"
@@ -335,7 +354,7 @@ function appBadge(p: CatalogProduct): string {
         </div>
 
         <!-- Anwendung dropdown -->
-        <div class="cfb-dd" @click.stop>
+        <div v-if="visibleApps.length" class="cfb-dd" @click.stop>
           <button
             class="cfb-dd-trigger"
             :class="{ active: !!selectedApp, open: openDd === 'app' }"
@@ -354,7 +373,7 @@ function appBadge(p: CatalogProduct): string {
               @click="setApp('')"
             >All Applications</button>
             <button
-              v-for="a in APP_OPTIONS"
+              v-for="a in visibleApps"
               :key="a"
               class="cfb-dd-opt"
               :class="{ active: selectedApp === a }"
@@ -364,7 +383,7 @@ function appBadge(p: CatalogProduct): string {
         </div>
 
         <!-- Technik dropdown (multi-select) -->
-        <div class="cfb-dd" @click.stop>
+        <div v-if="visibleFans.length" class="cfb-dd" @click.stop>
           <button
             class="cfb-dd-trigger"
             :class="{ active: selectedFans.length > 0, open: openDd === 'fans' }"
@@ -379,7 +398,7 @@ function appBadge(p: CatalogProduct): string {
           </button>
           <div v-show="openDd === 'fans'" class="cfb-dd-panel">
             <label
-              v-for="f in FAN_OPTIONS"
+              v-for="f in visibleFans"
               :key="f"
               class="cfb-dd-opt cfb-dd-opt--check"
               :class="{ active: selectedFans.includes(f) }"
@@ -391,7 +410,7 @@ function appBadge(p: CatalogProduct): string {
         </div>
 
         <!-- Defrost dropdown (multi-select) -->
-        <div class="cfb-dd" @click.stop>
+        <div v-if="visibleDefrosts.length" class="cfb-dd" @click.stop>
           <button
             class="cfb-dd-trigger"
             :class="{ active: selectedDefrosts.length > 0, open: openDd === 'defrost' }"
@@ -406,7 +425,7 @@ function appBadge(p: CatalogProduct): string {
           </button>
           <div v-show="openDd === 'defrost'" class="cfb-dd-panel">
             <label
-              v-for="d in DEFROST_OPTIONS"
+              v-for="d in visibleDefrosts"
               :key="d"
               class="cfb-dd-opt cfb-dd-opt--check"
               :class="{ active: selectedDefrosts.includes(d) }"
@@ -515,10 +534,10 @@ function appBadge(p: CatalogProduct): string {
                   class="catalog-chat-btn"
                   @click.stop="openProductInChat({ productName: p.product_name, category: p.category, subcategory: p.subcategory, series: p.series, description: p.description, imagePath: getCatalogProductImagePath(p) })"
                 >
-                  <svg viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                    <path d="M2 3.5a1 1 0 011-1h10a1 1 0 011 1v7a1 1 0 01-1 1H6l-3 2v-2H3a1 1 0 01-1-1v-7z"/>
-                  </svg>
                   Discuss with Günther
+                  <svg viewBox="0 0 16 16" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4"/>
+                  </svg>
                 </button>
                 <a
                   v-if="p.url"
@@ -529,7 +548,7 @@ function appBadge(p: CatalogProduct): string {
                   :aria-label="`Product page ${p.product_name}`"
                   @click.stop
                 >
-                  <svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
+                  <svg viewBox="0 0 12 12" width="11" height="11" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true">
                     <path d="M7 2h3v3"/><path d="M10 2L5 7"/><path d="M5 3H2v7h7V7"/>
                   </svg>
                 </a>
@@ -1039,25 +1058,30 @@ function appBadge(p: CatalogProduct): string {
   padding-top: 10px;
   border-top: 1px solid var(--c-border);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
+  align-items: stretch;
+  gap: 0;
 }
 .catalog-chat-btn {
+  flex: 1;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
   font-family: var(--font-ui, sans-serif);
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
-  color: var(--c-primary, #2666e0);
-  background: none;
+  color: #fff;
+  background: var(--c-brand-blue, #0078BE);
   border: none;
-  padding: 0;
+  border-radius: 0;
+  padding: 10px 14px;
   cursor: pointer;
-  transition: opacity 0.12s;
+  transition: background 0.15s;
+  white-space: nowrap;
 }
-.catalog-chat-btn:hover { opacity: 0.75; }
+.catalog-chat-btn:hover {
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 82%, black);
+}
 
 /* Shared tags/badges */
 .catalog-tag {
@@ -1086,14 +1110,19 @@ function appBadge(p: CatalogProduct): string {
 .catalog-link-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--c-primary);
+  justify-content: center;
+  width: 38px;
+  flex-shrink: 0;
+  border-left: 1px solid rgba(255,255,255,0.22);
+  background: var(--c-brand-blue, #0078BE);
+  color: rgba(255,255,255,0.85);
   text-decoration: none;
-  transition: opacity 0.12s;
+  transition: background 0.15s, color 0.15s;
 }
-.catalog-link-btn:hover { opacity: 0.75; }
+.catalog-link-btn:hover {
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 70%, black);
+  color: #fff;
+}
 
 /* ── List view ───────────────────────────────────────────────────────────── */
 .catalog-list-wrap { overflow-x: auto; }

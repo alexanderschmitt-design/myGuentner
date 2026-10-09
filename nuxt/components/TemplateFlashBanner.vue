@@ -155,7 +155,7 @@ const { state, dismiss } = useTemplateFlash()
 }
 
 @media (max-width: 640px) {
-  .template-flash { min-width: 0; width: calc(100vw - 24px); top: 74px; }
+  .template-flash { min-width: 0; left: 12px; right: 12px; transform: none; max-width: none; top: 74px; }
   .template-flash-count { display: block; margin: 4px 0 0; }
 }
 </style>

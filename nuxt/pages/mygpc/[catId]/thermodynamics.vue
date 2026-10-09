@@ -572,10 +572,18 @@ const toast = useToast()
 
 // Field-Highlight nach Template-Load: reactive class-toggle für 3.2s
 // Puls-Effekt auf allen Wizard-Feldern via useTemplateFlash-Composable.
-const { highlightActive: templateHighlightActive } = useTemplateFlash()
+const { highlightActive: templateHighlightActive, trigger: triggerFlash } = useTemplateFlash()
 
-function onTemplateApplied(t: { name: string }) {
+function onTemplateApplied(t: { name: string; configuration?: any }) {
   toast.success(`Template "${t.name}" applied`)
+  // Count pre-filled params so the flash banner and chatbot intro can report it.
+  let paramCount = 0
+  if (t.configuration?.parameters) {
+    for (const v of Object.values(t.configuration.parameters)) {
+      if (v !== null && v !== undefined && v !== '') paramCount++
+    }
+  }
+  triggerFlash({ templateName: t.name, paramCount, categoryTitle: current.value?.title })
 }
 
 // Unified fluid v-model — picks the right store binding based on the

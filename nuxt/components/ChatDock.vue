@@ -326,10 +326,13 @@ function commitGuidedStep(step: GuidedStep | null) {
 
 // Re-inject the guided step when the flow OR step changes AND the dock is
 // open. If the dock is closed, we defer until it opens (see toggle()).
+// Skip entirely while a template-intro stream is running so the capacity
+// guidance card does not appear on top of the live product introduction.
 watch(
   [() => guided.currentStep.value, () => isOpen.value, () => guidedEnabled.value],
   () => {
     if (!isOpen.value) return
+    if (isTemplateIntroPending.value) return
     if (!guidedEnabled.value) {
       commitGuidedStep(null)
       return
@@ -340,25 +343,6 @@ watch(
 )
 
 function onSuggestionByIdx(step: GuidedStep, idx: number) {
-  // Post-pick steps use the step id prefix and their own suggestion action type.
-  if (step.id.startsWith('post-pick-')) {
-    const postSugg = (step as any).__postPickSuggestions?.[idx]
-    if (postSugg?.action === 'navigate' && pendingPostPickNavTarget.value) {
-      history.value = [...history.value, {
-        role: 'user',
-        content: postSugg.label + (postSugg.detail ? ` — ${postSugg.detail}` : '')
-      }]
-      const target = pendingPostPickNavTarget.value
-      pendingPostPickNavTarget.value = null
-      useRouter().push(target)
-    } else if (postSugg?.action === 'stay') {
-      history.value = [...history.value, {
-        role: 'user',
-        content: postSugg.label + (postSugg.detail ? ` — ${postSugg.detail}` : '')
-      }]
-    }
-    return
-  }
   const s = step.suggestions?.[idx]
   if (s) onSuggestion(s, step)
 }
@@ -410,9 +394,6 @@ const recLoading = ref(false)
  *  anderen Kategorie gehört als die vom Guided-Entry-Flow resolvete
  *  Ziel-Kategorie. UI zeigt dann einen Confirm-Turn statt still zu redirekten. */
 const pendingCrossCategory = ref<{ template: RecommendationTemplate; step: GuidedStep; sourceSlug: string; targetSlug: string } | null>(null)
-/** When a postPickStep intercepts navigation, the deferred nav target is stored here
- *  until the user clicks a 'navigate'-action suggestion. */
-const pendingPostPickNavTarget = ref<string | null>(null)
 const crossCategoryInfo = computed<CrossCategoryInfo | null>(() => {
   if (!pendingCrossCategory.value) return null
   const p = pendingCrossCategory.value
@@ -422,7 +403,94 @@ const crossCategoryInfo = computed<CrossCategoryInfo | null>(() => {
     sourceCategoryLabel: getCategoryBySlug(p.sourceSlug)?.title || p.sourceSlug,
   }
 })
-const { trigger: triggerFlash } = useTemplateFlash()
+const { trigger: triggerFlash, consumeGuidance, highlightSignal } = useTemplateFlash()
+
+/** True while a template-intro stream is running — blocks the guided-flow
+ *  watcher from injecting the generic capacity step on top of it. */
+const isTemplateIntroPending = ref(false)
+
+/** Shared intro logic — called from both the route-change watcher (navigation
+ *  to thermodynamics) and the highlightSignal watcher (template loaded via the
+ *  Templates modal while already on thermodynamics). */
+async function runTemplateIntro(guidance: import('~/composables/useTemplateFlash').TemplateGuidance) {
+  if (stream.isStreaming.value) return
+
+  const catLabel = guidance.categoryTitle || 'this product category'
+  const introQuery = [
+    `I just loaded the "${guidance.templateName}" template for ${catLabel} —`,
+    `${guidance.paramCount} parameters are now pre-filled in the Thermodynamics step.`,
+    `Please briefly introduce this product: highlight its key features and what makes it particularly suited for this application.`,
+    `Then guide me through what to review in the Thermodynamics configuration (cooling capacity, temperatures, refrigerant, defrost method).`,
+    `Be concise and practical.`
+  ].join(' ')
+
+  // Suppress the capacity-guidance flow for this thermodynamics visit.
+  // dismiss() adds path::flowId to dismissedFlowIds so useGuidedFlow's
+  // module-level route watcher won't reinstate the step, even if it
+  // re-fires due to store changes mid-stream.
+  guided.dismiss()
+
+  // Block the guided-flow watcher and wipe any existing guided step before
+  // opening the dock (opening triggers the watcher).
+  isTemplateIntroPending.value = true
+  history.value = history.value.filter(h => !h.guidedStep)
+
+  isOpen.value = true
+  await nextTick()
+  // Belt-and-suspenders: flush may have re-injected a guided step.
+  history.value = history.value.filter(h => !h.guidedStep)
+  scrollToEnd()
+
+  await stream.send({
+    query: introQuery,
+    language: 'en',
+    history: history.value.map(h => ({ role: h.role, content: h.content })),
+    userContext: buildUserContext()
+  })
+  if (stream.text.value) {
+    history.value = [
+      ...history.value,
+      {
+        role: 'assistant',
+        content: stream.text.value,
+        sources: stream.sources.value.slice(),
+        toolCalls: stream.toolCalls.value.length ? stream.toolCalls.value.slice() : undefined,
+        messageId: stream.done.value?.messageId ?? null
+      }
+    ]
+  }
+  stream.reset()
+  scrollToEnd()
+
+  // Re-enable guided flow injection for subsequent interactions.
+  isTemplateIntroPending.value = false
+}
+
+// Fires when navigating TO thermodynamics after applyRecommendation().
+watch(
+  () => route.path,
+  async (path) => {
+    if (!/^\/mygpc\/\d+\/thermodynamics$/.test(path)) return
+    const guidance = consumeGuidance()
+    if (!guidance) return
+    await runTemplateIntro(guidance)
+  }
+)
+
+// Fires when a template is loaded via the Templates modal while ALREADY on
+// thermodynamics (no route change occurs in that scenario). The signal is
+// bumped by triggerFlash() every time a template is applied.
+// For the navigation case the route is still the old path when this watcher
+// fires, so the guard rejects it and lets the route watcher above handle it.
+watch(
+  () => highlightSignal.value,
+  async () => {
+    if (!/^\/mygpc\/\d+\/thermodynamics$/.test(route.path)) return
+    const guidance = consumeGuidance()
+    if (!guidance) return
+    await runTemplateIntro(guidance)
+  }
+)
 
 function countConfigParams(cfg: any): number {
   if (!cfg?.parameters) return 0
@@ -588,57 +656,10 @@ async function applyRecommendation(t: RecommendationTemplate, step: GuidedStep) 
   })
 
   const navTarget = `/mygpc/${catId}/thermodynamics`
-  const postPick = step.postPickStep
-
-  if (postPick) {
-    // 5a) Replace the recommendations card in history with a plain user turn
-    // (no guidedStep) so RecommendedProducts is no longer rendered while the
-    // post-pick explanation is showing. We strip the last guidedStep entry
-    // (the r/l-recommendations step) and replace it with the user turn.
-    const withoutLastGuided = history.value.filter((h, i, arr) => {
-      if (!h.guidedStep) return true
-      const lastIdx = arr.map(x => !!x.guidedStep).lastIndexOf(true)
-      return i !== lastIdx
-    })
-    history.value = [...withoutLastGuided, { role: 'user', content: `Load template: ${t.name}` }]
-
-    // Build the explanation message with runtime context
-    const msgText = postPick.message({
-      templateName: t.name,
-      paramCount: t.paramCount,
-      categoryTitle: cat?.title ?? targetSlug ?? ''
-    })
-
-    // Map postPick suggestions to GuidedSuggestion shape (no apply — handled above)
-    const mappedSuggestions = (postPick.suggestions ?? []).map(s => ({
-      label: s.label,
-      detail: s.detail,
-      apply: () => false as const
-    }))
-
-    // Synthetic GuidedStep rendered as a ConfigQuestionCard; the action is
-    // resolved in onSuggestionByIdx via __postPickSuggestions side-channel.
-    const postStep: GuidedStep & { __postPickSuggestions: typeof postPick.suggestions } = {
-      id: `post-pick-${t.id}`,
-      message: msgText,
-      suggestions: mappedSuggestions,
-      showAdvance: false,
-      __postPickSuggestions: postPick.suggestions
-    } as any
-
-    history.value = [...history.value, {
-      role: 'assistant',
-      content: msgText,
-      guidedStep: postStep
-    }]
-
-    // Store nav target — released by onSuggestionByIdx when user clicks 'navigate'
-    pendingPostPickNavTarget.value = navTarget
-  } else {
-    // 5b) Classic behaviour: user-turn + immediate navigation
-    history.value = [...history.value, { role: 'user', content: `Load template: ${t.name}` }]
-    await useRouter().push(navTarget)
-  }
+  // Navigate directly — no intermediate confirmation card.
+  history.value = [...history.value, { role: 'user', content: `Load template: ${t.name}` }]
+  isOpen.value = false
+  await useRouter().push(navTarget)
 }
 
 async function onCrossCategoryConfirm() {

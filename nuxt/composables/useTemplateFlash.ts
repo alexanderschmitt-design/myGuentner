@@ -19,7 +19,17 @@ interface FlashState {
   shownAt: number
 }
 
+export interface TemplateGuidance {
+  templateName: string
+  categoryTitle: string
+  paramCount: number
+}
+
 const flashRef = ref<FlashState | null>(null)
+/** Pending guidance payload — consumed once by ChatDock when landing on
+ *  thermodynamics after a template pick. Module-scoped so it survives
+ *  route navigation without being stored in the router state. */
+const pendingGuidanceRef = ref<TemplateGuidance | null>(null)
 /** Signal-Counter — jeder Template-Load bumpt ihn. Wizard-Seiten
  *  watchen darauf und setzen kurzzeitig eine CSS-Klasse auf ihr
  *  Root-Element, die alle populierten Form-Felder pulsen lässt. */
@@ -42,6 +52,13 @@ export function useTemplateFlash() {
       hideTimer = null
     }, AUTO_HIDE_MS)
 
+    // Store guidance payload — ChatDock picks this up on thermodynamics mount.
+    pendingGuidanceRef.value = {
+      templateName: payload.templateName,
+      categoryTitle: payload.categoryTitle ?? '',
+      paramCount: payload.paramCount
+    }
+
     // Field-Highlight-Signal parallel bumpen — Wizard-Seiten reagieren.
     highlightSignalRef.value++
     highlightActiveRef.value = true
@@ -57,6 +74,13 @@ export function useTemplateFlash() {
     if (hideTimer) { clearTimeout(hideTimer); hideTimer = null }
   }
 
+  /** Consume the pending guidance once. Returns the payload and clears it. */
+  function consumeGuidance(): TemplateGuidance | null {
+    const g = pendingGuidanceRef.value
+    pendingGuidanceRef.value = null
+    return g
+  }
+
   return {
     state: computed(() => flashRef.value),
     /** True während des ~3.2s Field-Highlight-Fensters nach einem Template-Load. */
@@ -65,6 +89,7 @@ export function useTemplateFlash() {
      *  einen frischen Puls-Effekt auszulösen (auch wenn active gerade schon true ist). */
     highlightSignal: computed(() => highlightSignalRef.value),
     trigger,
-    dismiss
+    dismiss,
+    consumeGuidance
   }
 }
