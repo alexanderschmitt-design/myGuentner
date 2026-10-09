@@ -463,6 +463,9 @@ async function runTemplateIntro(guidance: import('~/composables/useTemplateFlash
   scrollToEnd()
 
   // Re-enable guided flow injection for subsequent interactions.
+  // Re-dismiss the guided step in case the context-reset watcher ran during
+  // streaming and called guided.reset(), which would have cleared the dismiss.
+  guided.dismiss()
   isTemplateIntroPending.value = false
 }
 
@@ -917,7 +920,11 @@ function flowContextOf(path: string): string {
 watch(() => route.path, (path) => {
   const ctx = flowContextOf(path)
   if (lastFlowContext && ctx !== lastFlowContext) {
-    performReset()
+    // Skip reset when a template intro is about to stream — the intro watcher
+    // has already set this flag synchronously before this watcher fires.
+    // performReset() would undo guided.dismiss() and clear the user turn,
+    // causing the welcome preset buttons to flash before streaming starts.
+    if (!isTemplateIntroPending.value) performReset()
   }
   lastFlowContext = ctx
 }, { immediate: true })
@@ -1150,7 +1157,7 @@ function pickPreset(p: PresetIntent) {
             <!-- Presets nur zeigen wenn KEIN Guided-Flow schon aktiv ist —
                  sonst hat der User die Auswahl-Karte des Flows unmittelbar
                  darunter und würde doppelte Choices sehen. -->
-            <div v-if="transcript.length === 0" class="start-presets">
+            <div v-if="transcript.length === 0 && !isTemplateIntroPending" class="start-presets">
               <button
                 v-for="p in presets"
                 :key="p.id"
