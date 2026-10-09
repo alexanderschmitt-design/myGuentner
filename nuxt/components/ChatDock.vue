@@ -13,6 +13,8 @@ import ModalDialog from './ModalDialog.vue'
 import ConfigQuestionCard from './ConfigQuestionCard.vue'
 import RecommendedProducts from './RecommendedProducts.vue'
 import ChatProductMessageGroup from './ChatProductMessageGroup.vue'
+import TemplateGuidanceCard from './TemplateGuidanceCard.vue'
+import type { TemplateGuidanceData } from './TemplateGuidanceCard.vue'
 import type { CrossCategoryInfo } from './RecommendedProducts.vue'
 import type { ProductPreviewData } from './ChatProductPreviewCard.vue'
 import type { RagSource, ToolCall, UserContext } from '~/composables/useChatStream'
@@ -50,6 +52,8 @@ interface HistoryEntry {
   guidedStep?: GuidedStep
   /** When set, renders a ChatProductMessageGroup (card + bubble + actions). */
   productPreview?: ProductPreviewData
+  /** When set, renders a TemplateGuidanceCard instead of a chat bubble. */
+  templateGuidance?: TemplateGuidanceData
 }
 
 const history = ref<HistoryEntry[]>([])
@@ -92,6 +96,11 @@ watch(productCtx, async (ctx) => {
   await nextTick()
   scrollToEnd()
 })
+
+function onTemplateGuidanceAsk() {
+  isOpen.value = true
+  nextTick(() => inputRef.value?.focus())
+}
 
 function onProductPreviewAction(action: 'more-info' | 'configure' | 'contact-sales', data: ProductPreviewData) {
   if (action === 'more-info') {
@@ -412,59 +421,33 @@ const isTemplateIntroPending = ref(false)
 /** Shared intro logic — called from both the route-change watcher (navigation
  *  to thermodynamics) and the highlightSignal watcher (template loaded via the
  *  Templates modal while already on thermodynamics). */
-async function runTemplateIntro(guidance: import('~/composables/useTemplateFlash').TemplateGuidance) {
-  if (stream.isStreaming.value) return
-
-  const catLabel = guidance.categoryTitle || 'this product category'
-  const introQuery = [
-    `I just loaded the "${guidance.templateName}" template for ${catLabel} —`,
-    `${guidance.paramCount} parameters are now pre-filled in the Thermodynamics step.`,
-    `Please briefly introduce this product: highlight its key features and what makes it particularly suited for this application.`,
-    `Then guide me through what to review in the Thermodynamics configuration (cooling capacity, temperatures, refrigerant, defrost method).`,
-    `Be concise and practical.`
-  ].join(' ')
-
+function runTemplateIntro(guidance: import('~/composables/useTemplateFlash').TemplateGuidance) {
   // Suppress the capacity-guidance flow for this thermodynamics visit.
-  // dismiss() adds path::flowId to dismissedFlowIds so useGuidedFlow's
-  // module-level route watcher won't reinstate the step, even if it
-  // re-fires due to store changes mid-stream.
   guided.dismiss()
 
   // Block the guided-flow watcher and wipe any existing guided step before
   // opening the dock (opening triggers the watcher).
   isTemplateIntroPending.value = true
-  history.value = history.value.filter(h => !h.guidedStep)
+  history.value = history.value.filter(h => !h.guidedStep && !h.templateGuidance)
+
+  // Push the structured guidance card — no LLM streaming needed.
+  history.value = [
+    ...history.value,
+    {
+      role: 'assistant' as const,
+      content: '',
+      templateGuidance: {
+        templateName: guidance.templateName,
+        categoryTitle: guidance.categoryTitle,
+        paramCount: guidance.paramCount
+      }
+    }
+  ]
 
   isOpen.value = true
-  await nextTick()
-  // Belt-and-suspenders: flush may have re-injected a guided step.
-  history.value = history.value.filter(h => !h.guidedStep)
-  scrollToEnd()
+  nextTick(() => scrollToEnd())
 
-  await stream.send({
-    query: introQuery,
-    language: 'en',
-    history: history.value.map(h => ({ role: h.role, content: h.content })),
-    userContext: buildUserContext()
-  })
-  if (stream.text.value) {
-    history.value = [
-      ...history.value,
-      {
-        role: 'assistant',
-        content: stream.text.value,
-        sources: stream.sources.value.slice(),
-        toolCalls: stream.toolCalls.value.length ? stream.toolCalls.value.slice() : undefined,
-        messageId: stream.done.value?.messageId ?? null
-      }
-    ]
-  }
-  stream.reset()
-  scrollToEnd()
-
-  // Re-enable guided flow injection for subsequent interactions.
-  // Re-dismiss the guided step in case the context-reset watcher ran during
-  // streaming and called guided.reset(), which would have cleared the dismiss.
+  // Re-dismiss in case the context-reset watcher ran and called guided.reset().
   guided.dismiss()
   isTemplateIntroPending.value = false
 }
@@ -1203,8 +1186,16 @@ function pickPreset(p: PresetIntent) {
                 <span v-else-if="tc.ok === undefined" class="tool-chip-summary tool-chip-pending-dots">…</span>
               </span>
             </div>
+            <!-- Template Guidance Card — shown when landing on thermodynamics after
+                 a template pick; replaces the generic streaming chat bubble. -->
+            <template v-if="msg.templateGuidance">
+              <TemplateGuidanceCard
+                :data="msg.templateGuidance"
+                @ask="onTemplateGuidanceAsk"
+              />
+            </template>
             <!-- Product message group: card + Günther bubble + action buttons -->
-            <template v-if="msg.productPreview">
+            <template v-else-if="msg.productPreview">
               <ChatProductMessageGroup
                 :data="msg.productPreview"
                 @action="action => onProductPreviewAction(action, msg.productPreview!)"
