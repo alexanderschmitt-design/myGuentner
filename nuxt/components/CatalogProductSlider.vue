@@ -125,18 +125,10 @@ function openProduct(p: CatalogProduct) {
         >
           <div class="ps-card-img">
             <img
-              v-if="p.image_path"
-              :src="p.image_path"
+              :src="getCatalogProductImagePath(p)"
               :alt="p.product_name"
               class="ps-img"
             />
-            <div v-else class="ps-img-ph">
-              <svg viewBox="0 0 48 48" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="6" y="10" width="36" height="28" rx="3"/>
-                <path d="M6 30l9-9 7 7 6-6 10 9"/>
-                <circle cx="33" cy="18" r="3.5"/>
-              </svg>
-            </div>
           </div>
           <div class="ps-card-body">
             <span class="ps-card-cat">{{ p.category }}</span>
