@@ -1,6 +1,6 @@
 # Technical Truth — myGPC / myGüntner
 > Dieses Dokument ist die kanonische technische Referenz. Es wird nach jedem abgeschlossenen Feature-Block aktualisiert.
-> **Zuletzt aktualisiert:** 2026-09-19
+> **Zuletzt aktualisiert:** 2026-10-12
 
 ---
 
@@ -8,7 +8,7 @@
 
 **myGPC** (my Güntner Product Configurator) — Nuxt-3-Web-App für die Konfiguration von Güntner Wärmetauschern. 5-Schritt-Wizard: Kategorie → Thermodynamik → Unit Selection → Coil Geometry → Results/Datasheet.
 
-**Chatbot „Günther"** — integrierter KI-Assistent (Claude Sonnet 4.6) mit RAG, Streaming, Guided Flows und Template-Empfehlungen.
+**Chatbot „Günther"** — integrierter KI-Assistent (Claude Sonnet 4.6) mit RAG, Streaming, Guided Flows, Template-Empfehlungen und kontextsensitivem Assistenzmodus (Parameter-Guide / Results-Assist).
 
 ---
 
@@ -65,6 +65,7 @@ Browser
 - **Chat:** Browser → `POST /api/chat` (SSE-Stream) → Anthropic Claude → Browser
 - **Guided Flow:** Admin erstellt in `/admin/guided-flows` → Supabase → `useGuidedFlow` → Chatbot rendert als `ConfigQuestionCard`
 - **Templates:** Admin pflegt via `/admin/system-templates` → Supabase → `RecommendedProducts` zeigt nach Guided-Flow-Abschluss
+- **Chatbot-Modus:** Route → `buildUserContext()` setzt `assistantMode` → `POST /api/chat` → `composeSystemPrompt()` wählt Prompt-Branch
 
 ---
 
@@ -77,17 +78,24 @@ Browser
 | `nuxt/composables/useViewMode.ts` | Basic/Expert-Toggle, localStorage |
 | `nuxt/composables/useGuidedFlow.ts` | Guided-Pass-State-Machine |
 | `nuxt/composables/useConfigStore.ts` | Wizard-Parameter (zentral) |
-| `nuxt/components/ChatDock.vue` | Chatbot-Drawer (FAB + Slide-in, ~2200 LOC) |
+| `nuxt/components/ChatDock.vue` | Chatbot-Drawer (FAB + Slide-in, ~2300 LOC) |
 | `nuxt/components/ConfigQuestionCard.vue` | Guided-Q&A-Kachel |
 | `nuxt/components/RecommendedProducts.vue` | Template-Empfehlungen + Sales-Kontakt |
 | `nuxt/components/ViewModeToggle.vue` | Basic/Expert Segment-Control |
 | `nuxt/pages/mygpc/[catId]/thermodynamics.vue` | Wizard Schritt 2 |
 | `nuxt/pages/mygpc/[catId]/unit-selection.vue` | Wizard Schritt 3 |
+| `nuxt/pages/mygpc/catalog.vue` | Produktkatalog-Übersicht |
 | `nuxt/pages/admin/features.vue` | Feature-Flag-Admin inkl. Diagnose-Panel |
+| `nuxt/server/utils/llm.ts` | LLM-Provider-Selector + `composeSystemPrompt()` (Modus-aware) |
+| `nuxt/server/utils/llm-bella.ts` | Anthropic-Adapter (Streaming, Tool-Use, Prompt-Caching) |
+| `nuxt/server/utils/llm-gemini.ts` | Gemini-Adapter (Streaming via REST+SSE) |
+| `nuxt/server/utils/llm-openrouter.ts` | OpenRouter-Adapter (OpenAI-kompatibel) |
 | `nuxt/server/utils/app-settings.ts` | Supabase-KV-Store, 30s In-Process-Cache |
 | `nuxt/server/utils/supabase.ts` | Service + Anon Client |
 | `nuxt/server/api/admin/debug/app-settings.get.ts` | Debug-Endpoint (cache-bypass) |
-| `nuxt/data/guidedFlows.ts` | TypeScript-Typen für Guided Flows |
+| `nuxt/data/guidedFlows.ts` | TypeScript-Typen + Code-Fallback für Guided Flows |
+| `nuxt/utils/productImagePath.ts` | Namensbasierte Auflösung der Produktbild-Pfade (`.webp`) |
+| `nuxt/composables/useChatStream.ts` | Client-seitiger SSE-Stream-Wrapper + `UserContext`-Interface |
 
 ---
 
@@ -194,7 +202,28 @@ Verwaltet unter `/admin/features`. Gespeichert in `app_settings` unter `feature.
 
 ---
 
-## 11. Bekannte Constraints & Eigenheiten
+## 11. Chatbot-Assistenzmodi (`assistantMode`)
+
+Günther passt Prompt, UI und Verhalten automatisch an die aktive Wizard-Route an. Der Modus wird in `buildUserContext()` gesetzt, via `POST /api/chat` übertragen und in `composeSystemPrompt()` ausgewertet. Alle drei LLM-Adapter (Bella, Gemini, OpenRouter) erhalten den gleichen Prompt-Text.
+
+| Modus | Route | Verhalten |
+|---|---|---|
+| *(Standard / RAG-Only)* | alle anderen Routen | Strikter Quellen-Modus — nur aus Güntner-Dokumenten antworten, jede Aussage zitieren |
+| `parameter-guide` | `/mygpc/[catId]/thermodynamics`, `/mygpc/[catId]/unit-selection` | Direkter Fachberater — Thermodynamik-Wissen direkt anwenden, konkrete Werte empfehlen, problematische Kombis flaggen. Templates/Produktempfehlungen verboten. |
+| `results-guide` | `/mygpc/[catId]/search` | Ergebnis-Navigator — Spalten erklären, Modelle vergleichen, Listeneingrenzung vorschlagen. Parameterkorrekturen an Thermodynamik verweisen. |
+
+### UI-Konsequenzen pro Route
+
+| Route | Preset-Buttons | Guided-Flow-Karten | Schnelleinstieg |
+|---|---|---|---|
+| Home / Katalog | Kategorie-Presets (Air Cooler, Dry Cooler, …) | Ja (wenn `guided_pass` ON) | Standard |
+| Thermodynamics | Parameter-Quick-Prompts (Verdampfungstemp., Kältemittel, …) | Nein — Rec.-Steps auto-übersprungen | Parameter-Subtitle |
+| Unit Selection | Parameter-Quick-Prompts (Baureihe, EC/AC, …) | Nein — Rec.-Steps auto-übersprungen | Parameter-Subtitle |
+| Results/Search | Keine Buttons | Nein | Statischer Orientierungstext via `performReset()` |
+
+---
+
+## 12. Bekannte Constraints & Eigenheiten
 
 | Problem | Ursache | Lösung |
 |---|---|---|
@@ -206,7 +235,7 @@ Verwaltet unter `/admin/features`. Gespeichert in `app_settings` unter `feature.
 
 ---
 
-## 12. Änderungslog
+## 13. Änderungslog
 
 | Datum | Was |
 |---|---|
@@ -223,3 +252,7 @@ Verwaltet unter `/admin/features`. Gespeichert in `app_settings` unter `feature.
 | 2026-09-19 | Spare Parts: User-facing Seiten auf DB verbunden (`/api/spare-parts` + `/api/spare-parts/:id`) |
 | 2026-09-19 | Neue Seite: `/produkte/:variantKey` — User-facing Varianten-Detailseite |
 | 2026-09-19 | Admin: Kältemittelgruppe (series_variant) aus Serien-level Prioritätsparametern entfernt |
+| 2026-10-09 | Fix: Produktbilder im Katalog (404 auf Vercel) — Early-Return aus `getCatalogProductImagePath()` entfernt, alle Pfade auf `.webp` |
+| 2026-10-09 | Chatbot: `assistantMode: 'parameter-guide'` auf Thermodynamics + Unit Selection — direkter Fachberater-Modus, Quick-Prompts, keine Kategorie-Presets, RecommendedProducts unterdrückt |
+| 2026-10-09 | Guided Flow: Abschluss-Steps in Thermo-Flows mit „Continue to Unit Selection →"-CTA; neuer `unitSelectionFlow` mit „Show Results →"-CTA |
+| 2026-10-09 | Chatbot: `assistantMode: 'results-guide'` auf Results/Search — Ergebnis-Navigator-Prompt, statischer Orientierungstext via `performReset()`, keine Preset-Buttons |
