@@ -1,7 +1,4 @@
 <script setup lang="ts">
-const RATINGS = ['Sehr hilfreich', 'Hilfreich', 'Okay', 'Nicht relevant'] as const
-type Rating = typeof RATINGS[number]
-
 const open = ref(false)
 const submitting = ref(false)
 const submitted = ref(false)
@@ -9,11 +6,18 @@ const error = ref('')
 
 const form = reactive({
   customer_name: '',
-  chatbot_feedback: '' as Rating | '',
-  catalog_feedback: '' as Rating | '',
-  refrigerant_feedback: '' as Rating | '',
+  chatbot_feedback: 0,
+  catalog_feedback: 0,
+  refrigerant_feedback: 0,
   other_use_cases: '',
   comments: '',
+})
+
+// Hover state per rating field
+const hover = reactive({
+  chatbot_feedback: 0,
+  catalog_feedback: 0,
+  refrigerant_feedback: 0,
 })
 
 function openModal() { open.value = true }
@@ -26,9 +30,9 @@ function closeModal() {
 function resetForm() {
   Object.assign(form, {
     customer_name: '',
-    chatbot_feedback: '',
-    catalog_feedback: '',
-    refrigerant_feedback: '',
+    chatbot_feedback: 0,
+    catalog_feedback: 0,
+    refrigerant_feedback: 0,
     other_use_cases: '',
     comments: '',
   })
@@ -61,12 +65,7 @@ onMounted(() => {
   onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
 })
 
-const ratingEmoji: Record<Rating, string> = {
-  'Sehr hilfreich': '😊',
-  'Hilfreich': '🙂',
-  'Okay': '😐',
-  'Nicht relevant': '🤷',
-}
+const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezeichnet']
 </script>
 
 <template>
@@ -141,51 +140,72 @@ const ratingEmoji: Record<Rating, string> = {
               <!-- Chatbot -->
               <div class="cv-field">
                 <label class="cv-label"><span>🤖</span> Chatbot Günther</label>
-                <div class="cv-rating-group">
-                  <button
-                    v-for="r in RATINGS" :key="r"
-                    type="button"
-                    class="cv-rating-btn"
-                    :class="{ active: form.chatbot_feedback === r }"
-                    @click="form.chatbot_feedback = form.chatbot_feedback === r ? '' : r"
-                  >
-                    <span class="cv-rating-emoji">{{ ratingEmoji[r] }}</span>
-                    <span>{{ r }}</span>
-                  </button>
+                <div class="cv-stars-wrap">
+                  <div class="cv-stars">
+                    <button
+                      v-for="n in 5" :key="n"
+                      type="button"
+                      class="cv-star"
+                      :class="{ filled: n <= (hover.chatbot_feedback || form.chatbot_feedback) }"
+                      :aria-label="`${n} von 5 Sternen`"
+                      @mouseenter="hover.chatbot_feedback = n"
+                      @mouseleave="hover.chatbot_feedback = 0"
+                      @click="form.chatbot_feedback = form.chatbot_feedback === n ? 0 : n"
+                    >
+                      <svg viewBox="0 0 20 20" width="32" height="32">
+                        <path d="M10 2l2.4 5.3H18l-4.5 3.4 1.7 5.6L10 13.3l-5.2 3 1.7-5.6L2 7.3h5.6z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="cv-stars-label">{{ STAR_LABELS[hover.chatbot_feedback || form.chatbot_feedback] || '—' }}</span>
                 </div>
               </div>
 
               <!-- Catalog -->
               <div class="cv-field">
                 <label class="cv-label"><span>📖</span> Produktkonfigurator</label>
-                <div class="cv-rating-group">
-                  <button
-                    v-for="r in RATINGS" :key="r"
-                    type="button"
-                    class="cv-rating-btn"
-                    :class="{ active: form.catalog_feedback === r }"
-                    @click="form.catalog_feedback = form.catalog_feedback === r ? '' : r"
-                  >
-                    <span class="cv-rating-emoji">{{ ratingEmoji[r] }}</span>
-                    <span>{{ r }}</span>
-                  </button>
+                <div class="cv-stars-wrap">
+                  <div class="cv-stars">
+                    <button
+                      v-for="n in 5" :key="n"
+                      type="button"
+                      class="cv-star"
+                      :class="{ filled: n <= (hover.catalog_feedback || form.catalog_feedback) }"
+                      :aria-label="`${n} von 5 Sternen`"
+                      @mouseenter="hover.catalog_feedback = n"
+                      @mouseleave="hover.catalog_feedback = 0"
+                      @click="form.catalog_feedback = form.catalog_feedback === n ? 0 : n"
+                    >
+                      <svg viewBox="0 0 20 20" width="32" height="32">
+                        <path d="M10 2l2.4 5.3H18l-4.5 3.4 1.7 5.6L10 13.3l-5.2 3 1.7-5.6L2 7.3h5.6z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="cv-stars-label">{{ STAR_LABELS[hover.catalog_feedback || form.catalog_feedback] || '—' }}</span>
                 </div>
               </div>
 
               <!-- Refrigerant -->
               <div class="cv-field">
                 <label class="cv-label"><span>❄️</span> Kältemittel-Beratung</label>
-                <div class="cv-rating-group">
-                  <button
-                    v-for="r in RATINGS" :key="r"
-                    type="button"
-                    class="cv-rating-btn"
-                    :class="{ active: form.refrigerant_feedback === r }"
-                    @click="form.refrigerant_feedback = form.refrigerant_feedback === r ? '' : r"
-                  >
-                    <span class="cv-rating-emoji">{{ ratingEmoji[r] }}</span>
-                    <span>{{ r }}</span>
-                  </button>
+                <div class="cv-stars-wrap">
+                  <div class="cv-stars">
+                    <button
+                      v-for="n in 5" :key="n"
+                      type="button"
+                      class="cv-star"
+                      :class="{ filled: n <= (hover.refrigerant_feedback || form.refrigerant_feedback) }"
+                      :aria-label="`${n} von 5 Sternen`"
+                      @mouseenter="hover.refrigerant_feedback = n"
+                      @mouseleave="hover.refrigerant_feedback = 0"
+                      @click="form.refrigerant_feedback = form.refrigerant_feedback === n ? 0 : n"
+                    >
+                      <svg viewBox="0 0 20 20" width="32" height="32">
+                        <path d="M10 2l2.4 5.3H18l-4.5 3.4 1.7 5.6L10 13.3l-5.2 3 1.7-5.6L2 7.3h5.6z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="cv-stars-label">{{ STAR_LABELS[hover.refrigerant_feedback || form.refrigerant_feedback] || '—' }}</span>
                 </div>
               </div>
 
@@ -430,43 +450,51 @@ const ratingEmoji: Record<Rating, string> = {
 .cv-input::placeholder,
 .cv-textarea::placeholder { color: #aab4bf; }
 
-/* Rating buttons */
-.cv-rating-group {
+/* Star rating */
+.cv-stars-wrap {
   display: flex;
-  gap: 7px;
-  flex-wrap: wrap;
-}
-.cv-rating-btn {
-  flex: 1;
-  min-width: 100px;
-  display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 5px;
-  padding: 10px 8px;
-  border: 1.5px solid #dde3ea;
-  border-radius: 8px;
-  background: white;
+  gap: 12px;
+}
+.cv-stars {
+  display: flex;
+  gap: 2px;
+}
+.cv-star {
+  background: none;
+  border: none;
+  padding: 2px;
   cursor: pointer;
-  font-family: inherit;
-  font-size: 11.5px;
-  font-weight: 500;
-  color: #555;
-  text-align: center;
-  transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: transform 0.1s;
 }
-.cv-rating-btn:hover {
-  border-color: #0078be;
-  background: rgba(0, 120, 190, 0.04);
-  transform: translateY(-1px);
+.cv-star:hover { transform: scale(1.15); }
+.cv-star svg {
+  stroke: #d1d5db;
+  fill: none;
+  transition: stroke 0.12s, fill 0.12s;
 }
-.cv-rating-btn.active {
-  border-color: #0078be;
-  background: rgba(0, 120, 190, 0.1);
-  color: #0078be;
+.cv-star.filled svg {
+  stroke: #f59e0b;
+  fill: #f59e0b;
+}
+.cv-stars:hover .cv-star svg {
+  stroke: #d1d5db;
+  fill: none;
+}
+.cv-stars:hover .cv-star:hover svg,
+.cv-stars:hover .cv-star:hover ~ .cv-star svg { /* handled via :class */ }
+.cv-star.filled svg { stroke: #f59e0b; fill: #f59e0b; }
+.cv-stars-label {
+  font-family: var(--font-ui, sans-serif);
+  font-size: 12.5px;
   font-weight: 600;
+  color: #555;
+  min-width: 90px;
 }
-.cv-rating-emoji { font-size: 20px; }
 
 /* Buttons */
 .cv-btn {
