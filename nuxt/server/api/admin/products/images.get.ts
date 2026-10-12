@@ -15,24 +15,25 @@ import { join } from 'node:path'
 import { requireAdmin } from '../../../utils/auth'
 
 const EU_FALLBACK = [
-  'Agri Air Cooler EU.png',
-  'Blast Air Cooler EU.png',
-  'Cubic COMPACT Air Cooler EU.png',
-  'Cubic VARIO Air Cooler EU.png',
-  'Dual COMPACT Air Cooler EU.png',
-  'Dual VARIO Air Cooler EU.png',
-  'Flat COMPACT Dry Cooler EU.png',
-  'Flat VARIO Dry Cooler EU.png',
-  'Floor Air Cooler EU.png',
-  'Incoor-H Dry Cooler EU.png',
-  'Indoor-V Dry Cooler EU.png',
-  'Mini COMPACT Air Cooler EU.png',
-  'Slim COMPACT Air Cooler EU.png',
-  'V-Shape Vario HydroBlu_A1.png',
-  'V-shape COMPACT Dry Cooler EU.png',
-  'V-shape VARIO Dry Cooler EU.png',
-  'Vertical COMPACT Dry Cooler EU.png',
-  'Vertical VARIO Dry Cooler EU.png',
+  'Agri Air Cooler EU.webp',
+  'Blast Air Cooler EU.webp',
+  'Cubic COMPACT Air Cooler EU.webp',
+  'Cubic VARIO Air Cooler EU.webp',
+  'Dual COMPACT Air Cooler EU.webp',
+  'Dual VARIO Air Cooler EU.webp',
+  'Flat COMPACT Dry Cooler EU.webp',
+  'Flat VARIO Dry Cooler EU.webp',
+  'Floor Air Cooler EU.webp',
+  'Highstore Air Cooler EU.webp',
+  'Incoor-H Dry Cooler EU.webp',
+  'Indoor-V Dry Cooler EU.webp',
+  'Mini COMPACT Air Cooler EU.webp',
+  'Slim COMPACT Air Cooler EU.webp',
+  'V-Shape Vario HydroBlu_A1.webp',
+  'V-shape COMPACT Dry Cooler EU.webp',
+  'V-shape VARIO Dry Cooler EU.webp',
+  'Vertical COMPACT Dry Cooler EU.webp',
+  'Vertical VARIO Dry Cooler EU.webp',
 ]
 
 export default defineEventHandler(async (event) => {
@@ -52,7 +53,7 @@ export default defineEventHandler(async (event) => {
 
   const all   = readdirSync(dir)
   const files = filter === 'eu'
-    ? all.filter(f => /EU\.png$/i.test(f))
+    ? all.filter(f => /EU\.(png|webp)$/i.test(f))
     : all.filter(f => /\.(png|jpg|jpeg|webp)$/i.test(f))
 
   return {
