@@ -211,7 +211,7 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
 
               <!-- Q5: Ja/Nein -->
               <div class="cv-field">
-                <label class="cv-label"><span>💬</span> Würden Sie den Chatbot im Kundenportal zukünftig auch für alle anderen Module nutzen?</label>
+                <label class="cv-label"><span>💬</span> Würden Sie den Chatbot im Kundenportal zukünftig auch für alle anderen Module nutzen z.B. Ersatzteile und Bestellungen?</label>
                 <div class="cv-yesno-group">
                   <button
                     type="button"
