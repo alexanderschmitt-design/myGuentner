@@ -1,16 +1,20 @@
 # Planning — myGPC / myGüntner
 > Lebendiges Planungsdokument. Wird nach jedem abgeschlossenen Sprint ergänzt.
-> **Zuletzt aktualisiert:** 2026-09-18
+> **Zuletzt aktualisiert:** 2026-10-12
 
 ---
 
 ## Aktiver Status
 
-**Phase 5 — Chatbot-Qualität & UX-Polish**
-- Guided Flows mit Custom Icons (siehe `Planning-Phase5-Chatbot-Icons.md`)
-- Basic/Expert View Toggle ✅ deployed
-- Chat-Design-Überarbeitung ✅ deployed
-- Sales-Kontakt-Formular ✅ deployed
+**Phase 6 abgeschlossen — Chatbot Wizard-Guide** ✅ deployed 2026-10-09
+
+- `assistantMode: 'parameter-guide'` auf Thermodynamics + Unit Selection — direkter Fachberater statt RAG-Only
+- `assistantMode: 'results-guide'` auf Results/Search — Ergebnis-Navigator, statischer Orientierungstext
+- Guided Flow: Abschluss-Steps mit „Continue to Unit Selection →" und „Show Results →" CTAs
+- Neuer `unitSelectionFlow` in `guidedFlows.ts`
+- Fix: Produktbilder im Katalog (404 auf Vercel, `.webp`-Pfade)
+
+**Nächste Phase — offen** (kein aktiver Sprint)
 
 ---
 
@@ -22,6 +26,7 @@
 | Phase 3 | RAG + DMS + Bella-Pipeline | `Planning-Phase3.md` |
 | Phase 4 | Redesign, Admin-Panel, Feature-Flags | `Planning-Phase4-Redesign.md` |
 | Phase 5 | Chatbot-Icons, Basic/Expert, Chat-Design | `Planning-Phase5-Chatbot-Icons.md` |
+| Phase 6 | Chatbot Wizard-Guide: Parameter-Modus + Results-Assist | `Planning-Phase6-Chatbot-Wizard-Guide.md` |
 
 ---
 
@@ -41,10 +46,10 @@
 - Optionen: Resend/Sendgrid API, Supabase Edge Function, Webhook
 - Admin-Ansicht der eingegangenen Anfragen unter `/admin/contact-requests`
 
-#### Basic/Expert — Mehr Felder schützen
-- Thermodynamics: aktuell nur 2 Felder im Basic-Mode versteckt
-- Unit-Selection: viele Felder bereits versteckt
-- Review mit User: welche weiteren Felder in Basic versteckt werden sollen
+#### Results-Seite: Produktdaten im Chatbot-Kontext
+- Aktuell: `results-guide`-Modus kennt Konfigurationsparameter, aber keine Zeilen aus der Ergebnistabelle
+- Ziel: ausgewählte/top-N Unit-Keys aus dem Results-Store in `buildUserContext()` einspeisen
+- Dann kann Günther konkret über „Einheit X in Zeile 3" sprechen
 
 ### 🟡 Mittel
 
@@ -52,7 +57,13 @@
 - Vorgelagerter Flow der BEVOR die Kategorie gewählt wird läuft
 - Ziel: Güntner-Anwendungsfall erfassen (Kühlraum, Prozess, HVAC…)
 - Führt zu kontextbewusster Kategorie-Empfehlung
-- Konzept: in `Planning-Phase5-Chatbot-Icons.md` als "Konzept für Basis-Flow"
+- Konzept: in `Planning-Phase5-Chatbot-Icons.md` als „Konzept für Basis-Flow"
+- DB-Migration: `guided_entry_flows_tab_check` um Wert `basic` erweitern
+
+#### Basic/Expert — Mehr Felder schützen
+- Thermodynamics: aktuell nur 2 Felder im Basic-Mode versteckt
+- Unit-Selection: viele Felder bereits versteckt
+- Review mit User: welche weiteren Felder in Basic versteckt werden sollen
 
 #### Admin-Ansicht: Contact Requests
 - Neue Admin-Seite `/admin/contact-requests`
@@ -60,14 +71,15 @@
 - Felder: Name, E-Mail, Nachricht, Produkt-Empfehlungen, Zeitpunkt
 - Export als CSV
 
-#### Learn Mode — Produktivitäts-Features
-- Notizen können aktuell nur im Browser-Storage gespeichert werden
-- Ziel: Notizen in Supabase persistieren (pro Admin-User)
-- Admin-Übersicht aller Notizen
+#### Results-Seite: Quick-Prompts für Chatbot
+- Aktuell: keine Preset-Buttons auf der Results-Seite
+- Sinnvolle Prompts: „Vergleiche die 3 besten Treffer", „Erkläre die Spalten", „Welche Einheit für Außenaufstellung?"
+- Implementierung analog zu `paramGuideQuickPrompts`
 
-#### Performance: Guided Flow Icons
-- Custom-Icon-Bilder per CDN/Supabase Storage statt Base64 in DB
-- Lazy Loading für Icon-Grid in Admin
+#### Learn Mode — Notizen in Supabase persistieren
+- Aktuell: Notizen nur im Browser-Storage
+- Ziel: Pro Admin-User in Supabase gespeichert
+- Admin-Übersicht aller Notizen
 
 ### 🟢 Niedrig / Ideen
 
@@ -75,6 +87,11 @@
 - Aktuell: Chat-History nur im Browser-Speicher (verloren bei Refresh)
 - Option: anonyme Session-ID → Supabase `chat_sessions`
 - Option: Login-basiert (für eingeloggte User automatisch)
+
+#### Chatbot: Automatisches Öffnen auf Results-Seite
+- Günther öffnet sich nicht automatisch wenn User Results betritt
+- Orientierungstext ist nur sichtbar wenn Chatbot manuell geöffnet wird
+- Abwägen: UX-Mehrwert vs. Ablenkung
 
 #### Thermodynamics: Weitere Unit-Systeme
 - Aktuell: SI + Imperial im Toggle
@@ -106,6 +123,9 @@
 | Chat-Body hellgrau `#F4F4F6`, Kacheln weiß | Klare visuelle Trennung Chat-Bereich / Karte |
 | KI-Disclaimer in ConfigQuestionCard | Rechtliche Absicherung, Vertrauen aufbauen |
 | Sales-Kontakt in RecommendedProducts | Kontextbezogen: User sieht Produkte → direkter Weg zum Berater |
+| `assistantMode` im `userContext` statt eigenem Endpoint | Prompt-Wechsel ohne Cache-Verlust: systemBlocks bleiben gecacht, Modus liegt im variablen userContent-Block |
+| `getCatalogProductImagePath()` ignoriert `image_path` aus DB | DB-Spalte enthält veraltete Dateinamen; namensbasierte Regeln sind die einzige verlässliche Quelle |
+| `performReset()` als Einstiegspunkt für Results-Orientierungstext | Kein LLM-Call, sofort sichtbar beim ersten Öffnen des Chatbots auf der Results-Seite |
 
 ---
 
@@ -113,11 +133,13 @@
 
 | Schuld | Priorität | Notiz |
 |---|---|---|
-| ChatDock.vue ~2200 LOC | Mittel | Aufteilen in Sub-Komponenten (GuidedSection, RecSection…) |
+| ChatDock.vue ~2300 LOC | Mittel | Aufteilen in Sub-Komponenten (GuidedSection, RecSection, ResultsSection…) |
 | Doppelte CSS-Klassen in ChatDock für Child-Components | Niedrig | Refactor: `:deep()` oder Child-Props statt Root-Override |
 | `guided_flow_custom_icons` Migration nicht idempotent | Niedrig | `IF NOT EXISTS` ergänzen |
 | DMS-Mapping (238 Properties → 5 Filter-Dropdowns) | Mittel | Steht noch aus, Volltextsuche funktioniert |
 | Test-Suite fehlt komplett | Hoch (langfristig) | Kein Test-Framework konfiguriert |
+| `unitSelectionFlow` hat nur einen Step | Niedrig | Detailliertere Schritte (EC/AC, Schall, Abmessungen) wären sinnvoll |
+| `image_path`-Spalte in `products` ist verwaist | Niedrig | Wird nie ausgelesen; entweder befüllen oder Spalte droppen |
 
 ---
 
