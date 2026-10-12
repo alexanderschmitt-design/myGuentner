@@ -58,11 +58,30 @@ async function submit() {
   }
 }
 
+// Dynamic bottom position — keeps FAB above the footer when it scrolls into view
+const fabBottom = ref(24)
+
+function updateFabPosition() {
+  const footer = document.querySelector('.site-footer') as HTMLElement | null
+  if (!footer) { fabBottom.value = 24; return }
+  const gap = 8
+  const footerTop = footer.getBoundingClientRect().top
+  const visible = window.innerHeight - footerTop
+  fabBottom.value = visible > 0 ? visible + gap : 24
+}
+
 // Close on Escape
 onMounted(() => {
   const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') closeModal() }
   window.addEventListener('keydown', onKey)
-  onBeforeUnmount(() => window.removeEventListener('keydown', onKey))
+  window.addEventListener('scroll', updateFabPosition, { passive: true })
+  window.addEventListener('resize', updateFabPosition, { passive: true })
+  updateFabPosition()
+  onBeforeUnmount(() => {
+    window.removeEventListener('keydown', onKey)
+    window.removeEventListener('scroll', updateFabPosition)
+    window.removeEventListener('resize', updateFabPosition)
+  })
 })
 
 const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezeichnet']
@@ -73,6 +92,7 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
     <!-- Floating trigger button -->
     <button
       class="cv-fab"
+      :style="{ bottom: fabBottom + 'px' }"
       aria-label="Chillventa Feedback geben"
       title="Feedback zur Chillventa-Demo"
       @click="openModal"
@@ -266,7 +286,7 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
 /* ── Floating Action Button ────────────────────────────────────────────────── */
 .cv-fab {
   position: fixed;
-  bottom: 24px;
+  bottom: 24px; /* overridden by inline :style */
   left: 24px;
   z-index: 50;
   display: inline-flex;
