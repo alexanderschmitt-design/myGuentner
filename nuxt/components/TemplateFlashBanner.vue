@@ -58,14 +58,13 @@ const { state, dismiss } = useTemplateFlash()
   display: flex;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg,
-    color-mix(in srgb, var(--c-brand-blue, #0078BE) 92%, white) 0%,
-    color-mix(in srgb, var(--c-brand-blue, #0078BE) 78%, white) 100%);
-  color: white;
+  background: #ffffff;
+  color: #1a1a1a;
   border-radius: 12px;
+  border: 1.5px solid var(--c-brand-blue, #0078BE);
   box-shadow:
-    0 12px 40px color-mix(in srgb, var(--c-brand-blue, #0078BE) 40%, transparent),
-    0 0 0 6px color-mix(in srgb, var(--c-brand-blue, #0078BE) 12%, transparent);
+    0 8px 32px rgba(0, 120, 190, 0.14),
+    0 2px 8px rgba(0, 0, 0, 0.08);
   animation: template-flash-pulse 1.4s ease-out;
 }
 .template-flash-icon {
@@ -73,7 +72,7 @@ const { state, dismiss } = useTemplateFlash()
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.18);
+  background: var(--c-brand-blue, #0078BE);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -93,13 +92,13 @@ const { state, dismiss } = useTemplateFlash()
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  opacity: 0.85;
+  color: var(--c-brand-blue, #0078BE);
 }
 .template-flash-detail {
   font-family: var(--font-ui);
   font-size: var(--font-2xs, 14.17px);
   line-height: 1.35;
-  color: white;
+  color: #1a1a1a;
 }
 .template-flash-detail strong { font-weight: 600; }
 .template-flash-count {
@@ -107,25 +106,31 @@ const { state, dismiss } = useTemplateFlash()
   margin-left: 8px;
   padding: 2px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 12%, white);
+  color: var(--c-brand-blue, #0078BE);
   font-size: var(--font-4xs, 11.58px);
+  font-weight: 600;
   vertical-align: middle;
+  border: 1px solid color-mix(in srgb, var(--c-brand-blue, #0078BE) 30%, white);
 }
 .template-flash-close {
   flex-shrink: 0;
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: none;
-  background: rgba(255, 255, 255, 0.15);
-  color: white;
+  border: 1px solid color-mix(in srgb, var(--c-brand-blue, #0078BE) 30%, white);
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 10%, white);
+  color: var(--c-brand-blue, #0078BE);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s;
+  transition: background 0.15s, border-color 0.15s;
 }
-.template-flash-close:hover { background: rgba(255, 255, 255, 0.28); }
+.template-flash-close:hover {
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 18%, white);
+  border-color: var(--c-brand-blue, #0078BE);
+}
 
 /* Enter/Leave animations */
 .flash-banner-enter-active {
@@ -143,11 +148,10 @@ const { state, dismiss } = useTemplateFlash()
   opacity: 0;
 }
 
-/* Persistent gentle pulse on the shadow for ~1.4s after entry */
 @keyframes template-flash-pulse {
-  0%   { box-shadow: 0 12px 40px color-mix(in srgb, var(--c-brand-blue, #0078BE) 40%, transparent), 0 0 0 0    color-mix(in srgb, var(--c-brand-blue, #0078BE) 25%, transparent); }
-  60%  { box-shadow: 0 12px 40px color-mix(in srgb, var(--c-brand-blue, #0078BE) 40%, transparent), 0 0 0 22px color-mix(in srgb, var(--c-brand-blue, #0078BE)  0%, transparent); }
-  100% { box-shadow: 0 12px 40px color-mix(in srgb, var(--c-brand-blue, #0078BE) 40%, transparent), 0 0 0 6px  color-mix(in srgb, var(--c-brand-blue, #0078BE) 12%, transparent); }
+  0%   { box-shadow: 0 8px 32px rgba(0,120,190,0.14), 0 0 0 0    rgba(0,120,190,0.18); }
+  60%  { box-shadow: 0 8px 32px rgba(0,120,190,0.14), 0 0 0 16px rgba(0,120,190,0); }
+  100% { box-shadow: 0 8px 32px rgba(0,120,190,0.14), 0 2px 8px  rgba(0,0,0,0.08); }
 }
 @keyframes template-flash-icon-spin {
   0%   { transform: rotate(-40deg) scale(0.6); }
