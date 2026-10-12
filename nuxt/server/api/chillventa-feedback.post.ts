@@ -18,13 +18,14 @@ export default defineEventHandler(async (event) => {
 
   try {
     const sb = getSupabaseServiceClient()
+    const toStr = (v: unknown) => (v != null && v !== 0 && v !== '') ? String(v) : null
     const { error } = await sb.from('chillventa_feedback').insert({
       customer_name: customerName,
-      chatbot_feedback: body.chatbot_feedback?.trim() || null,
-      catalog_feedback: body.catalog_feedback?.trim() || null,
-      refrigerant_feedback: body.refrigerant_feedback?.trim() || null,
-      other_use_cases: body.other_use_cases?.trim() || null,
-      comments: body.comments?.trim() || null,
+      chatbot_feedback: toStr(body.chatbot_feedback),
+      catalog_feedback: toStr(body.catalog_feedback),
+      refrigerant_feedback: toStr(body.refrigerant_feedback),
+      other_use_cases: typeof body.other_use_cases === 'string' ? body.other_use_cases.trim() || null : null,
+      comments: typeof body.comments === 'string' ? body.comments.trim() || null : null,
     })
     if (error) throw new Error(error.message)
     return { ok: true }
