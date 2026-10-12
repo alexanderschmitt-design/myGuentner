@@ -79,7 +79,8 @@ const CATALOG_IMAGE_RULES: Array<{ test: (n: string) => boolean; file: string }>
   // Fallbacks for specialty products
   { test: n => n.includes('high density'),      file: 'V-shape VARIO Dry Cooler EU.webp' },
   { test: n => n.includes('ecoss') || n.includes('fce'), file: 'Vertical COMPACT Dry Cooler EU.webp' },
-  { test: n => n.includes('penthouse') || n.includes('highstore'), file: 'Floor Air Cooler EU.webp' },
+  { test: n => n.includes('highstore'), file: 'Highstore Air Cooler EU.webp' },
+  { test: n => n.includes('penthouse'), file: 'Floor Air Cooler EU.webp' },
   { test: n => n.includes('thermostore') || n.includes('process'), file: 'Cubic COMPACT Air Cooler EU.webp' },
 ]
 
