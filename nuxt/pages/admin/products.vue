@@ -6,6 +6,7 @@
  * Tab "Produkte":   Importierter CSV-Katalog — durchsuchbar, nach Serie filterbar.
  * Tab "Ersatzteile": Importiertes Spare-Part-Price-Book — durchsuchbar.
  */
+import { getCatalogProductImagePath } from '~/utils/productImagePath'
 import { ref, reactive, computed, onMounted } from 'vue'
 import { SERIES_CATALOG } from '~/data/seriesCatalog'
 import { CATEGORIES } from '~/composables/useCategory'
@@ -1154,7 +1155,7 @@ async function saveNewProduct() {
               <template v-for="e in katalogEntries" :key="e.id">
                 <tr class="ke-row" :class="{ 'ke-row--expanded': katalogExpanded[e.id] }">
                   <td class="ke-td ke-td-img">
-                    <img :src="e.image_path ?? '/images/products/Floor Air Cooler EU.png'" class="ke-thumb" loading="lazy" :alt="e.product_name" />
+                    <img :src="getCatalogProductImagePath(e)" class="ke-thumb" loading="lazy" :alt="e.product_name" />
                   </td>
                   <td class="ke-td">
                     <div class="ke-name">{{ e.product_name }}</div>
@@ -1324,7 +1325,7 @@ async function saveNewProduct() {
               @click="pickImage(path)"
             >
               <div class="mp-card-img-wrap"><img :src="path" class="mp-card-img" loading="lazy" /></div>
-              <span class="mp-card-name">{{ path.split('/').pop()?.replace(' EU.png','').replace('.png','') }}</span>
+              <span class="mp-card-name">{{ path.split('/').pop()?.replace(' EU.webp','').replace('.webp','') }}</span>
               <div v-if="(mediaPicker.targetId === '__new__' ? createForm.image_path : getKatalogEdit(mediaPicker.targetId).image_path) === path" class="mp-card-check">✓</div>
             </button>
           </div>
