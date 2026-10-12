@@ -137,9 +137,9 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
                 />
               </div>
 
-              <!-- Chatbot -->
+              <!-- Q2: Chatbot -->
               <div class="cv-field">
-                <label class="cv-label"><span>🤖</span> Chatbot Günther</label>
+                <label class="cv-label"><span>🤖</span> Wie bewerten Sie den Ansatz der Chatbot-gestützten Produktkonfiguration mit Günther?</label>
                 <div class="cv-stars-wrap">
                   <div class="cv-stars">
                     <button
@@ -161,33 +161,9 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
                 </div>
               </div>
 
-              <!-- Catalog -->
+              <!-- Q3: by Application / by Refrigerant -->
               <div class="cv-field">
-                <label class="cv-label"><span>📖</span> Produktkonfigurator</label>
-                <div class="cv-stars-wrap">
-                  <div class="cv-stars">
-                    <button
-                      v-for="n in 5" :key="n"
-                      type="button"
-                      class="cv-star"
-                      :class="{ filled: n <= (hover.catalog_feedback || form.catalog_feedback) }"
-                      :aria-label="`${n} von 5 Sternen`"
-                      @mouseenter="hover.catalog_feedback = n"
-                      @mouseleave="hover.catalog_feedback = 0"
-                      @click="form.catalog_feedback = form.catalog_feedback === n ? 0 : n"
-                    >
-                      <svg viewBox="0 0 20 20" width="32" height="32">
-                        <path d="M10 2l2.4 5.3H18l-4.5 3.4 1.7 5.6L10 13.3l-5.2 3 1.7-5.6L2 7.3h5.6z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-                      </svg>
-                    </button>
-                  </div>
-                  <span class="cv-stars-label">{{ STAR_LABELS[hover.catalog_feedback || form.catalog_feedback] || '—' }}</span>
-                </div>
-              </div>
-
-              <!-- Refrigerant -->
-              <div class="cv-field">
-                <label class="cv-label"><span>❄️</span> Kältemittel-Beratung</label>
+                <label class="cv-label"><span>❄️</span> Wie bewerten Sie den Ansatz, die Konfiguration über „by Application" oder „by Refrigerant" zu starten?</label>
                 <div class="cv-stars-wrap">
                   <div class="cv-stars">
                     <button
@@ -209,16 +185,53 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
                 </div>
               </div>
 
-              <!-- Other use cases -->
+              <!-- Q4: Produktkatalog -->
               <div class="cv-field">
-                <label class="cv-label"><span>💡</span> Weitere Anwendungsfälle</label>
-                <input
-                  v-model="form.other_use_cases"
-                  type="text"
-                  class="cv-input"
-                  placeholder="z.B. Serviceplanung, Schulungen …"
-                  autocomplete="off"
-                />
+                <label class="cv-label"><span>📖</span> Wie bewerten Sie die Anzeige des Produktkatalogs im myGPC?</label>
+                <div class="cv-stars-wrap">
+                  <div class="cv-stars">
+                    <button
+                      v-for="n in 5" :key="n"
+                      type="button"
+                      class="cv-star"
+                      :class="{ filled: n <= (hover.catalog_feedback || form.catalog_feedback) }"
+                      :aria-label="`${n} von 5 Sternen`"
+                      @mouseenter="hover.catalog_feedback = n"
+                      @mouseleave="hover.catalog_feedback = 0"
+                      @click="form.catalog_feedback = form.catalog_feedback === n ? 0 : n"
+                    >
+                      <svg viewBox="0 0 20 20" width="32" height="32">
+                        <path d="M10 2l2.4 5.3H18l-4.5 3.4 1.7 5.6L10 13.3l-5.2 3 1.7-5.6L2 7.3h5.6z" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                      </svg>
+                    </button>
+                  </div>
+                  <span class="cv-stars-label">{{ STAR_LABELS[hover.catalog_feedback || form.catalog_feedback] || '—' }}</span>
+                </div>
+              </div>
+
+              <!-- Q5: Ja/Nein -->
+              <div class="cv-field">
+                <label class="cv-label"><span>💬</span> Würden Sie den Chatbot im Kundenportal zukünftig auch für alle anderen Module nutzen?</label>
+                <div class="cv-yesno-group">
+                  <button
+                    type="button"
+                    class="cv-yesno-btn cv-yesno-yes"
+                    :class="{ active: form.other_use_cases === 'Ja' }"
+                    @click="form.other_use_cases = form.other_use_cases === 'Ja' ? '' : 'Ja'"
+                  >
+                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10l4 4 8-8"/></svg>
+                    Ja
+                  </button>
+                  <button
+                    type="button"
+                    class="cv-yesno-btn cv-yesno-no"
+                    :class="{ active: form.other_use_cases === 'Nein' }"
+                    @click="form.other_use_cases = form.other_use_cases === 'Nein' ? '' : 'Nein'"
+                  >
+                    <svg viewBox="0 0 20 20" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 5l10 10M15 5L5 15"/></svg>
+                    Nein
+                  </button>
+                </div>
               </div>
 
               <!-- Comments -->
@@ -527,6 +540,34 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
   border: 1px solid #f5c6c6;
   margin: 0;
 }
+
+/* Yes / No buttons */
+.cv-yesno-group {
+  display: flex;
+  gap: 10px;
+}
+.cv-yesno-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #dde3ea;
+  background: white;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s, transform 0.1s;
+  color: #444;
+}
+.cv-yesno-btn:hover { transform: translateY(-1px); }
+.cv-yesno-yes:hover  { border-color: #2a7d4f; background: #f0faf4; color: #2a7d4f; }
+.cv-yesno-no:hover   { border-color: #c0392b; background: #fdf2f2; color: #c0392b; }
+.cv-yesno-yes.active { border-color: #2a7d4f; background: #e8f5ee; color: #2a7d4f; }
+.cv-yesno-no.active  { border-color: #c0392b; background: #fdf2f2; color: #c0392b; }
 
 /* ── Transitions ───────────────────────────────────────────────────────────── */
 .cv-backdrop-enter-active,

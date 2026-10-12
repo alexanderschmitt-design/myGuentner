@@ -25,10 +25,10 @@ const deleting = ref(false)
 
 const columns = [
   { key: 'customer_name', label: 'Name / Unternehmen' },
-  { key: 'chatbot_feedback', label: 'Chatbot', width: '110px', align: 'center' as const },
-  { key: 'catalog_feedback', label: 'Konfigurator', width: '110px', align: 'center' as const },
-  { key: 'refrigerant_feedback', label: 'Kältemittel', width: '110px', align: 'center' as const },
-  { key: 'other_use_cases', label: 'Weitere Nutzung', width: '150px' },
+  { key: 'chatbot_feedback', label: 'Chatbot-Ansatz', width: '120px', align: 'center' as const },
+  { key: 'refrigerant_feedback', label: 'by App / Refrig.', width: '120px', align: 'center' as const },
+  { key: 'catalog_feedback', label: 'Produktkatalog', width: '120px', align: 'center' as const },
+  { key: 'other_use_cases', label: 'Weitere Module?', width: '120px', align: 'center' as const },
   { key: 'created_at', label: 'Datum', width: '140px' },
   { key: 'expand', label: '', width: '36px', align: 'center' as const },
   { key: 'delete', label: '', width: '36px', align: 'center' as const },
@@ -189,9 +189,15 @@ onMounted(load)
         </span>
       </template>
       <template #cell-other_use_cases="{ row }">
-        <span class="text-truncate" :title="row.other_use_cases ?? ''">
-          {{ row.other_use_cases || '—' }}
-        </span>
+        <span
+          v-if="row.other_use_cases === 'Ja'"
+          class="yesno-chip yesno-yes"
+        >✓ Ja</span>
+        <span
+          v-else-if="row.other_use_cases === 'Nein'"
+          class="yesno-chip yesno-no"
+        >✗ Nein</span>
+        <span v-else class="text-muted">—</span>
       </template>
       <template #cell-created_at="{ row }">{{ formatDate(row.created_at) }}</template>
       <template #cell-expand="{ row }">
@@ -362,6 +368,18 @@ onMounted(load)
   font-size: var(--font-3xs);
   color: var(--c-text-medium);
 }
+
+/* Ja/Nein chips */
+.yesno-chip {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-size: var(--font-4xs, 11.58px);
+  font-weight: 600;
+}
+.yesno-yes { background: #e8f5ee; color: #2a7d4f; }
+.yesno-no  { background: #fdf2f2; color: #c0392b; }
 
 /* Buttons */
 .btn-sm { padding: 6px 12px; font-size: var(--font-3xs, 12.81px); }
