@@ -139,7 +139,7 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
 
               <!-- Q2: Chatbot -->
               <div class="cv-field">
-                <label class="cv-label"><span>🤖</span> Wie bewerten Sie den Ansatz der Chatbot-gestützten Produktkonfiguration mit Günther?</label>
+                <label class="cv-label"><span>🤖</span> Wie bewerten Sie den Ansatz der Chatbot-gestützten Produktkonfiguration?</label>
                 <div class="cv-stars-wrap">
                   <div class="cv-stars">
                     <button
