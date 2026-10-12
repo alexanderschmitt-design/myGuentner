@@ -6,7 +6,7 @@ export interface TemplateGuidanceData {
 }
 
 defineProps<{ data: TemplateGuidanceData }>()
-const emit = defineEmits<{ (e: 'ask'): void }>()
+const emit = defineEmits<{ (e: 'ask'): void; (e: 'navigate'): void }>()
 </script>
 
 <template>
@@ -64,8 +64,15 @@ const emit = defineEmits<{ (e: 'ask'): void }>()
       </p>
     </div>
 
-    <!-- CTA -->
-    <button type="button" class="tgc-cta" @click="emit('ask')">
+    <!-- CTAs -->
+    <button type="button" class="tgc-cta" @click="emit('navigate')">
+      <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
+           stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 8h10M9 4l4 4-4 4"/>
+      </svg>
+      Proceed to Unit Selection
+    </button>
+    <button type="button" class="tgc-cta tgc-cta--secondary" @click="emit('ask')">
       <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor"
            stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M2 3h12v8H9l-3 2v-2H2z"/>
@@ -208,4 +215,16 @@ const emit = defineEmits<{ (e: 'ask'): void }>()
   background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 70%, black);
 }
 .tgc-cta:focus-visible { outline: none; box-shadow: var(--shadow-focus); }
+
+.tgc-cta--secondary {
+  background: transparent;
+  color: var(--c-brand-blue, #0078BE);
+  border: 1.5px solid var(--c-brand-blue, #0078BE);
+}
+.tgc-cta--secondary:hover {
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 8%, white);
+}
+.tgc-cta--secondary:active {
+  background: color-mix(in srgb, var(--c-brand-blue, #0078BE) 15%, white);
+}
 </style>

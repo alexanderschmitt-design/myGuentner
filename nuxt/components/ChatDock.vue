@@ -102,6 +102,11 @@ function onTemplateGuidanceAsk() {
   nextTick(() => inputRef.value?.focus())
 }
 
+function onTemplateGuidanceNavigate() {
+  const catId = route.params.catId
+  useRouter().push(`/mygpc/${catId}/unit-selection`)
+}
+
 function onProductPreviewAction(action: 'more-info' | 'configure' | 'contact-sales', data: ProductPreviewData) {
   if (action === 'more-info') {
     productCtx.value = null
@@ -1293,6 +1298,7 @@ function pickPreset(p: PresetIntent) {
               <TemplateGuidanceCard
                 :data="msg.templateGuidance"
                 @ask="onTemplateGuidanceAsk"
+                @navigate="onTemplateGuidanceNavigate"
               />
             </template>
             <!-- Product message group: card + Günther bubble + action buttons -->
