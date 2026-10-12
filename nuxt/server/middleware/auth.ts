@@ -12,7 +12,8 @@ import { serverSupabaseUser } from '#supabase/server'
 
 // Public API routes (no auth required). Anything else under /api/* is protected.
 const PUBLIC_ROUTES = new Set<string>([
-  '/api/_health'       // uptime monitor endpoint (future)
+  '/api/_health',           // uptime monitor endpoint (future)
+  '/api/chillventa-feedback' // Messe-Feedback-Formular (kein Login erforderlich)
 ])
 
 // Prefixes that are public.
