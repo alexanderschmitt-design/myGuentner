@@ -88,7 +88,11 @@ export function getCatalogProductImagePath(product: {
   product_name: string
   image_path?: string | null
 }): string {
-  if (product.image_path) return product.image_path.replace(/\.png$/i, '.webp')
+  if (product.image_path) {
+    const p = product.image_path.replace(/\.png$/i, '.webp')
+    // Only trust paths that point to a known EU hero image or HydroBlu variant
+    if (/ EU\.webp$/i.test(p) || /HydroBlu.*\.webp$/i.test(p)) return p
+  }
   const n = product.product_name.toLowerCase()
   for (const rule of CATALOG_IMAGE_RULES) {
     if (rule.test(n)) return `/images/products/${rule.file}`
