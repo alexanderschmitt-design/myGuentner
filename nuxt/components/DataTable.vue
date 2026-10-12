@@ -57,18 +57,21 @@ function keyFor(row: T, i: number): string | number {
             {{ emptyMessage || 'Keine Einträge.' }}
           </td>
         </tr>
-        <tr v-else v-for="(row, i) in rows" :key="keyFor(row, i)">
-          <td
-            v-for="c in columns"
-            :key="c.key"
-            :style="{ textAlign: c.align || 'left' }"
-          >
-            <slot :name="`cell-${c.key}`" :row="row" :value="(row as any)[c.key]">{{ (row as any)[c.key] }}</slot>
-          </td>
-          <td v-if="$slots.actions" class="data-table-actions">
-            <slot name="actions" :row="row" />
-          </td>
-        </tr>
+        <template v-else v-for="(row, i) in rows" :key="keyFor(row, i)">
+          <tr>
+            <td
+              v-for="c in columns"
+              :key="c.key"
+              :style="{ textAlign: c.align || 'left' }"
+            >
+              <slot :name="`cell-${c.key}`" :row="row" :value="(row as any)[c.key]">{{ (row as any)[c.key] }}</slot>
+            </td>
+            <td v-if="$slots.actions" class="data-table-actions">
+              <slot name="actions" :row="row" />
+            </td>
+          </tr>
+          <slot name="after-row" :row="row" :index="i" />
+        </template>
       </tbody>
     </table>
   </div>

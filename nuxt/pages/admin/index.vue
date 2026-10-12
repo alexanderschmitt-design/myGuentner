@@ -73,6 +73,12 @@ const cards: Card[] = [
     title: 'Produktserien',
     description: 'Chatbot-Intro-Text, Dokumente und Templates pro Güntner-Serie pflegen.',
     icon: 'M2 3h5v10H2z M9 3h5v10H9z M4 7h1 M11 7h1 M4 10h1 M11 10h1'
+  },
+  {
+    to: '/admin/chillventa-feedback',
+    title: 'Chillventa Feedback',
+    description: 'Messe-Feedback von der Chillventa 2024 — Bewertungen und Kommentare auswerten.',
+    icon: 'M8 2l1.5 4h4l-3.2 2.4 1.2 4L8 10l-3.5 2.4 1.2-4L2.5 6H7z'
   }
 ]
 </script>
