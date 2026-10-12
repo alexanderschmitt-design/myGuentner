@@ -481,13 +481,6 @@ const STAR_LABELS = ['', 'Schlecht', 'Ausreichend', 'Gut', 'Sehr gut', 'Ausgezei
   stroke: #f59e0b;
   fill: #f59e0b;
 }
-.cv-stars:hover .cv-star svg {
-  stroke: #d1d5db;
-  fill: none;
-}
-.cv-stars:hover .cv-star:hover svg,
-.cv-stars:hover .cv-star:hover ~ .cv-star svg { /* handled via :class */ }
-.cv-star.filled svg { stroke: #f59e0b; fill: #f59e0b; }
 .cv-stars-label {
   font-family: var(--font-ui, sans-serif);
   font-size: 12.5px;
