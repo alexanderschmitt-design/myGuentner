@@ -343,6 +343,7 @@ async function logout() {
     <LearnModeOverlay />
     <ToastStack />
     <TemplateFlashBanner />
+    <ChillventaFeedbackWidget />
 
     <footer class="site-footer">
       <div class="footer-left">
